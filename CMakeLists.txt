@@ -73,7 +73,7 @@ else (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 endif (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 # Specify source files
-# file(GLOB_RECURSE sources src/*.f90)
+set(sources src/curvefit_core.f90)
 
 # Define necessary CMake variables, and define the dependency.
 if (BUILD_SHARED_LIBS)
@@ -87,23 +87,25 @@ if (BUILD_SHARED_LIBS)
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
-#   add_subdirectory(external/linalg)
+  add_subdirectory(external/nonlin)
 else()
   # Building a static library, simply add source code to this library
-#   file(GLOB_RECURSE linalg_sources 
-#     external/linalg/src/*.f90 
-#     external/linalg/LAPACK/BLAS/src/*.f
-#     external/linalg/LAPACK/src/*.f 
-#     external/linalg/src/QRUPDATE/*.f
-#     external/linalg/ferror/src/*.f90)
-#   list(APPEND sources ${linalg_sources})
+  file(GLOB_RECURSE nonlin_sources external/nonlin/src/*.f90)
+  file(GLOB_RECURSE linalg_sources external/nonlin/external/linalg/src/*.f90
+    external/nonlin/external/linalg/src/QRUPDATE/*.f90
+    external/nonlin/external/linalg/LAPACK/BLAS/src/*.f
+    external/nonlin/external/linalg/LAPACK/src/*.f)
+  file(GLOB_RECURSE ferror_sources external/nonlin/external/linalg/ferror/src/*.f90)
+  list(APPEND sources ${nonlin_sources})
+  list(APPEND sources ${linalg_sources})
+  list(APPEND sources ${ferror_sources})
 endif()
 
 # If BUILD_SHARED_LIBS is defined, then a shared library (DLL) will be built;
 # else, a static library will be built.
 add_library(curvefit ${sources})
 if (BUILD_SHARED_LIBS)
-#   target_link_libraries(curvefit linalg ferror)
+  target_link_libraries(curvefit nonlin linalg ferror)
 endif ()
 
 # ------------------------------------------------------------------------------
