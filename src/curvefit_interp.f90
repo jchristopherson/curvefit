@@ -28,7 +28,7 @@ contains
     procedure, non_overridable, public :: locate => im_locate
     !> @brief Attempts to locate the index in the array providing a lower bounds
     !!  to the specified interpolation point.
-    procedure, non_overridable, public :: hunt => interp_hunt
+    procedure, non_overridable, public :: hunt => im_hunt
     !> @brief Interpolates to obtain the function value at the specified
     !!  independent variable.
     generic, public :: interpolate => im_perform, im_perform_array
