@@ -151,15 +151,13 @@ endif()
 # ------------------------------------------------------------------------------
 # TESTS
 # ------------------------------------------------------------------------------
-# set(nonlin_test_sources external/linalg/tests/test_core.f90
-#   tests/nonlin_test.f90 tests/nonlin_test_jacobian.f90
-#   tests/nonlin_test_solve.f90 tests/nonlin_test_poly.f90
-#   tests/nonlin_test_optimize.f90)
-# add_executable(nonlin_test ${nonlin_test_sources})
-# target_link_libraries(nonlin_test nonlin)
-# add_custom_command(OUTPUT nonlin_tests DEPENDS ${nonlin_test_sources}
-#   COMMAND nonlin_test)
-# add_custom_target(run_nonlin_tests ALL DEPENDS nonlin_tests)
+set(curvefit_test_sources tests/curvefit_test.f90 
+  tests/curvefit_test_interp.f90)
+add_executable(curvefit_test ${curvefit_test_sources})
+target_link_libraries(curvefit_test curvefit)
+add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
+  COMMAND curvefit_test)
+add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
 
 # # C Test
 # include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
