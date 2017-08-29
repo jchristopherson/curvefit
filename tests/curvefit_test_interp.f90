@@ -29,7 +29,7 @@ contains
         end do
 
         xi(1) = -0.1d0
-        dx = dx * (real(n, dp) / m)
+        dx = dx * (real(n, dp) / m) + 0.001d0
         do i = 2, m
             xi(i) = xi(i-1) + dx
         end do
