@@ -87,6 +87,14 @@ contains
     !! @param[in] x An N-element array containing the independent variable data.
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] order The order of the interpolating polynomial.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
     subroutine im_init(this, x, y, order, err)
         ! Arguments
         class(interp_manager), intent(inout) :: this
@@ -115,7 +123,9 @@ contains
             write(errmsg, '(AI0AI0A)') &
                 "Expected the dependent variable array to be of length ", &
                 size(x), ", but found an array of length ", size(y), "."
-            
+            call errmgr%report_error("im_init", trim(errmsg), &
+                CF_ARRAY_SIZE_ERROR)
+            return
         end if
 
         if (allocated(this%m_x)) deallocate(this%m_x)
@@ -125,8 +135,12 @@ contains
         if (flag == 0) allocate(this%m_y(n), stat = flag)
         if (flag /= 0) then
             ! ERROR
+            call errmgr%report_error("im_init", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
         end if
 
+        ! Copy the data
         do i = 1, n
             this%m_x(i) = x(i)
             this%m_y(i) = y(i)
@@ -139,17 +153,33 @@ contains
     !!
     !! @param[in,out] this The interp_manager instance.
     !! @param[in] pt The interpolation point.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
     !!
     !! @return The array index below @p pt.
-    function im_locate(this, pt) result(j)
+    function im_locate(this, pt, err) result(j)
         ! Arguments
         class(interp_manager), intent(inout) :: this
         real(dp), intent(in) :: pt
+        class(errors), intent(inout), optional, target :: err
         integer :: j
 
         ! Local Variables
         integer(i32) :: n, m, jhi, jmid, jlo
         logical :: ascnd
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Ensure data has been defined
+        if (.not.allocated(this%m_x) .or. .not.allocated(this%m_y)) then
+            call errmgr%report_error("im_locate", "No data has been defined.", &
+                CF_NO_DATA_DEFINED_ERROR)
+            return
+        end if
 
         ! Initialization
         n = size(this%m_x)
@@ -185,17 +215,33 @@ contains
     !!
     !! @param[in,out] this The interp_manager instance.
     !! @param[in] pt The interpolation point.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
     !!
     !! @return The array index below @p pt.
-    function im_hunt(this, pt) result(j)
+    function im_hunt(this, pt, err) result(j)
         ! Arguments
         class(interp_manager), intent(inout) :: this
         real(dp), intent(in) :: pt
+        class(errors), intent(inout), optional, target :: err
         integer(i32) :: j
 
         ! Local Variables
         integer(i32) :: jlo, jmid, jhi, inc, n, m
         logical :: ascnd
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Ensure data has been defined
+        if (.not.allocated(this%m_x) .or. .not.allocated(this%m_y)) then
+            call errmgr%report_error("im_hunt", "No data has been defined.", &
+                CF_NO_DATA_DEFINED_ERROR)
+            return
+        end if
 
         ! Initialization
         n = size(this%m_x)
@@ -263,12 +309,19 @@ contains
     !!
     !! @param[in,out] this The interp_manager instance.
     !! @param[in] pt The independent variable value to interpolate.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
     !!
     !! @return The interpolated value.
-    function im_perform(this, pt) result(yy)
+    function im_perform(this, pt, err) result(yy)
         ! Arguments
         class(interp_manager), intent(inout) :: this
         real(dp), intent(in) :: pt
+        class(errors), intent(inout), optional, target :: err
         real(dp) :: yy
 
         ! Local Variables
@@ -276,9 +329,9 @@ contains
 
         ! Process
         if (this%m_correlated) then
-            jlo = this%hunt(pt)
+            jlo = this%hunt(pt, err)
         else
-            jlo = this%locate(pt)
+            jlo = this%locate(pt, err)
         end if
         yy = this%raw_interp(jlo, pt)
     end function
@@ -290,12 +343,19 @@ contains
     !! @param[in,out] this The interp_manager instance.
     !! @param[in] pt An M-element array containing the independent variable 
     !!  values to interpolate.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
     !!
     !! @return An M-element array containing the interpolated values.
-    function im_perform_array(this, pts) result(yy)
+    function im_perform_array(this, pts, err) result(yy)
         ! Arguments
         class(interp_manager), intent(inout) :: this
         real(dp), intent(in), dimension(:) :: pts
+        class(errors), intent(inout), optional, target :: err
         real(dp), dimension(size(pts)) :: yy
 
         ! Local Variables
@@ -304,9 +364,9 @@ contains
         ! Process
         do i = 1, size(pts)
             if (this%m_correlated) then
-                jlo = this%hunt(pts(i))
+                jlo = this%hunt(pts(i), err)
             else
-                jlo = this%locate(pts(i))
+                jlo = this%locate(pts(i), err)
             end if
             yy(i) = this%raw_interp(jlo, pts(i))
         end do
