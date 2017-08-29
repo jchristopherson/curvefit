@@ -3,41 +3,54 @@
 module curvefit_interp
     use curvefit_core
     implicit none
+    private
+    public :: interp_manager
+    public :: linear_interp
 
 ! ******************************************************************************
 ! TYPES
 ! ------------------------------------------------------------------------------
-!> @brief Describes an abstract base class allowing for interpolation of X-Y
-!! type data sets.
-!!
-!! @par Notes
-!! This interpolation object is based upon the interpolation scheme utilized
-!! by the Numerical Recipes in C++ text.
-type, abstract :: interp_manager
-private
-    integer(i32) :: m_npts
-    integer(i32) :: m_order
-    integer(i32) :: m_savedIndex
-    integer(i32) :: m_indexCheck
-    logical :: m_correlated
-contains
-    !> @brief Initializes the specified interp_manager instance.
-    procedure, public :: initialize => im_init
-    !> @brief Attempts to locate the index in the array providing a lower bounds
-    !!  to the specified interpolation point.
-    procedure, non_overridable, public :: locate => im_locate
-    !> @brief Attempts to locate the index in the array providing a lower bounds
-    !!  to the specified interpolation point.
-    procedure, non_overridable, public :: hunt => im_hunt
-    !> @brief Interpolates to obtain the function value at the specified
-    !!  independent variable.
-    generic, public :: interpolate => im_perform, im_perform_array
-    !> @brief Performs the actual interpolation.
-    procedure(interp_1d), deferred :: raw_interp
+    !> @brief Describes an abstract base class allowing for interpolation of X-Y
+    !! type data sets.
+    !!
+    !! @par Notes
+    !! This interpolation object is based upon the interpolation scheme utilized
+    !! by the Numerical Recipes in C++ text.
+    type, abstract :: interp_manager
+    private
+        integer(i32) :: m_npts
+        integer(i32) :: m_order
+        integer(i32) :: m_savedIndex
+        integer(i32) :: m_indexCheck
+        logical :: m_correlated
+    contains
+        !> @brief Initializes the specified interp_manager instance.
+        procedure, public :: initialize => im_init
+        !> @brief Attempts to locate the index in the array providing a lower 
+        !! bounds to the specified interpolation point.
+        procedure, non_overridable, public :: locate => im_locate
+        !> @brief Attempts to locate the index in the array providing a lower 
+        !! bounds to the specified interpolation point.
+        procedure, non_overridable, public :: hunt => im_hunt
+        !> @brief Interpolates to obtain the function value at the specified
+        !!  independent variable.
+        generic, public :: interpolate => im_perform, im_perform_array
+        !> @brief Performs the actual interpolation.
+        procedure(interp_1d), deferred :: raw_interp
 
-    procedure, non_overridable :: im_perform
-    procedure, non_overridable :: im_perform_array
-end type
+        procedure, non_overridable :: im_perform
+        procedure, non_overridable :: im_perform_array
+    end type
+
+! ------------------------------------------------------------------------------
+    !> @brief Extends the interp_manager class allowing for linear, piecewise
+    !! interpolation of a data set.
+    type, extends(interp_manager) :: linear_interp
+    contains
+        !> @brief Performs the actual interpolation.
+        procedure :: raw_interp => li_raw_interp
+    end type
+
 
 ! ******************************************************************************
 ! ABSTRACT INTERFACES
@@ -275,7 +288,35 @@ contains
         end do
     end function
 
+! ******************************************************************************
+! LINEAR_INTERP MEMBERS
 ! ------------------------------------------------------------------------------
+    !> @brief Performs the actual linear interpolation.
+    !!
+    !! @param[in,out] this The linear_interp_mgr instance.
+    !! @param[in] jlo The array index below which @p pt is found in @p x.
+    !! @param[in] x An N-element array of the independent data points.
+    !! @param[in] y An N-element array of the corresponding dependent data
+    !!  points.
+    !! @param[in] pt The independent variable value to interpolate.
+    !!
+    !! @return The interpolated value.
+    function li_raw_interp(this, jlo, x, y, pt) result(yy)
+        ! Arguments
+        class(linear_interp), intent(inout) :: this
+        integer(i32), intent(in) :: jlo
+        real(dp), intent(in), dimension(:) :: x, y
+        real(dp), intent(in) :: pt
+        real(dp) :: yy
+
+        ! Process
+        if (x(jlo) == x(jlo+1)) then
+            yy = y(jlo)
+        else
+            yy = y(jlo) + ((pt - x(jlo)) / (x(jlo+1) - x(jlo))) * &
+                (y(jlo+1) - y(jlo))
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 
