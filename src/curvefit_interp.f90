@@ -174,19 +174,25 @@ contains
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
+        ! Initialization
+        j = 0
+        n = size(this%m_x)
+        m = this%m_order + 1
+        ascnd = this%m_x(n) >= this%m_x(1)
+        jlo = 1
+        jhi = n
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
         ! Ensure data has been defined
         if (.not.allocated(this%m_x) .or. .not.allocated(this%m_y)) then
             call errmgr%report_error("im_locate", "No data has been defined.", &
                 CF_NO_DATA_DEFINED_ERROR)
             return
         end if
-
-        ! Initialization
-        n = size(this%m_x)
-        m = this%m_order + 1
-        ascnd = this%m_x(n) >= this%m_x(1)
-        jlo = 1
-        jhi = n
 
         ! Process
         do while (jhi - jlo > 1)
@@ -236,19 +242,26 @@ contains
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
+
+        ! Initialization
+        j = 0
+        n = size(this%m_x)
+        m = this%m_order + 1
+        jlo = this%m_savedIndex
+        inc = 1
+        ascnd = this%m_x(n) > this%m_x(1)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
         ! Ensure data has been defined
         if (.not.allocated(this%m_x) .or. .not.allocated(this%m_y)) then
             call errmgr%report_error("im_hunt", "No data has been defined.", &
                 CF_NO_DATA_DEFINED_ERROR)
             return
         end if
-
-        ! Initialization
-        n = size(this%m_x)
-        m = this%m_order + 1
-        jlo = this%m_savedIndex
-        inc = 1
-        ascnd = this%m_x(n) > this%m_x(1)
 
         ! Process
         if (jlo < 1 .or. jlo > n) then

@@ -28,7 +28,7 @@ contains
             y(i) = exp(-0.1d0 * x(i)) * sin(5.0d1 * x(i))
         end do
 
-        xi(1) = 0.0d0
+        xi(1) = -0.1d0
         dx = dx * (real(n, dp) / m)
         do i = 2, m
             xi(i) = xi(i-1) + dx
