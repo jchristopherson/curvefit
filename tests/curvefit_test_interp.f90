@@ -35,8 +35,8 @@ contains
         end do
 
         ! Interpolate
-        call interp%initialize(n, 1)
-        yi = interp%interpolate(x, y, xi)
+        call interp%initialize(x, y, 1)
+        yi = interp%interpolate(xi)
         
         ! Write the results to a text file so we can plot them
         open(newunit = id, file = "linear_interp.txt", action = "write", &

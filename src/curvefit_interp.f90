@@ -2,6 +2,7 @@
 
 module curvefit_interp
     use curvefit_core
+    use ferror, only : errors
     implicit none
     private
     public :: interp_manager
@@ -18,11 +19,12 @@ module curvefit_interp
     !! by the Numerical Recipes in C++ text.
     type, abstract :: interp_manager
     private
-        integer(i32) :: m_npts
         integer(i32) :: m_order
         integer(i32) :: m_savedIndex
         integer(i32) :: m_indexCheck
         logical :: m_correlated
+        real(dp), allocatable, dimension(:) :: m_x
+        real(dp), allocatable, dimension(:) :: m_y
     contains
         !> @brief Initializes the specified interp_manager instance.
         procedure, public :: initialize => im_init
@@ -60,19 +62,15 @@ interface
     !!  value in an X-Y data set.
     !!
     !! @param[in,out] this The interp_manager based instance.
-    !! @param[in] jlo The array index below which @p pt is found in @p x.
-    !! @param[in] x An N-element array of the independent data points.
-    !! @param[in] y An N-element array of the corresponding dependent data
-    !!  points.
+    !! @param[in] jlo The array index below which @p pt is found in x.
     !! @param[in] pt The independent variable value to interpolate.
     !!
     !! @return The interpolated value.
-    function interp_xy(this, jlo, x, y, pt) result(yy)
+    function interp_xy(this, jlo, pt) result(yy)
         use curvefit_core, only : dp, i32
         import interp_manager
         class(interp_manager), intent(inout) :: this
         integer(i32), intent(in) :: jlo
-        real(dp), intent(in), dimension(:) :: x, y
         real(dp), intent(in) :: pt
         real(dp) :: yy
     end function
@@ -86,15 +84,53 @@ contains
     !> @brief Initializes the specified interp_manager instance.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] npts The number of data points.
+    !! @param[in] x An N-element array containing the independent variable data.
+    !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] order The order of the interpolating polynomial.
-    subroutine im_init(this, npts, order)
+    subroutine im_init(this, x, y, order, err)
+        ! Arguments
         class(interp_manager), intent(inout) :: this
-        integer(i32), intent(in) :: npts, order
-        this%m_npts = npts
+        real(dp), intent(in), dimension(:) :: x, y
+        integer(i32), intent(in) :: order
+        class(errors), intent(inout), optional, target :: err
+
+        ! Local Variables
+        integer(i32) :: i, n, flag
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        character(len = 256) :: errmsg
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
         this%m_order = order
         this%m_savedIndex = 1
         this%m_indexCheck = 1
+        n = size(x)
+        if (size(y) /= n) then
+            ! ERROR
+            write(errmsg, '(AI0AI0A)') &
+                "Expected the dependent variable array to be of length ", &
+                size(x), ", but found an array of length ", size(y), "."
+            
+        end if
+
+        if (allocated(this%m_x)) deallocate(this%m_x)
+        if (allocated(this%m_y)) deallocate(this%m_y)
+
+        allocate(this%m_x(n), stat = flag)
+        if (flag == 0) allocate(this%m_y(n), stat = flag)
+        if (flag /= 0) then
+            ! ERROR
+        end if
+
+        do i = 1, n
+            this%m_x(i) = x(i)
+            this%m_y(i) = y(i)
+        end do
     end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -102,14 +138,12 @@ contains
     !!  to the specified interpolation point.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] x The array of independent variable data.
     !! @param[in] pt The interpolation point.
     !!
-    !! @return The array index in @p x below @p pt.
-    function im_locate(this, x, pt) result(j)
+    !! @return The array index below @p pt.
+    function im_locate(this, pt) result(j)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x
         real(dp), intent(in) :: pt
         integer :: j
 
@@ -118,16 +152,16 @@ contains
         logical :: ascnd
 
         ! Initialization
-        n = this%m_npts
+        n = size(this%m_x)
         m = this%m_order + 1
-        ascnd = x(n) >= x(1)
+        ascnd = this%m_x(n) >= this%m_x(1)
         jlo = 1
         jhi = n
 
         ! Process
         do while (jhi - jlo > 1)
             jmid = (jhi + jlo) / 2
-            if (pt >= x(jmid) .eqv. ascnd) then
+            if (pt >= this%m_x(jmid) .eqv. ascnd) then
                 jlo = jmid
             else
                 jhi = jmid
@@ -150,14 +184,12 @@ contains
     !!  too far from the previous.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] x The array of independent variable data.
     !! @param[in] pt The interpolation point.
     !!
-    !! @return The array index in @p x below @p pt.
-    function im_hunt(this, x, pt) result(j)
+    !! @return The array index below @p pt.
+    function im_hunt(this, pt) result(j)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x
         real(dp), intent(in) :: pt
         integer(i32) :: j
 
@@ -166,24 +198,24 @@ contains
         logical :: ascnd
 
         ! Initialization
-        n = this%m_npts
+        n = size(this%m_x)
         m = this%m_order + 1
         jlo = this%m_savedIndex
         inc = 1
-        ascnd = x(n) > x(1)
+        ascnd = this%m_x(n) > this%m_x(1)
 
         ! Process
         if (jlo < 1 .or. jlo > n) then
             jlo = 1
             jhi = n
         else
-            if (pt >= x(jlo) .eqv. ascnd) then
+            if (pt >= this%m_x(jlo) .eqv. ascnd) then
                 do
                     jhi = jlo + inc
                     if (jhi >= n) then
                         jhi = n
                         exit
-                    else if (pt < x(jhi) .eqv. ascnd) then
+                    else if (pt < this%m_x(jhi) .eqv. ascnd) then
                         exit
                     else
                         jlo = jhi
@@ -197,7 +229,7 @@ contains
                     if (jlo <= 1) then
                         jlo = 1
                         exit
-                    else if (pt >= x(jlo) .eqv. ascnd) then
+                    else if (pt >= this%m_x(jlo) .eqv. ascnd) then
                         exit
                     else
                         jhi = jlo
@@ -210,7 +242,7 @@ contains
         ! The hunt is done, so begin the final bisection phase
         do while (jhi - jlo > 1)
             jmid = (jhi + jlo) / 2
-            if (pt >= x(jmid) .eqv. ascnd) then
+            if (pt >= this%m_x(jmid) .eqv. ascnd) then
                 jlo = jmid
             else
                 jhi = jmid
@@ -230,16 +262,12 @@ contains
     !!  independent variable.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] x An N-element array of the independent data points.
-    !! @param[in] y An N-element array of the corresponding dependent data
-    !!  points.
     !! @param[in] pt The independent variable value to interpolate.
     !!
     !! @return The interpolated value.
-    function im_perform(this, x, y, pt) result(yy)
+    function im_perform(this, pt) result(yy)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
         real(dp), intent(in) :: pt
         real(dp) :: yy
 
@@ -248,11 +276,11 @@ contains
 
         ! Process
         if (this%m_correlated) then
-            jlo = this%hunt(x, pt)
+            jlo = this%hunt(pt)
         else
-            jlo = this%locate(x, pt)
+            jlo = this%locate(pt)
         end if
-        yy = this%raw_interp(jlo, x, y, pt)
+        yy = this%raw_interp(jlo, pt)
     end function
 
 ! ------------------------------------------------------------------------------
@@ -260,17 +288,13 @@ contains
     !!  independent variables.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] x An N-element array of the independent data points.
-    !! @param[in] y An N-element array of the corresponding dependent data
-    !!  points.
     !! @param[in] pt An M-element array containing the independent variable 
     !!  values to interpolate.
     !!
     !! @return An M-element array containing the interpolated values.
-    function im_perform_array(this, x, y, pts) result(yy)
+    function im_perform_array(this, pts) result(yy)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
         real(dp), intent(in), dimension(:) :: pts
         real(dp), dimension(size(pts)) :: yy
 
@@ -280,11 +304,11 @@ contains
         ! Process
         do i = 1, size(pts)
             if (this%m_correlated) then
-                jlo = this%hunt(x, pts(i))
+                jlo = this%hunt(pts(i))
             else
-                jlo = this%locate(x, pts(i))
+                jlo = this%locate(pts(i))
             end if
-            yy(i) = this%raw_interp(jlo, x, y, pts(i))
+            yy(i) = this%raw_interp(jlo, pts(i))
         end do
     end function
 
@@ -294,27 +318,24 @@ contains
     !> @brief Performs the actual linear interpolation.
     !!
     !! @param[in,out] this The linear_interp_mgr instance.
-    !! @param[in] jlo The array index below which @p pt is found in @p x.
-    !! @param[in] x An N-element array of the independent data points.
-    !! @param[in] y An N-element array of the corresponding dependent data
-    !!  points.
+    !! @param[in] jlo The array index below which @p pt is found in x.
     !! @param[in] pt The independent variable value to interpolate.
     !!
     !! @return The interpolated value.
-    function li_raw_interp(this, jlo, x, y, pt) result(yy)
+    function li_raw_interp(this, jlo, pt) result(yy)
         ! Arguments
         class(linear_interp), intent(inout) :: this
         integer(i32), intent(in) :: jlo
-        real(dp), intent(in), dimension(:) :: x, y
         real(dp), intent(in) :: pt
         real(dp) :: yy
 
         ! Process
-        if (x(jlo) == x(jlo+1)) then
-            yy = y(jlo)
+        if (this%m_x(jlo) == this%m_x(jlo+1)) then
+            yy = this%m_y(jlo)
         else
-            yy = y(jlo) + ((pt - x(jlo)) / (x(jlo+1) - x(jlo))) * &
-                (y(jlo+1) - y(jlo))
+            yy = this%m_y(jlo) + ((pt - this%m_x(jlo)) / &
+                (this%m_x(jlo+1) - this%m_x(jlo))) * &
+                (this%m_y(jlo+1) - this%m_y(jlo))
         end if
     end function
 
