@@ -3,7 +3,7 @@
 !> @mainpage
 !!
 !! @section intro_sec Introduction
-!! CURVEFIT is a ...
+!! CURVEFIT is a library for fitting functions to sets of data.
 !!
 !! @author Jason Christopherson
 !! @version 1.0.0
