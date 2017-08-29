@@ -36,7 +36,7 @@ module curvefit_interp
         !!  independent variable.
         generic, public :: interpolate => im_perform, im_perform_array
         !> @brief Performs the actual interpolation.
-        procedure(interp_1d), deferred :: raw_interp
+        procedure(interp_xy), deferred :: raw_interp
 
         procedure, non_overridable :: im_perform
         procedure, non_overridable :: im_perform_array
@@ -57,9 +57,9 @@ module curvefit_interp
 ! ------------------------------------------------------------------------------
 interface
     !> @brief Defines the signature of a method used to interpolate a single
-    !!  value in a 1D data set.
+    !!  value in an X-Y data set.
     !!
-    !! @param[in,out] this The InterpolateManager instance.
+    !! @param[in,out] this The interp_manager based instance.
     !! @param[in] jlo The array index below which @p pt is found in @p x.
     !! @param[in] x An N-element array of the independent data points.
     !! @param[in] y An N-element array of the corresponding dependent data
@@ -67,7 +67,7 @@ interface
     !! @param[in] pt The independent variable value to interpolate.
     !!
     !! @return The interpolated value.
-    function interp_1d(this, jlo, x, y, pt) result(yy)
+    function interp_xy(this, jlo, x, y, pt) result(yy)
         use curvefit_core, only : dp, i32
         import interp_manager
         class(interp_manager), intent(inout) :: this
