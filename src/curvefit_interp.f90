@@ -445,6 +445,7 @@ contains
     !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
     !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
     !!      available.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
     subroutine pi_init(this, x, y, order, err)
         ! Arguments
         class(polynomial_interp), intent(inout) :: this
@@ -466,6 +467,10 @@ contains
 
         ! Input Checking
         if (order < 1) then
+            cal errmgr%report_error("pi_init", &
+                "A polynomial order greater than or equal to 1 must " // &
+                "be specified.", CF_INVALID_INPUT_ERROR)
+            return
         end if
 
         ! Memory Allocation
