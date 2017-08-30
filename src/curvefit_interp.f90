@@ -467,7 +467,7 @@ contains
 
         ! Input Checking
         if (order < 1) then
-            cal errmgr%report_error("pi_init", &
+            call errmgr%report_error("pi_init", &
                 "A polynomial order greater than or equal to 1 must " // &
                 "be specified.", CF_INVALID_INPUT_ERROR)
             return
