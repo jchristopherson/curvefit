@@ -7,6 +7,7 @@ module curvefit_interp
     private
     public :: interp_manager
     public :: linear_interp
+    public :: polynomial_interp
 
 ! ******************************************************************************
 ! TYPES
@@ -51,6 +52,21 @@ module curvefit_interp
     contains
         !> @brief Performs the actual interpolation.
         procedure :: raw_interp => li_raw_interp
+    end type
+
+! ------------------------------------------------------------------------------
+    !> @brief Extends the interp_manager class allowing for polynomial 
+    !! interpolation of a data set.
+    type, extends(interp_manager) :: polynomial_interp
+    private
+        real(dp), allocatable, dimension(:) :: m_c
+        real(dp), allocatable, dimension(:) :: m_d
+        real(dp) :: m_dy
+    contains
+        !> @brief Initializes the specified polynomial_interp instance.
+        procedure, public :: initialize => pi_init
+        !> @brief Performs the actual interpolation.
+        procedure :: raw_interp => pi_raw_interp
     end type
 
 
@@ -412,9 +428,124 @@ contains
         end if
     end function
 
+! ******************************************************************************
+! POLYNOMIAL_INTERP MEMBERS
 ! ------------------------------------------------------------------------------
+    !> @brief Initializes the specified polynomial_interp instance.
+    !!
+    !! @param[in,out] this The polynomial_interp instance.
+    !! @param[in] x An N-element array containing the independent variable data.
+    !! @param[in] y An N-element array containing the dependent variable data.
+    !! @param[in] order The order of the interpolating polynomial.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    subroutine pi_init(this, x, y, order, err)
+        ! Arguments
+        class(polynomial_interp), intent(inout) :: this
+        real(dp), intent(in), dimension(:) :: x, y
+        integer(i32), intent(in) :: order
+        class(errors), intent(inout), optional, target :: err
+
+        ! Local Variables
+        integer(i32) :: m, flag
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Checking
+        if (order < 1) then
+        end if
+
+        ! Memory Allocation
+        call im_init(this, x, y, order, err)
+        if (allocated(this%m_c)) deallocate(this%m_c)
+        if (allocated(this%m_d)) deallocate(this%m_d)
+        m = order + 1
+        allocate(this%m_c(m), stat = flag)
+        if (flag == 0) allocate(this%m_d(m), stat = flag)
+        if (flag /= 0) then
+            call errmgr%report_error("pi_init", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
+        end if
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Performs the actual linear interpolation.
+    !!
+    !! @param[in,out] this The polynomial_interp instance.
+    !! @param[in] jlo The array index below which @p pt is found in x.
+    !! @param[in] pt The independent variable value to interpolate.
+    !!
+    !! @return The interpolated value.
+    function pi_raw_interp(this, jlo, pt) result(yy)
+        ! Arguments
+        class(polynomial_interp), intent(inout) :: this
+        integer(i32), intent(in) :: jlo
+        real(dp), intent(in) :: pt
+        real(dp) :: yy
+
+        ! Process
+        ! Local Variables
+        integer(i32) :: i, ind, m, ns, mm, jl
+        real(dp) :: den, dif, dift, ho, hp, w
+
+        ! Initialization
+        mm = this%m_order + 1
+        ns = 1
+        jl = jlo - 1
+        dif = abs(pt - this%m_x(jl + 1))
+
+        ! Find the index NS of the closest table entry, and then initialize
+        ! the C and D arrays.
+        do i = 1, mm
+            ind = jl + i
+            dift = abs(pt - this%m_x(ind))
+            if (dift < dif) then
+                ns = i
+                dif = dift
+            end if
+            this%m_c(i) = this%m_y(ind)
+            this%m_d(i) = this%m_y(ind)
+        end do
+
+        ! Define the initial approximation to the interpolated point
+        yy = this%m_y(jl + ns)
+        ns = ns - 1
+
+        ! Build the tables, and define the interpolated point
+        do m = 1, mm-1
+            do i = 1, mm - m
+                ind = jl + i
+                ho = this%m_x(ind) - pt
+                hp = this%m_x(ind+m) - pt
+                w = this%m_c(i+1) - this%m_d(i)
+                den = ho - hp
+                den = w / den
+                this%m_d(i) = hp * den
+                this%m_c(i) = ho * den
+            end do
+            if (2 * ns < mm - m) then
+                this%m_dy = this%m_c(ns + 1)
+            else
+                this%m_dy = this%m_d(ns)
+                ns = ns - 1
+            end if
+            yy = yy + this%m_dy
+        end do
+    end function
 
 ! ------------------------------------------------------------------------------
 
