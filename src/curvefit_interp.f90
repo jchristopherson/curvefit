@@ -69,6 +69,23 @@ module curvefit_interp
         procedure :: raw_interp => pi_raw_interp
     end type
 
+! ------------------------------------------------------------------------------
+    !> @brief Extends the interp_manager class allowing for spline interpolation
+    !! of a data set.
+    type, extends(interp_manager) :: spline_interp
+    private
+        real(dp), allocatable, dimension(:) :: m_ypp
+        real(dp), allocatable, dimension(:) :: m_a1
+        real(dp), allocatable, dimension(:) :: m_a2
+        real(dp), allocatable, dimension(:) :: m_a3
+        real(dp), allocatable, dimension(:) :: m_a4
+        real(dp), allocatable, dimension(:) :: m_a5
+        real(dp), allocatable, dimension(:) :: m_b
+    contains
+        !> @brief Performs the actual interpolation.
+        procedure :: raw_interp => si_raw_interp
+    end type
+
 
 ! ******************************************************************************
 ! ABSTRACT INTERFACES
@@ -488,7 +505,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    !> @brief Performs the actual linear interpolation.
+    !> @brief Performs the actual interpolation.
     !!
     !! @param[in,out] this The polynomial_interp instance.
     !! @param[in] jlo The array index below which @p pt is found in x.
@@ -502,7 +519,6 @@ contains
         real(dp), intent(in) :: pt
         real(dp) :: yy
 
-        ! Process
         ! Local Variables
         integer(i32) :: i, ind, m, ns, mm, jl
         real(dp) :: den, dif, dift, ho, hp, w
@@ -552,11 +568,269 @@ contains
         end do
     end function
 
+! ******************************************************************************
+! SPLINE_INTERP MEMBERS
 ! ------------------------------------------------------------------------------
+    !> @brief Solves a pentadiagonal system of linear equations.  A
+    !!  pentadiagonal matrix is all zeros with the exception of the diagonal,
+    !!  and the two immediate sub and super-diagonals.  The entries of row I
+    !!  are stored as follows:
+    !!      A(I,I-2) -> A1(I)
+    !!      A(I,I-1) -> A2(I)
+    !!      A(I,I) -> A3(I)
+    !!      A(I,I+1) -> A4(I)
+    !!      A(I,I+2) -> A5(I)
+    !!
+    !! @param[in] a1 An N-element array as defined above.
+    !! @param[in,out] a2 An N-element array as defined above.  This array is
+    !!  overwritten by this routine during the solution process.
+    !! @param[in,out] a3 An N-element array as defined above.  This array is
+    !!  overwritten by this routine during the solution process.
+    !! @param[in,out] a4 An N-element array as defined above.  This array is
+    !!  overwritten by this routine during the solution process.
+    !! @param[in] a5 An N-element array as defined above.
+    !! @param[in,out] b An N-element array containing the right-hand-side.  This
+    !!  array is overwritten by this routine during the solution process.
+    !! @param[out] x An N-element array that, on output, contains the solution
+    !!  to the linear system.
+    !!
+    !! - [Spline Library](http://people.sc.fsu.edu/~jburkardt/f77_src/spline/spline.html)
+    subroutine penta_solve(a1, a2, a3, a4, a5, b, x)
+        ! Arguments
+        real(dp), intent(in), dimension(:) :: a1, a5
+        real(dp), intent(inout), dimension(:) :: a2, a3, a4, b
+        real(dp), intent(out), dimension(:) :: x
+
+        ! Local Variables
+        integer(i32) :: i, n
+        real(dp) :: xmult
+
+        ! Initialization
+        n = size(a1)
+
+        ! Process
+        do i = 2, n - 1
+            xmult = a2(i) / a3(i - 1)
+            a3(i) = a3(i) - xmult * a4(i - 1)
+            a4(i) = a4(i) - xmult * a5(i - 1)
+            b(i) = b(i) - xmult * b(i - 1)
+            xmult = a1(i + 1) - xmult * a4(i - 1)
+            a2(i + 1) = a2(i + 1) - xmult * a4(i - 1)
+            a3(i + 1) = a3(i + 1) - xmult * a5(i - 1)
+            b(i + 1) = b(i + 1) - xmult * b(i - 1)
+        end do
+
+        xmult = a2(n) / a3(n - 1)
+        a3(n) = a3(n) - xmult * a4(n - 1)
+        x(n) = (b(n) - xmult * b(n - 1)) / a3(n)
+        x(n - 1) = (b(n - 1) - a4(n - 1) * x(n)) / a3(n - 1)
+        do i = n - 2, 1, -1
+            x(i) = (b(i) - a4(i) * x(i + 1) - a5(i) * x(i + 2)) / a3(i)
+        end do
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Performs the actual interpolation.
+    !!
+    !! @param[in,out] this The spline_interp instance.
+    !! @param[in] jlo The array index below which @p pt is found in x.
+    !! @param[in] pt The independent variable value to interpolate.
+    !!
+    !! @return The interpolated value.
+    function si_raw_interp(this, jlo, pt) result(yy)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        integer(i32), intent(in) :: jlo
+        real(dp), intent(in) :: pt
+        real(dp) :: yy
+
+        ! Parameters
+        real(dp), parameter :: half = 0.5d0
+        real(dp), parameter :: three = 3.0d0
+        real(dp), parameter :: six = 6.0d0
+
+        ! Local Variables
+        integer(i32) :: right
+        real(dp) :: dt, h
+
+        ! Initialization
+        right = jlo + 1
+        dt = pt - this%m_x(jlo)
+        h = this%m_x(right) - this%m_x(jlo)
+
+        ! Process
+        yy = this%m_y(jlo) + dt * ((this%m_y(right) - this%m_y(jlo)) / h - &
+            (this%m_ypp(right) / six + this%m_ypp(jlo) / three) * h + &
+            dt * (half * this%m_ypp(jlo) + &
+            dt * ((this%m_ypp(right) - this%m_ypp(jlo)) / (six * h))))
+    end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the second derivative terms for the cubic-spline model.
+    !!
+    !! @param[in,out] this The spline_interp_mgr instance.
+    !! @param[in] ibcbeg Defines the nature of the boundary condition at the
+    !!  beginning of the spline.
+    !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+    !!      initial interval.
+    !!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+    !!      initial point is provided in @p ybcbeg.
+    !!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+    !!      initial point is provided in @p ybcbeg.
+    !!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+    !!      at x(2).
+    !! @param[in] ybcbeg If needed, the value of the initial point boundary
+    !!  condition.
+    !! @param[in] ibcend Defines the nature of the boundary condition at the
+    !!  end of the spline.
+    !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+    !!      final interval.
+    !!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+    !!      initial point is provided in @p ybcend.
+    !!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+    !!      initial point is provided in @p ybcend.
+    !!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+    !!      at x(n-1).
+    !! @param[in] ybcend If needed, the value of the final point boundary
+    !!  condition.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    !!
+    !! - [Spline Library](http://people.sc.fsu.edu/~jburkardt/f77_src/spline/spline.html)
+    subroutine si_second_deriv(this, ibcbeg, ybcbeg, ibcend, ybcend, err)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        integer(i32), intent(in) :: ibcbeg, ibcend
+        real(dp), intent(in) :: ybcbeg, ybcend
+        class(errors), intent(inout), optional, target :: err
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+        real(dp), parameter :: three = 3.0d0
+        real(dp), parameter :: six = 6.0d0
+
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: i, n, flag
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+        n = size(this%m_x)
+
+        ! Allocate Memory
+        if (allocated(this%m_ypp)) deallocate(this%m_ypp)
+        if (allocated(this%m_a1)) deallocate(this%m_a1)
+        if (allocated(this%m_a2)) deallocate(this%m_a2)
+        if (allocated(this%m_a3)) deallocate(this%m_a3)
+        if (allocated(this%m_a4)) deallocate(this%m_a4)
+        if (allocated(this%m_a5)) deallocate(this%m_a5)
+        if (allocated(this%m_b)) deallocate(this%m_b)
+        allocate(this%m_ypp(n), stat = flag)
+        if (flag == 0) allocate(this%m_a1(n), stat = flag)
+        if (flag == 0) allocate(this%m_a2(n), stat = flag)
+        if (flag == 0) allocate(this%m_a3(n), stat = flag)
+        if (flag == 0) allocate(this%m_a4(n), stat = flag)
+        if (flag == 0) allocate(this%m_a5(n), stat = flag)
+        if (flag == 0) allocate(this%m_b(n), stat = flag)
+        if (flag /= 0) then
+            call errmgr%report_error("si_second_deriv", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
+        end if
+
+        ! Zero out the matrix
+        do i = 1, n
+            this%m_a1(i) = zero
+            this%m_a2(i) = zero
+            this%m_a3(i) = zero
+            this%m_a4(i) = zero
+            this%m_a5(i) = zero
+        end do
+
+        ! Set the first equation
+        select case (ibcbeg)
+        case (0)
+            this%m_b(1) = zero
+            this%m_a3(1) = one
+            this%m_a4(1) = one
+        case (1)
+            this%m_b(1) = (this%m_y(2) - this%m_y(1)) / &
+                (this%m_x(2) - this%m_x(1)) - ybcbeg
+            this%m_a3(1) = (this%m_x(2) - this%m_x(1)) / three
+            this%m_a4(1) = (this%m_x(2) - this%m_x(1)) / six
+        case (2)
+            this%m_b(1) = ybcbeg
+            this%m_a3(1) = one
+            this%m_a4(1) = zero
+        case (3)
+            this%m_b(1) = zero
+            this%m_a3(1) = this%m_x(2) - this%m_x(3)
+            this%m_a4(1) = this%m_x(3) - this%m_x(1)
+            this%m_a5(1) = this%m_x(1) - this%m_x(2)
+        case default
+            this%m_b(1) = zero
+            this%m_a3(1) = one
+            this%m_a4(1) = one
+        end select
+
+        ! Set the intermediate equations
+        do i = 2, n - 1
+            this%m_b(i) = (this%m_y(i+1) - this%m_y(i)) / &
+                (this%m_x(i+1) - this%m_x(i)) - &
+                (this%m_y(i) - this%m_y(i-1)) / (this%m_x(i) - this%m_x(i-1))
+            this%m_a2(i) = (this%m_x(i+1) - this%m_x(i)) / six
+            this%m_a3(i) = (this%m_x(i+1) - this%m_x(i-1)) / three
+            this%m_a4(i) = (this%m_x(i) - this%m_x(i-1)) / six
+        end do
+
+        ! Set the last equation
+        select case (ibcend)
+        case (0)
+            this%m_b(n) = zero
+            this%m_a2(n) = -one
+            this%m_a3(n) = one
+        case (1)
+            this%m_b(n) = ybcend - (this%m_y(n) - this%m_y(n-1)) / &
+                (this%m_x(n) - this%m_x(n-1))
+            this%m_a2(n) = (this%m_x(n) - this%m_x(n-1)) / six
+            this%m_a3(n) = (this%m_x(n) - this%m_x(n-1)) / three
+        case (2)
+            this%m_b(n) = ybcend
+            this%m_a2(n) = zero
+            this%m_a3(n) = one
+        case (3)
+            this%m_b(n) = zero
+            this%m_a1(n) = this%m_x(n-1) - this%m_x(n)
+            this%m_a2(n) = this%m_x(n) - this%m_x(n-2)
+            this%m_a3(n) = this%m_x(n-2) - this%m_x(n-1)
+        case default
+            this%m_b(n) = zero
+            this%m_a2(n) = -one
+            this%m_a3(n) = one
+        end select
+
+        ! Define the second derivative
+        if (n == 2 .and. ibcbeg == 0 .and. ibcend == 0) then
+            ! Deal with the special case of N = 2, and IBCBEG = IBCEND = 0
+            this%m_ypp(1) = zero
+            this%m_ypp(2) = zero
+        else
+            ! Solve the linear system
+            call penta_solve(this%m_a1, this%m_a2, this%m_a3, this%m_a4, &
+                this%m_a5, this%m_b, this%m_ypp)
+        end if
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 
