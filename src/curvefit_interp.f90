@@ -19,7 +19,7 @@ module curvefit_interp
 ! ------------------------------------------------------------------------------
     !> Indicates that the spline is quadratic over the interval under
     !! consideration (beginning or ending interval).  This is equivalent to
-    !! allowing a "free" boundary condition at either the initial or final
+    !! allowing a "natural" boundary condition at either the initial or final
     !! point.
     integer(i32), parameter :: SPLINE_QUADRATIC_OVER_INTERVAL = 1000
     !> Indicates a known first derivative at either the beginning or ending 
@@ -944,7 +944,7 @@ contains
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] ibcbeg An optional input that defines the nature of the 
     !!  boundary condition at the beginning of the spline.  If no parameter, or 
-    !!  an invalid parameter, is specified, the default free condition 
+    !!  an invalid parameter, is specified, the default natural condition 
     !!  (SPLINE_QUADRATIC_OVER_INTERVAL) is used.
     !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
     !!      initial interval.  No value is required for @p ybcbeg.
@@ -959,7 +959,7 @@ contains
     !!  be used.
     !! @param[in] ibcend An optional input that defines the nature of the 
     !!  boundary condition at the end of the spline.  If no parameter, or an 
-    !!  invalid parameter, is specified, the default free condition 
+    !!  invalid parameter, is specified, the default natural condition 
     !!  (SPLINE_QUADRATIC_OVER_INTERVAL) is used.
     !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
     !!      final interval.  No value is required for @p ybcend.
