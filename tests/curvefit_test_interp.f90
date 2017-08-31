@@ -9,7 +9,7 @@ contains
 ! ------------------------------------------------------------------------------
     function test_linear_interp() result(rst)
         ! Parameters
-        integer(i32), parameter :: n = 100
+        integer(i32), parameter :: n = 9
         integer(i32), parameter :: m = 1000
 
         ! Local Variables
@@ -20,16 +20,11 @@ contains
 
         ! Initialization
         rst = .true.
-        dx = 0.1d0
-        x(1) = 0.0d0
-        y(1) = 0.0d0
-        do i = 2, n
-            x(i) = x(i-1) + dx
-            y(i) = exp(-0.1d0 * x(i)) * sin(5.0d1 * x(i))
-        end do
-
-        xi(1) = -0.1d0
-        dx = dx * (real(n, dp) / m) + 0.001d0
+        x = [-4.0d0, -3.0d0, -2.0d0, -1.0d0, 0.0d0, 1.0d0, 2.0d0, 3.0d0, 4.0d0]
+        y = [0.0d0, 0.15d0, 1.12d0, 2.36d0, 2.36d0, 1.46d0, 0.49d0, 0.06d0, &
+            0.0d0]
+        xi(1) = minval(x)
+        dx = (maxval(x) - minval(x)) / (m - 1.0d0)
         do i = 2, m
             xi(i) = xi(i-1) + dx
         end do
@@ -64,7 +59,7 @@ contains
 ! ------------------------------------------------------------------------------
     function test_poly_interp() result(rst)
         ! Parameters
-        integer(i32), parameter :: n = 100
+        integer(i32), parameter :: n = 9
         integer(i32), parameter :: m = 1000
 
         ! Local Variables
@@ -75,16 +70,11 @@ contains
 
         ! Initialization
         rst = .true.
-        dx = 0.1d0
-        x(1) = 0.0d0
-        y(1) = 0.0d0
-        do i = 2, n
-            x(i) = x(i-1) + dx
-            y(i) = exp(-0.1d0 * x(i)) * sin(5.0d1 * x(i))
-        end do
-
-        xi(1) = -0.1d0
-        dx = dx * (real(n, dp) / m) + 0.001d0
+        x = [-4.0d0, -3.0d0, -2.0d0, -1.0d0, 0.0d0, 1.0d0, 2.0d0, 3.0d0, 4.0d0]
+        y = [0.0d0, 0.15d0, 1.12d0, 2.36d0, 2.36d0, 1.46d0, 0.49d0, 0.06d0, &
+            0.0d0]
+        xi(1) = minval(x)
+        dx = (maxval(x) - minval(x)) / (m - 1.0d0)
         do i = 2, m
             xi(i) = xi(i-1) + dx
         end do
@@ -133,8 +123,6 @@ contains
         x = [-4.0d0, -3.0d0, -2.0d0, -1.0d0, 0.0d0, 1.0d0, 2.0d0, 3.0d0, 4.0d0]
         y = [0.0d0, 0.15d0, 1.12d0, 2.36d0, 2.36d0, 1.46d0, 0.49d0, 0.06d0, &
             0.0d0]
-        
-
         xi(1) = minval(x)
         dx = (maxval(x) - minval(x)) / (m - 1.0d0)
         do i = 2, m
