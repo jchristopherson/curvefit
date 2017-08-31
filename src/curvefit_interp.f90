@@ -274,7 +274,14 @@ contains
         this%m_savedIndex = jlo
 
         ! Output
-        j = max(1, min(n + 1 - m, jlo - (m - 1) / 2))
+        ! j = max(1, min(n + 1 - m, jlo - (m - 1) / 2))
+        if (pt == this%m_x(1)) then
+            j = 1
+        else if (pt == this%m_x(n)) then
+            j = n - 1
+        else
+            j = jlo
+        end if
     end function
 
 ! ------------------------------------------------------------------------------
@@ -377,7 +384,14 @@ contains
         this%m_savedIndex = jlo
 
         ! Output
-        j = max(1, min(n + 1 - m, jlo - (m - 1) / 2))
+        ! j = max(1, min(n + 1 - m, jlo - (m - 1) / 2))
+        if (pt == this%m_x(1)) then
+            j = 1
+        else if (pt == this%m_x(n)) then
+            j = n - 1
+        else
+            j = jlo
+        end if
     end function
 
 ! ------------------------------------------------------------------------------
@@ -753,6 +767,7 @@ contains
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         integer(i32) :: i, n, flag
+        real(dp), allocatable, dimension(:) :: a1, a2, a3, a4, a5, b
 
         ! Initialization
         if (present(err)) then
@@ -764,19 +779,13 @@ contains
 
         ! Allocate Memory
         if (allocated(this%m_ypp)) deallocate(this%m_ypp)
-        if (allocated(this%m_a1)) deallocate(this%m_a1)
-        if (allocated(this%m_a2)) deallocate(this%m_a2)
-        if (allocated(this%m_a3)) deallocate(this%m_a3)
-        if (allocated(this%m_a4)) deallocate(this%m_a4)
-        if (allocated(this%m_a5)) deallocate(this%m_a5)
-        if (allocated(this%m_b)) deallocate(this%m_b)
         allocate(this%m_ypp(n), stat = flag)
-        if (flag == 0) allocate(this%m_a1(n), stat = flag)
-        if (flag == 0) allocate(this%m_a2(n), stat = flag)
-        if (flag == 0) allocate(this%m_a3(n), stat = flag)
-        if (flag == 0) allocate(this%m_a4(n), stat = flag)
-        if (flag == 0) allocate(this%m_a5(n), stat = flag)
-        if (flag == 0) allocate(this%m_b(n), stat = flag)
+        if (flag == 0) allocate(a1(n), stat = flag)
+        if (flag == 0) allocate(a2(n), stat = flag)
+        if (flag == 0) allocate(a3(n), stat = flag)
+        if (flag == 0) allocate(a4(n), stat = flag)
+        if (flag == 0) allocate(a5(n), stat = flag)
+        if (flag == 0) allocate(b(n), stat = flag)
         if (flag /= 0) then
             call errmgr%report_error("si_second_deriv", &
                 "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
@@ -785,84 +794,84 @@ contains
 
         ! Zero out the matrix
         do i = 1, n
-            this%m_a1(i) = zero
-            this%m_a2(i) = zero
-            this%m_a3(i) = zero
-            this%m_a4(i) = zero
-            this%m_a5(i) = zero
+            a1(i) = zero
+            a2(i) = zero
+            a3(i) = zero
+            a4(i) = zero
+            a5(i) = zero
         end do
 
         ! Set the first equation
         select case (ibcbeg)
         case (SPLINE_QUADRATIC_OVER_INTERVAL)
-            this%m_b(1) = zero
-            this%m_a3(1) = one
-            this%m_a4(1) = one
+            b(1) = zero
+            a3(1) = one
+            a4(1) = one
         case (SPLINE_KNOWN_FIRST_DERIVATIVE)
-            this%m_b(1) = (this%m_y(2) - this%m_y(1)) / &
+            b(1) = (this%m_y(2) - this%m_y(1)) / &
                 (this%m_x(2) - this%m_x(1)) - ybcbeg
-            this%m_a3(1) = (this%m_x(2) - this%m_x(1)) / three
-            this%m_a4(1) = (this%m_x(2) - this%m_x(1)) / six
+            a3(1) = (this%m_x(2) - this%m_x(1)) / three
+            a4(1) = (this%m_x(2) - this%m_x(1)) / six
         case (SPLINE_KNOWN_SECOND_DERIVATIVE)
-            this%m_b(1) = ybcbeg
-            this%m_a3(1) = one
-            this%m_a4(1) = zero
+            b(1) = ybcbeg
+            a3(1) = one
+            a4(1) = zero
         case (SPLINE_CONTINUOUS_THIRD_DERIVATIVE)
-            this%m_b(1) = zero
-            this%m_a3(1) = this%m_x(2) - this%m_x(3)
-            this%m_a4(1) = this%m_x(3) - this%m_x(1)
-            this%m_a5(1) = this%m_x(1) - this%m_x(2)
+            b(1) = zero
+            a3(1) = this%m_x(2) - this%m_x(3)
+            a4(1) = this%m_x(3) - this%m_x(1)
+            a5(1) = this%m_x(1) - this%m_x(2)
         case default
-            this%m_b(1) = zero
-            this%m_a3(1) = one
-            this%m_a4(1) = one
+            b(1) = zero
+            a3(1) = one
+            a4(1) = one
         end select
 
         ! Set the intermediate equations
         do i = 2, n - 1
-            this%m_b(i) = (this%m_y(i+1) - this%m_y(i)) / &
+            b(i) = (this%m_y(i+1) - this%m_y(i)) / &
                 (this%m_x(i+1) - this%m_x(i)) - &
                 (this%m_y(i) - this%m_y(i-1)) / (this%m_x(i) - this%m_x(i-1))
-            this%m_a2(i) = (this%m_x(i+1) - this%m_x(i)) / six
-            this%m_a3(i) = (this%m_x(i+1) - this%m_x(i-1)) / three
-            this%m_a4(i) = (this%m_x(i) - this%m_x(i-1)) / six
+            a2(i) = (this%m_x(i+1) - this%m_x(i)) / six
+            a3(i) = (this%m_x(i+1) - this%m_x(i-1)) / three
+            a4(i) = (this%m_x(i) - this%m_x(i-1)) / six
         end do
 
         ! Set the last equation
         select case (ibcend)
         case (SPLINE_QUADRATIC_OVER_INTERVAL)
-            this%m_b(n) = zero
-            this%m_a2(n) = -one
-            this%m_a3(n) = one
+            b(n) = zero
+            a2(n) = -one
+            a3(n) = one
         case (SPLINE_KNOWN_FIRST_DERIVATIVE)
-            this%m_b(n) = ybcend - (this%m_y(n) - this%m_y(n-1)) / &
+            b(n) = ybcend - (this%m_y(n) - this%m_y(n-1)) / &
                 (this%m_x(n) - this%m_x(n-1))
-            this%m_a2(n) = (this%m_x(n) - this%m_x(n-1)) / six
-            this%m_a3(n) = (this%m_x(n) - this%m_x(n-1)) / three
+            a2(n) = (this%m_x(n) - this%m_x(n-1)) / six
+            a3(n) = (this%m_x(n) - this%m_x(n-1)) / three
         case (SPLINE_KNOWN_SECOND_DERIVATIVE)
-            this%m_b(n) = ybcend
-            this%m_a2(n) = zero
-            this%m_a3(n) = one
+            b(n) = ybcend
+            a2(n) = zero
+            a3(n) = one
         case (SPLINE_CONTINUOUS_THIRD_DERIVATIVE)
-            this%m_b(n) = zero
-            this%m_a1(n) = this%m_x(n-1) - this%m_x(n)
-            this%m_a2(n) = this%m_x(n) - this%m_x(n-2)
-            this%m_a3(n) = this%m_x(n-2) - this%m_x(n-1)
+            b(n) = zero
+            a1(n) = this%m_x(n-1) - this%m_x(n)
+            a2(n) = this%m_x(n) - this%m_x(n-2)
+            a3(n) = this%m_x(n-2) - this%m_x(n-1)
         case default
-            this%m_b(n) = zero
-            this%m_a2(n) = -one
-            this%m_a3(n) = one
+            b(n) = zero
+            a2(n) = -one
+            a3(n) = one
         end select
 
         ! Define the second derivative
-        if (n == 2 .and. ibcbeg == 0 .and. ibcend == 0) then
+        if (n == 2 .and. ibcbeg == SPLINE_QUADRATIC_OVER_INTERVAL .and. &
+                ibcend == SPLINE_QUADRATIC_OVER_INTERVAL) then
             ! Deal with the special case of N = 2, and IBCBEG = IBCEND = 0
             this%m_ypp(1) = zero
             this%m_ypp(2) = zero
         else
             ! Solve the linear system
-            call penta_solve(this%m_a1, this%m_a2, this%m_a3, this%m_a4, &
-                this%m_a5, this%m_b, this%m_ypp)
+            call penta_solve(a1, a2, a3, a4, a5, b, this%m_ypp)
         end if
     end subroutine
 
