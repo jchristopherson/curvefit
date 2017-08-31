@@ -18,6 +18,9 @@ program main
     rst = test_poly_interp()
     if (.not.rst) overall = .false.
 
+    rst = test_spline_interp()
+    if (.not.rst) overall = .false.
+
     ! End
     if (overall) then
         print '(A)', "CURVEFIT TEST STATUS: PASS"

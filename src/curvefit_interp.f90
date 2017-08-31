@@ -5,9 +5,32 @@ module curvefit_interp
     use ferror, only : errors
     implicit none
     private
+    public :: SPLINE_QUADRATIC_OVER_INTERVAL
+    public :: SPLINE_KNOWN_FIRST_DERIVATIVE
+    public :: SPLINE_KNOWN_SECOND_DERIVATIVE
+    public :: SPLINE_CONTINUOUS_THIRD_DERIVATIVE
     public :: interp_manager
     public :: linear_interp
     public :: polynomial_interp
+    public :: spline_interp
+
+! ******************************************************************************
+! CONSTANTS
+! ------------------------------------------------------------------------------
+    !> Indicates that the spline is quadratic over the interval under
+    !! consideration (beginning or ending interval).  This is equivalent to
+    !! allowing a "free" boundary condition at either the initial or final
+    !! point.
+    integer(i32), parameter :: SPLINE_QUADRATIC_OVER_INTERVAL = 1000
+    !> Indicates a known first derivative at either the beginning or ending 
+    !! point.
+    integer(i32), parameter :: SPLINE_KNOWN_FIRST_DERIVATIVE = 1001
+    !> Indicates a known second derivative at either the beginning or ending 
+    !! point.
+    integer(i32), parameter :: SPLINE_KNOWN_SECOND_DERIVATIVE = 1002
+    !> Indicates a continuous third derivative at either the beginning or ending 
+    !! point.
+    integer(i32), parameter :: SPLINE_CONTINUOUS_THIRD_DERIVATIVE = 1003
 
 ! ******************************************************************************
 ! TYPES
@@ -27,7 +50,7 @@ module curvefit_interp
         real(dp), allocatable, dimension(:) :: m_x
         real(dp), allocatable, dimension(:) :: m_y
     contains
-        !> @brief Initializes the specified interp_manager instance.
+        !> @brief Initializes the interp_manager instance.
         procedure, public :: initialize => im_init
         !> @brief Attempts to locate the index in the array providing a lower 
         !! bounds to the specified interpolation point.
@@ -63,15 +86,15 @@ module curvefit_interp
         real(dp), allocatable, dimension(:) :: m_d
         real(dp) :: m_dy
     contains
-        !> @brief Initializes the specified polynomial_interp instance.
+        !> @brief Initializes the polynomial_interp instance.
         procedure, public :: initialize => pi_init
         !> @brief Performs the actual interpolation.
         procedure :: raw_interp => pi_raw_interp
     end type
 
 ! ------------------------------------------------------------------------------
-    !> @brief Extends the interp_manager class allowing for spline interpolation
-    !! of a data set.
+    !> @brief Extends the interp_manager class allowing for cubic spline 
+    !! interpolation of a data set.
     type, extends(interp_manager) :: spline_interp
     private
         real(dp), allocatable, dimension(:) :: m_ypp
@@ -84,6 +107,14 @@ module curvefit_interp
     contains
         !> @brief Performs the actual interpolation.
         procedure :: raw_interp => si_raw_interp
+        !> @brief Computes the second derivative terms for the cubic-spline 
+        !! model.
+        procedure :: compute_diff2 => si_second_deriv
+        !> @brief Initializes the spline_interp instance.
+        procedure, public :: initialize => si_init_1
+        !> @brief Initializes the spline_interp instance while allowing 
+        !! definition of boundary conditions.
+        procedure, public :: initialize_spline => si_init_2
     end type
 
 
@@ -701,7 +732,10 @@ contains
     !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
     !!      available.
     !!
-    !! - [Spline Library](http://people.sc.fsu.edu/~jburkardt/f77_src/spline/spline.html)
+    !! @par Remarks
+    !! This code is a slight modification of the SPLINE_CUBIC_SET routine from
+    !! the [SPLINE]
+    !! (http://people.sc.fsu.edu/~jburkardt/f77_src/spline/spline.html) library.
     subroutine si_second_deriv(this, ibcbeg, ybcbeg, ibcend, ybcend, err)
         ! Arguments
         class(spline_interp), intent(inout) :: this
@@ -760,20 +794,20 @@ contains
 
         ! Set the first equation
         select case (ibcbeg)
-        case (0)
+        case (SPLINE_QUADRATIC_OVER_INTERVAL)
             this%m_b(1) = zero
             this%m_a3(1) = one
             this%m_a4(1) = one
-        case (1)
+        case (SPLINE_KNOWN_FIRST_DERIVATIVE)
             this%m_b(1) = (this%m_y(2) - this%m_y(1)) / &
                 (this%m_x(2) - this%m_x(1)) - ybcbeg
             this%m_a3(1) = (this%m_x(2) - this%m_x(1)) / three
             this%m_a4(1) = (this%m_x(2) - this%m_x(1)) / six
-        case (2)
+        case (SPLINE_KNOWN_SECOND_DERIVATIVE)
             this%m_b(1) = ybcbeg
             this%m_a3(1) = one
             this%m_a4(1) = zero
-        case (3)
+        case (SPLINE_CONTINUOUS_THIRD_DERIVATIVE)
             this%m_b(1) = zero
             this%m_a3(1) = this%m_x(2) - this%m_x(3)
             this%m_a4(1) = this%m_x(3) - this%m_x(1)
@@ -796,20 +830,20 @@ contains
 
         ! Set the last equation
         select case (ibcend)
-        case (0)
+        case (SPLINE_QUADRATIC_OVER_INTERVAL)
             this%m_b(n) = zero
             this%m_a2(n) = -one
             this%m_a3(n) = one
-        case (1)
+        case (SPLINE_KNOWN_FIRST_DERIVATIVE)
             this%m_b(n) = ybcend - (this%m_y(n) - this%m_y(n-1)) / &
                 (this%m_x(n) - this%m_x(n-1))
             this%m_a2(n) = (this%m_x(n) - this%m_x(n-1)) / six
             this%m_a3(n) = (this%m_x(n) - this%m_x(n-1)) / three
-        case (2)
+        case (SPLINE_KNOWN_SECOND_DERIVATIVE)
             this%m_b(n) = ybcend
             this%m_a2(n) = zero
             this%m_a3(n) = one
-        case (3)
+        case (SPLINE_CONTINUOUS_THIRD_DERIVATIVE)
             this%m_b(n) = zero
             this%m_a1(n) = this%m_x(n-1) - this%m_x(n)
             this%m_a2(n) = this%m_x(n) - this%m_x(n-2)
@@ -833,8 +867,151 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Initializes the specified spline_interp instance.  The end points
+    !! are considered free such that the interpolant is quadratic over both the
+    !! initial and final intervals.
+    !!
+    !! @param[in,out] this The spline_interp instance.
+    !! @param[in] x An N-element array containing the independent variable data.
+    !! @param[in] y An N-element array containing the dependent variable data.
+    !! @param[in] order The order of the interpolating polynomial.  This 
+    !!  parameter is ignored as the spline is a cubic approximation.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
+    subroutine si_init_1(this, x, y, order, err)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        real(dp), intent(in), dimension(:) :: x, y
+        integer(i32), intent(in) :: order
+        class(errors), intent(inout), optional, target :: err
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: dummy
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+        dummy = order ! Avoids complaining by the compiler
+
+        ! Initialize the base object
+        call im_init(this, x, y, 3, err)
+
+        ! Evaluate the second derivatives
+        call this%compute_diff2(SPLINE_QUADRATIC_OVER_INTERVAL, zero, &
+            SPLINE_QUADRATIC_OVER_INTERVAL, zero, errmgr)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Initializes the specified spline_interp instance.
+    !!
+    !! @param[in,out] this The spline_interp instance.
+    !! @param[in] x An N-element array containing the independent variable data.
+    !! @param[in] y An N-element array containing the dependent variable data.
+    !! @param[in] ibcbeg An optional input that defines the nature of the 
+    !!  boundary condition at the beginning of the spline.  If no parameter, or 
+    !!  an invalid parameter, is specified, the default free condition 
+    !!  (SPLINE_QUADRATIC_OVER_INTERVAL) is used.
+    !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+    !!      initial interval.  No value is required for @p ybcbeg.
+    !!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+    !!      initial point is provided in @p ybcbeg.
+    !!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+    !!      initial point is provided in @p ybcbeg.
+    !!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+    !!      at x(2).  No value is required for @p ybcbeg.
+    !! @param[in] ybcbeg If needed, the value of the initial point boundary
+    !!  condition.  If needed, but not supplied, a default value of zero will
+    !!  be used.
+    !! @param[in] ibcend An optional input that defines the nature of the 
+    !!  boundary condition at the end of the spline.  If no parameter, or an 
+    !!  invalid parameter, is specified, the default free condition 
+    !!  (SPLINE_QUADRATIC_OVER_INTERVAL) is used.
+    !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+    !!      final interval.  No value is required for @p ybcend.
+    !!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+    !!      initial point is provided in @p ybcend.
+    !!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+    !!      initial point is provided in @p ybcend.
+    !!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+    !!      at x(n-1).  No value is required for @p ybcend.
+    !! @param[in] ybcend If needed, the value of the final point boundary
+    !!  condition.  If needed, but not supplied, a default value of zero will
+    !!  be used.
+    !!
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
+    subroutine si_init_2(this, x, y, ibcbeg, ybcbeg, ibcend, ybcend, err)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        real(dp), intent(in), dimension(:) :: x, y
+        integer(i32), intent(in), optional :: ibcbeg, ibcend
+        real(dp), intent(in), optional :: ybcbeg, ybcend
+        class(errors), intent(inout), optional, target :: err
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        integer(i32) :: ibeg, iend
+        real(dp) :: ybeg, yend
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+        ibeg = SPLINE_QUADRATIC_OVER_INTERVAL
+        iend = SPLINE_QUADRATIC_OVER_INTERVAL
+        ybeg = zero
+        yend = zero
+        if (present(ibcbeg)) ibeg = ibcbeg
+        if (present(ybcbeg)) ybeg = ybcbeg
+        if (present(ibcend)) iend = ibcend
+        if (present(ybcend)) yend = ybcend
+
+        ! Input Check
+        if (ibeg /= SPLINE_CONTINUOUS_THIRD_DERIVATIVE .or. &
+            ibeg /= SPLINE_KNOWN_SECOND_DERIVATIVE .or. &
+            ibeg /= SPLINE_KNOWN_FIRST_DERIVATIVE .or. &
+            ibeg /= SPLINE_QUADRATIC_OVER_INTERVAL) &
+                ibeg = SPLINE_QUADRATIC_OVER_INTERVAL
+        if (iend /= SPLINE_CONTINUOUS_THIRD_DERIVATIVE .or. &
+            iend /= SPLINE_KNOWN_SECOND_DERIVATIVE .or. &
+            iend /= SPLINE_KNOWN_FIRST_DERIVATIVE .or. &
+            iend /= SPLINE_QUADRATIC_OVER_INTERVAL) &
+                iend = SPLINE_QUADRATIC_OVER_INTERVAL
+
+        ! Initialize the base object
+        call im_init(this, x, y, 3, err)
+
+        ! Evaluate the second derivatives
+        call this%compute_diff2(ibeg, ybeg, iend, yend, errmgr)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 
