@@ -115,6 +115,17 @@ module curvefit_interp
         !> @brief Initializes the spline_interp instance while allowing 
         !! definition of boundary conditions.
         procedure, public :: initialize_spline => si_init_2
+        !> @brief Interpolates to obtain the first derivative value at the 
+        !! specified independent variable.
+        generic, public :: first_derivative => si_diff1, si_diff1_array
+        !> @brief Interpolates to obtain the second derivative value at the 
+        !! specified independent variable.
+        generic, public :: second_derivative => si_diff2, si_diff2_array
+        
+        procedure :: si_diff1
+        procedure :: si_diff1_array
+        procedure :: si_diff2
+        procedure :: si_diff2_array
     end type
 
 
@@ -432,7 +443,7 @@ contains
     !!  independent variables.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] pt An M-element array containing the independent variable 
+    !! @param[in] pts An M-element array containing the independent variable 
     !!  values to interpolate.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -1023,12 +1034,175 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Interpolates to obtain the first derivative value at the specified
+    !! independent variable.
+    !!
+    !! @param[in,out] this The interp_manager instance.
+    !! @param[in] pt The independent variable value to interpolate.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
+    !!
+    !! @return The interpolated value.
+    function si_diff1(this, pt, err) result(yy)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        real(dp), intent(in) :: pt
+        class(errors), intent(inout), optional, target :: err
+        real(dp) :: yy
+
+        ! Parameters
+        real(dp), parameter :: half = 0.5d0
+        real(dp), parameter :: three = 3.0d0
+        real(dp), parameter :: six = 6.0d0
+
+        ! Local Variables
+        integer(i32) :: jlo,right
+        real(dp) :: dt, h
+
+        ! Process
+        if (this%m_correlated) then
+            jlo = this%hunt(pt, err)
+        else
+            jlo = this%locate(pt, err)
+        end if
+        right = jlo + 1
+        dt = pt - this%m_x(jlo)
+        h = this%m_x(right) - this%m_x(jlo)
+        yy = (this%m_y(right) - this%m_y(jlo)) / h - &
+            (this%m_ypp(right) / six + this%m_ypp(jlo) / three) * h + &
+            dt * (this%m_ypp(jlo) + &
+            dt * (half * (this%m_ypp(right) - this%m_ypp(jlo)) / h))
+    end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Interpolates to obtain the first derivative value at the specified
+    !! independent variables.
+    !!
+    !! @param[in,out] this The interp_manager instance.
+    !! @param[in] pts An M-element array containing the independent variable 
+    !!  values to interpolate.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
+    !!
+    !! @return An M-element array containing the interpolated values.
+    function si_diff1_array(this, pts, err) result(yy)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        real(dp), intent(in), dimension(:) :: pts
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(size(pts)) :: yy
+
+        ! Parameters
+        real(dp), parameter :: half = 0.5d0
+        real(dp), parameter :: three = 3.0d0
+        real(dp), parameter :: six = 6.0d0
+
+        ! Local Variables
+        integer(i32) :: i, jlo,right
+        real(dp) :: dt, h
+
+        ! Process
+        do i = 1, size(pts)
+            if (this%m_correlated) then
+                jlo = this%hunt(pts(i), err)
+            else
+                jlo = this%locate(pts(i), err)
+            end if
+            right = jlo + 1
+            dt = pts(i) - this%m_x(jlo)
+            h = this%m_x(right) - this%m_x(jlo)
+            yy(i) = (this%m_y(right) - this%m_y(jlo)) / h - &
+                (this%m_ypp(right) / six + this%m_ypp(jlo) / three) * h + &
+                dt * (this%m_ypp(jlo) + &
+                dt * (half * (this%m_ypp(right) - this%m_ypp(jlo)) / h))
+        end do
+    end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Interpolates to obtain the second derivative value at the 
+    !! specified independent variable.
+    !!
+    !! @param[in,out] this The interp_manager instance.
+    !! @param[in] pt The independent variable value to interpolate.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
+    !!
+    !! @return The interpolated value.
+    function si_diff2(this, pt, err) result(yy)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        real(dp), intent(in) :: pt
+        class(errors), intent(inout), optional, target :: err
+        real(dp) :: yy
+
+        ! Local Variables
+        integer(i32) :: jlo,right
+        real(dp) :: dt, h
+
+        ! Process
+        if (this%m_correlated) then
+            jlo = this%hunt(pt, err)
+        else
+            jlo = this%locate(pt, err)
+        end if
+        right = jlo + 1
+        dt = pt - this%m_x(jlo)
+        h = this%m_x(right) - this%m_x(jlo)
+        yy = this%m_ypp(jlo) + dt * (this%m_ypp(right) - this%m_ypp(jlo)) / h
+    end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Interpolates to obtain the second derivative value at the 
+    !! specified independent variables.
+    !!
+    !! @param[in,out] this The interp_manager instance.
+    !! @param[in] pts An M-element array containing the independent variable 
+    !!  values to interpolate.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has yet been defined.
+    !!
+    !! @return An M-element array containing the interpolated values.
+    function si_diff2_array(this, pts, err) result(yy)
+        ! Arguments
+        class(spline_interp), intent(inout) :: this
+        real(dp), intent(in), dimension(:) :: pts
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(size(pts)) :: yy
+
+        ! Local Variables
+        integer(i32) :: i, jlo,right
+        real(dp) :: dt, h
+
+        ! Process
+        do i = 1, size(pts)
+            if (this%m_correlated) then
+                jlo = this%hunt(pts(i), err)
+            else
+                jlo = this%locate(pts(i), err)
+            end if
+            right = jlo + 1
+            dt = pts(i) - this%m_x(jlo)
+            h = this%m_x(right) - this%m_x(jlo)
+            yy(i) = this%m_ypp(jlo) + &
+                dt * (this%m_ypp(right) - this%m_ypp(jlo)) / h
+        end do
+    end function
 
 ! ------------------------------------------------------------------------------
 
