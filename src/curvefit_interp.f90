@@ -39,8 +39,8 @@ module curvefit_interp
     !! type data sets.
     !!
     !! @par Notes
-    !! This interpolation object is based upon the interpolation scheme utilized
-    !! by the Numerical Recipes in C++ text.
+    !! This interpolation object is conceptually based upon the interpolation 
+    !! scheme utilized by the Numerical Recipes in C++ text.
     type, abstract :: interp_manager
     private
         integer(i32) :: m_order
@@ -98,12 +98,6 @@ module curvefit_interp
     type, extends(interp_manager) :: spline_interp
     private
         real(dp), allocatable, dimension(:) :: m_ypp
-        real(dp), allocatable, dimension(:) :: m_a1
-        real(dp), allocatable, dimension(:) :: m_a2
-        real(dp), allocatable, dimension(:) :: m_a3
-        real(dp), allocatable, dimension(:) :: m_a4
-        real(dp), allocatable, dimension(:) :: m_a5
-        real(dp), allocatable, dimension(:) :: m_b
     contains
         !> @brief Performs the actual interpolation.
         procedure :: raw_interp => si_raw_interp
@@ -160,6 +154,8 @@ contains
     !!
     !! @param[in,out] this The interp_manager instance.
     !! @param[in] x An N-element array containing the independent variable data.
+    !!  The data in this array must be either monotonically increasing or
+    !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] order The order of the interpolating polynomial.
     !! @param[out] err An optional errors-based object that if provided can be
@@ -508,6 +504,8 @@ contains
     !!
     !! @param[in,out] this The polynomial_interp instance.
     !! @param[in] x An N-element array containing the independent variable data.
+    !!  The data in this array must be either monotonically increasing or
+    !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] order The order of the interpolating polynomial.
     !! @param[out] err An optional errors-based object that if provided can be
@@ -893,6 +891,8 @@ contains
     !!
     !! @param[in,out] this The spline_interp instance.
     !! @param[in] x An N-element array containing the independent variable data.
+    !!  The data in this array must be either monotonically increasing or
+    !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] order The order of the interpolating polynomial.  This 
     !!  parameter is ignored as the spline is a cubic approximation.
