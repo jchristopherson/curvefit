@@ -166,6 +166,8 @@ contains
     !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
     !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
     !!      available.
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!      increasing or decreasing.
     subroutine im_init(this, x, y, order, err)
         ! Arguments
         class(interp_manager), intent(inout) :: this
@@ -196,6 +198,13 @@ contains
                 size(x), ", but found an array of length ", size(y), "."
             call errmgr%report_error("im_init", trim(errmsg), &
                 CF_ARRAY_SIZE_ERROR)
+            return
+        end if
+        if (.not.is_monotonic(x)) then
+            ! ERROR: Non-monotonic Array
+            call errmgr%report_error("im_init", &
+                "The supplied independent data array was not monotonic.", &
+                CF_NONMONOTONIC_ARRAY_ERROR)
             return
         end if
 
@@ -517,6 +526,8 @@ contains
     !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
     !!      available.
     !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!      increasing or decreasing.
     subroutine pi_init(this, x, y, order, err)
         ! Arguments
         class(polynomial_interp), intent(inout) :: this
@@ -904,7 +915,8 @@ contains
     !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
     !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
     !!      available.
-    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!      increasing or decreasing.
     subroutine si_init_1(this, x, y, order, err)
         ! Arguments
         class(spline_interp), intent(inout) :: this
@@ -941,6 +953,8 @@ contains
     !!
     !! @param[in,out] this The spline_interp instance.
     !! @param[in] x An N-element array containing the independent variable data.
+    !!  The data in this array must be either monotonically increasing or
+    !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] ibcbeg An optional input that defines the nature of the 
     !!  boundary condition at the beginning of the spline.  If no parameter, or 
@@ -982,6 +996,8 @@ contains
     !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
     !!      available.
     !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!      increasing or decreasing.
     subroutine si_init_2(this, x, y, ibcbeg, ybcbeg, ibcend, ybcend, err)
         ! Arguments
         class(spline_interp), intent(inout) :: this
