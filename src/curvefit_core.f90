@@ -24,6 +24,8 @@ module curvefit_core
     public :: CF_OUT_OF_MEMORY_ERROR
     public :: CF_NO_DATA_DEFINED_ERROR
     public :: CF_INVALID_INPUT_ERROR
+    public :: CF_NONMONOTONIC_ARRAY_ERROR
+    public :: is_monotonic
 
 ! ******************************************************************************
 ! NUMERIC TYPE CONSTANTS
@@ -44,5 +46,89 @@ module curvefit_core
     integer, parameter :: CF_NO_DATA_DEFINED_ERROR = 300
     !> An error flag denoting an invalid input.
     integer, parameter :: CF_INVALID_INPUT_ERROR = NL_INVALID_INPUT_ERROR
+    !> An error flag denoting a non-monotonic array was given when a monotonic
+    !! array was expected.
+    integer, parameter :: CF_NONMONOTONIC_ARRAY_ERROR = 301
+
+! ******************************************************************************
+! INTERFACE
+! ------------------------------------------------------------------------------
+    !> @brief Tests to see if an array is montonically increasing or decreasing.
+    interface is_monotonic
+        module procedure :: is_monotonic_dbl
+        module procedure :: is_monotonic_i32
+    end interface
+
+contains
+! ------------------------------------------------------------------------------
+    !> @brief Tests to see if an array is montonically increasing or decreasing.
+    !!
+    !! @param[in] x The array to test.
+    !!
+    !! @return Returns true if @p x is monotonic; else, false.
+    pure function is_monotonic_dbl(x) result(rst)
+        ! Arguments
+        real(dp), intent(in), dimension(:) :: x
+        logical :: rst
+
+        ! Process
+        integer(i32) :: i, n
+        logical :: ascend
+        rst = .true.
+        n = size(x)
+        ascend = x(n) > x(1)
+        if (ascend) then
+            do i = 2, n
+                if (x(i) <= x(i-1)) then
+                    rst = .false.
+                    exit
+                end if
+            end do
+        else
+            do i = 2, n
+                if (x(i) >= x(i-1)) then
+                    rst = .false.
+                    exit
+                end if
+            end do
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Tests to see if an array is montonically increasing or decreasing.
+    !!
+    !! @param[in] x The array to test.
+    !!
+    !! @return Returns true if @p x is monotonic; else, false.
+    pure function is_monotonic_i32(x) result(rst)
+        ! Arguments
+        integer(i32), intent(in), dimension(:) :: x
+        logical :: rst
+
+        ! Process
+        integer(i32) :: i, n
+        logical :: ascend
+        rst = .true.
+        n = size(x)
+        ascend = x(n) > x(1)
+        if (ascend) then
+            do i = 2, n
+                if (x(i) <= x(i-1)) then
+                    rst = .false.
+                    exit
+                end if
+            end do
+        else
+            do i = 2, n
+                if (x(i) >= x(i-1)) then
+                    rst = .false.
+                    exit
+                end if
+            end do
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+
 
 end module
