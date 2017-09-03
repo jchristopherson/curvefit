@@ -1,5 +1,9 @@
 ! curvefit_interp.f90
 
+!> @brief \b curvefit_interp
+!!
+!! @par Purpose
+!! To provide interpolation routines for X-Y data sets.
 module curvefit_interp
     use curvefit_core
     use ferror, only : errors
