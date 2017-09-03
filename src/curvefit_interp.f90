@@ -1049,14 +1049,14 @@ contains
         if (present(ybcend)) yend = ybcend
 
         ! Input Check
-        if (ibeg /= SPLINE_CONTINUOUS_THIRD_DERIVATIVE .or. &
-            ibeg /= SPLINE_KNOWN_SECOND_DERIVATIVE .or. &
-            ibeg /= SPLINE_KNOWN_FIRST_DERIVATIVE .or. &
+        if (ibeg /= SPLINE_CONTINUOUS_THIRD_DERIVATIVE .and. &
+            ibeg /= SPLINE_KNOWN_SECOND_DERIVATIVE .and. &
+            ibeg /= SPLINE_KNOWN_FIRST_DERIVATIVE .and. &
             ibeg /= SPLINE_QUADRATIC_OVER_INTERVAL) &
                 ibeg = SPLINE_QUADRATIC_OVER_INTERVAL
-        if (iend /= SPLINE_CONTINUOUS_THIRD_DERIVATIVE .or. &
-            iend /= SPLINE_KNOWN_SECOND_DERIVATIVE .or. &
-            iend /= SPLINE_KNOWN_FIRST_DERIVATIVE .or. &
+        if (iend /= SPLINE_CONTINUOUS_THIRD_DERIVATIVE .and. &
+            iend /= SPLINE_KNOWN_SECOND_DERIVATIVE .and. &
+            iend /= SPLINE_KNOWN_FIRST_DERIVATIVE .and. &
             iend /= SPLINE_QUADRATIC_OVER_INTERVAL) &
                 iend = SPLINE_QUADRATIC_OVER_INTERVAL
 
