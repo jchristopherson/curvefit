@@ -31,11 +31,11 @@ program example
     y1 = interp%interpolate(xi)
 
     ! Define the value of the first derivative at the end points
-    dstart = 500.0d0
+    dstart = 5.0d0
     dend = 0.0d0
     call interp%initialize_spline(x, y, &
-        SPLINE_KNOWN_SECOND_DERIVATIVE, dstart, &
-        SPLINE_KNOWN_SECOND_DERIVATIVE, dend)
+        SPLINE_KNOWN_FIRST_DERIVATIVE, dstart, &
+        SPLINE_KNOWN_FIRST_DERIVATIVE, dend)
     y2 = interp%interpolate(xi)
 
     ! Write the results to file
