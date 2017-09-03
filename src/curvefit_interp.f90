@@ -157,7 +157,9 @@ contains
     !!  The data in this array must be either monotonically increasing or
     !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
-    !! @param[in] order The order of the interpolating polynomial.
+    !! @param[in] order The order of the interpolating polynomial.  Notice, this
+    !!  parameter is optional; however, if not specified, a default of 1 is 
+    !!  used.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
     !!  execution.  If not provided, a default implementation of the errors
@@ -172,7 +174,7 @@ contains
         ! Arguments
         class(interp_manager), intent(inout) :: this
         real(dp), intent(in), dimension(:) :: x, y
-        integer(i32), intent(in) :: order
+        integer(i32), intent(in), optional :: order
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
@@ -187,7 +189,12 @@ contains
         else
             errmgr => deferr
         end if
-        this%m_order = order
+        if (present(order)) then
+            this%m_order = order
+        else
+            ! Default to a first order (linear) interpolation
+            this%m_order = 1
+        end if
         this%m_savedIndex = 1
         this%m_indexCheck = 1
         n = size(x)
@@ -516,7 +523,9 @@ contains
     !!  The data in this array must be either monotonically increasing or
     !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
-    !! @param[in] order The order of the interpolating polynomial.
+    !! @param[in] order The order of the interpolating polynomial.  Notice, this
+    !!  parameter is optional; however, if not specified, a default of 1 is 
+    !!  used.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
     !!  execution.  If not provided, a default implementation of the errors
@@ -532,11 +541,11 @@ contains
         ! Arguments
         class(polynomial_interp), intent(inout) :: this
         real(dp), intent(in), dimension(:) :: x, y
-        integer(i32), intent(in) :: order
+        integer(i32), intent(in), optional :: order
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
-        integer(i32) :: m, flag
+        integer(i32) :: m, flag, odr
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -546,9 +555,14 @@ contains
         else
             errmgr => deferr
         end if
+        if (present(order)) then
+            odr = order
+        else
+            odr = 1
+        end if
 
         ! Input Checking
-        if (order < 1) then
+        if (odr < 1) then
             call errmgr%report_error("pi_init", &
                 "A polynomial order greater than or equal to 1 must " // &
                 "be specified.", CF_INVALID_INPUT_ERROR)
@@ -556,10 +570,10 @@ contains
         end if
 
         ! Memory Allocation
-        call im_init(this, x, y, order, err)
+        call im_init(this, x, y, odr, err)
         if (allocated(this%m_c)) deallocate(this%m_c)
         if (allocated(this%m_d)) deallocate(this%m_d)
-        m = order + 1
+        m = odr + 1
         allocate(this%m_c(m), stat = flag)
         if (flag == 0) allocate(this%m_d(m), stat = flag)
         if (flag /= 0) then
@@ -921,7 +935,7 @@ contains
         ! Arguments
         class(spline_interp), intent(inout) :: this
         real(dp), intent(in), dimension(:) :: x, y
-        integer(i32), intent(in) :: order
+        integer(i32), intent(in), optional :: order
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
@@ -938,7 +952,7 @@ contains
         else
             errmgr => deferr
         end if
-        dummy = order ! Avoids complaining by the compiler
+        if (present(order)) dummy = order ! Avoids complaining by the compiler
 
         ! Initialize the base object
         call im_init(this, x, y, 3, err)

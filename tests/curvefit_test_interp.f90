@@ -30,7 +30,7 @@ contains
         end do
 
         ! Interpolate
-        call interp%initialize(x, y, 1)
+        call interp%initialize(x, y)
         yi = interp%interpolate(xi)
         
         ! Write the results to a text file so we can plot them
@@ -130,7 +130,7 @@ contains
         end do
 
         ! Interpolate
-        call interp%initialize(x, y, 3)
+        call interp%initialize(x, y)
         yi = interp%interpolate(xi)
         
         ! Write the results to a text file so we can plot them
