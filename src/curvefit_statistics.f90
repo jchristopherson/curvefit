@@ -139,7 +139,7 @@ contains
 
         ! Process
         n = size(x)
-        if (n == 1) then
+        if (n <= 1) then
             v = zero
         else
             oldMean = x(1)
