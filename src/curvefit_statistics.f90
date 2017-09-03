@@ -24,7 +24,7 @@ module curvefit_statistics
 ! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the variance of a data set.
+    !> @brief Computes the sample variance of a data set.
     interface variance
         module procedure :: variance_dbl
     end interface
@@ -44,6 +44,11 @@ contains
     !! @param[in] x The data set.
     !!
     !! @return The mean of x.
+    !!
+    !! @par Remarks
+    !! To avoid overflow-type issues, Knuth's algorithm is employed.  A simple
+    !! illustration of this algorithm can be found 
+    !! [here](https://www.johndcook.com/blog/standard_deviation/).
     pure function mean_dbl(x) result(z)
         ! Arguments
         real(dp), intent(in), dimension(:) :: x
@@ -53,16 +58,17 @@ contains
         real(dp), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: n
+        integer(i32) :: i, n
 
         ! Process
         n = size(x)
         if (n == 0) then
             z = zero
-        else if (n == 1) then
-            z = x(1)
         else
-            z = sum(x) / (real(n, dp))
+            z = x(1)
+            do i = 2, n
+                z = z + (x(i) - z) / i
+            end do
         end if
     end function
 
@@ -108,27 +114,43 @@ contains
     ! end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the variance of a data set.
+    !> @brief Computes the sample variance of a data set.
     !!
     !! @param[in] x The data set.
     !!
     !! @return The variance of @p x.
+    !!
+    !! @par Remarks
+    !! To avoid overflow-type issues, Knuth's algorithm is employed.  A simple
+    !! illustration of this algorithm can be found 
+    !! [here](https://www.johndcook.com/blog/standard_deviation/).
     pure function variance_dbl(x) result(v)
         ! Arguments
         real(dp), intent(in), dimension(:) :: x
         real(dp) :: v
 
         ! Parameters
+        real(dp), parameter :: zero = 0.0d0
         real(dp), parameter :: one = 1.0d0
 
         ! Local Variables
-        integer(i32) :: n
-        real(dp) :: avg
+        integer(i32) :: i, n
+        real(dp) :: oldMean, newMean
 
         ! Process
         n = size(x)
-        avg = mean(x)
-        v = sum((x - avg)**2) / (real(n, dp) - one)
+        if (n == 1) then
+            v = zero
+        else
+            oldMean = x(1)
+            v = zero
+            do i = 2, n
+                newMean = oldMean + (x(i) - oldMean) / i
+                v = v + (x(i) - oldMean) * (x(i) - newMean)
+                oldMean = newMean
+            end do
+            v = v / (n - 1)
+        end if
     end function
 
 ! ------------------------------------------------------------------------------
