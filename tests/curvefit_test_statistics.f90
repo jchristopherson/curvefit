@@ -30,6 +30,26 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    ! REF: http://www.analyzemath.com/statistics/mean.html
+    function test_mean() result(rst)
+        ! Local Variables
+        logical :: rst
+        real(dp) :: x(5), mu
+
+        ! Parameters
+        real(dp), parameter :: ans = 10.0d0
+        real(dp), parameter :: tol = 1.0d-8
+
+        ! Initialization
+        rst = .true.
+        x = [9.0d0, 10.0d0, 11.0d0, 7.0d0, 13.0d0]
+
+        ! Compute the mean
+        mu = mean(x)
+        if (abs(mu - ans) > tol) then
+            rst = .false.
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 

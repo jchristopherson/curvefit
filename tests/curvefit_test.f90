@@ -26,6 +26,9 @@ program main
     rst = test_z_value()
     if (.not.rst) overall = .false.
 
+    rst = test_mean()
+    if (.not.rst) overall = .false.
+
     ! End
     if (overall) then
         print '(A)', "CURVEFIT TEST STATUS: PASS"
