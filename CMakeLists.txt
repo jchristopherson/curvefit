@@ -116,6 +116,10 @@ if (BUILD_EXAMPLES)
   # Inform the user we're building the examples
   message(STATUS "Building CURVEFIT examples.")
 
+  # Interpolation Example
+  add_executable(curvefit_interp_example examples/curvefit_interp_example.f90)
+  target_link_libraries(curvefit_interp_example curvefit)
+
 #   # Quasi-Newton Example
 #   add_executable(quasi_newton_example examples/nonlin_quasi_newton_example.f90)
 #   target_link_libraries(quasi_newton_example nonlin)
