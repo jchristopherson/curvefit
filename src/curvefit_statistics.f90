@@ -7,11 +7,13 @@
 !! of numeric data.
 module curvefit_statistics
     use curvefit_core
+    use ferror, only : errors
     implicit none
     private
     public :: mean
     public :: variance
     public :: standard_deviation
+    public :: confidence_interval
 
 ! ******************************************************************************
 ! INTERFACES
@@ -33,6 +35,13 @@ module curvefit_statistics
     !> @brief Computes the corrected standard deviation of a data set.
     interface standard_deviation
         module procedure :: stdev_dbl
+    end interface
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the confidence interval based upon a standard normal 
+    !! distribution.
+    interface confidence_interval
+        module procedure :: conf_int
     end interface
 
 contains
@@ -169,6 +178,39 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the confidence interval based upon a standard normal 
+    !! distribution.
+    !!
+    !! @param[in] x The data set.
+    !! @param[in] alpha The confidence level.  This value must lie between
+    !! zero and one such that: 0 < alpha < 1.
+    !!
+    !! @return The confidence interval as the deviation from the mean.
+    !!
+    !! @par Remarks
+    !! The confidence interval, assuming a standard normal distribution, is
+    !! as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the
+    !! standard deviation.  This routine computes the z * s / sqrt(n) portion 
+    !! leaving the computation of the mean to the user.
+    function conf_int(x, alpha) result(ci)
+        ! Arguments
+        real(dp), intent(in), dimension(:) :: x
+        real(dp), intent(in) :: alpha
+        real(dp) :: ci
+
+        ! Local Variables
+        real(dp) :: n, sigma, z
+
+        ! Ensure: 0 < alpha < 1
+
+        ! Compute the standard deviation, and z-distribution value
+        sigma = standard_deviation(x)
+        n = real(size(x), dp)
+        z = compute_z(alpha)
+
+        ! Compute the confidence interval - offset from the mean
+        ci = z * sigma / sqrt(n)
+    end function
 
 ! ------------------------------------------------------------------------------
 
@@ -179,6 +221,45 @@ contains
 ! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
+    ! Routine for computing confidence interval z value:
+    ! Solve: alpha = erf(z / sqrt(2)) for z.
+    ! Example (if alpha = 0.95, z = 1.96): 0.95 = erf(z / sqrt(2)), z = 1.96
+    function compute_z(alpha, err) result(z)
+        ! Supporting Modules
+        use nonlin_types, only : fcn1var, fcn1var_helper, value_pair
+        use nonlin_solve, only : brent_solver
+
+        ! Arguments
+        real(dp), intent(in) :: alpha
+        real(dp) :: z
+        class(errors), intent(inout), optional, target :: err
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: two = 2.0d0
+        real(dp), parameter :: ten = 1.0d1
+
+        ! Local Variables
+        type(fcn1var_helper) :: obj
+        procedure(fcn1var), pointer :: fcn
+        type(brent_solver) :: solver
+        type(value_pair) :: lim
+
+        ! Compute the solution
+        fcn => zfun
+        call obj%set_fcn(fcn)
+        lim%x1 = zero
+        lim%x2 = ten
+        call solver%solve(obj, z, lim, err = err)
+
+    contains
+        ! Compute the solution to: alpha = erf(z / sqrt(2)) for z
+        function zfun(x) result(f)
+            real(dp), intent(in) :: x
+            real(dp) :: f
+            f = alpha - erf(x / sqrt(two))
+        end function
+    end function
 
 ! ------------------------------------------------------------------------------
 
