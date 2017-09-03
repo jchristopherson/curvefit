@@ -42,21 +42,12 @@ program example
     open(newunit = id, file = "curvefit_interp.txt", action = "write", &
         status = "replace")
     do i = 1, max(knotpts, npts)
-        if (knotpts < npts) then
-            if (i <= knotpts) then
-                write(id, '(F14.10AF14.10AF14.10AF14.10AF14.10)') x(i), ",", &
-                    y(i), ",", xi(i), ",", y1(i), ",", y2(i)
-            else
-                write(id, '(AF14.10AF14.10AF14.10)') ",,", xi(i), ",", y1(i), &
-                    ",", y2(i)
-            end if
+        if (i <= knotpts) then
+            write(id, '(F14.10AF14.10AF14.10AF14.10AF14.10)') x(i), ",", &
+                y(i), ",", xi(i), ",", y1(i), ",", y2(i)
         else
-            if (i <= npts) then
-                write(id, '(F14.10AF14.10AF14.10AF14.10AF14.10)') x(i), ",", &
-                    y(i), ",", xi(i), ",", y1(i), ",", y2(i)
-            else
-                write(id, '(F14.10AF14.10)') x(i), ",", y(i)
-            end if
+            write(id, '(AF14.10AF14.10AF14.10)') ",,", xi(i), ",", y1(i), &
+                ",", y2(i)
         end if
     end do
     close(id)
