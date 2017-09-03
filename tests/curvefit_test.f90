@@ -3,6 +3,7 @@
 ! The testing application for the CURVEFIT library.
 program main
     use curvefit_test_interp
+    use curvefit_test_statistics
     implicit none
 
     ! Local Variables
@@ -19,6 +20,10 @@ program main
     if (.not.rst) overall = .false.
 
     rst = test_spline_interp()
+    if (.not.rst) overall = .false.
+
+    ! Statistics Tests
+    rst = test_z_value()
     if (.not.rst) overall = .false.
 
     ! End

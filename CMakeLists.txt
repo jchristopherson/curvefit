@@ -157,7 +157,7 @@ endif()
 # TESTS
 # ------------------------------------------------------------------------------
 set(curvefit_test_sources tests/curvefit_test.f90 
-  tests/curvefit_test_interp.f90)
+  tests/curvefit_test_interp.f90 tests/curvefit_test_statistics.f90)
 add_executable(curvefit_test ${curvefit_test_sources})
 target_link_libraries(curvefit_test curvefit)
 add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
