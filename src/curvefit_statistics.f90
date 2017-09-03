@@ -14,6 +14,8 @@ module curvefit_statistics
     public :: variance
     public :: standard_deviation
     public :: confidence_interval
+    public :: z_value
+
 
 ! ******************************************************************************
 ! INTERFACES
@@ -42,6 +44,13 @@ module curvefit_statistics
     !! distribution.
     interface confidence_interval
         module procedure :: conf_int
+    end interface
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the z-score given a percentage of the area under the
+    !! standard normal distribution curve.
+    interface z_value
+        module procedure :: std_norm_dist
     end interface
 
 contains
@@ -206,7 +215,7 @@ contains
         ! Compute the standard deviation, and z-distribution value
         sigma = standard_deviation(x)
         n = real(size(x), dp)
-        z = compute_z(alpha)
+        z = z_value(alpha)
 
         ! Compute the confidence interval - offset from the mean
         ci = z * sigma / sqrt(n)
@@ -221,10 +230,15 @@ contains
 ! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
-    ! Routine for computing confidence interval z value:
-    ! Solve: alpha = erf(z / sqrt(2)) for z.
-    ! Example (if alpha = 0.95, z = 1.96): 0.95 = erf(z / sqrt(2)), z = 1.96
-    function compute_z(alpha, err) result(z)
+    !> @brief Computes the z-score given a percentage of the area under the
+    !! standard normal distribution curve.
+    !!
+    !! @param[in] alpha The percentage of the area under the curve.  This value
+    !!  must be between 0 and 1 such that: 0 < alpha < 1.
+    !! @param[out] err
+    !!
+    !! @return The z-score or z-value.
+    function std_norm_dist(alpha, err) result(z)
         ! Supporting Modules
         use nonlin_types, only : fcn1var, fcn1var_helper, value_pair
         use nonlin_solve, only : brent_solver
