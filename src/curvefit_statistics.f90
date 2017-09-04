@@ -50,7 +50,7 @@ module curvefit_statistics
     !> @brief Computes the z-score given a percentage of the area under the
     !! standard normal distribution curve.
     interface z_value
-        module procedure :: std_norm_dist
+        module procedure :: std_norm_dist_z_score
     end interface
 
 contains
@@ -230,7 +230,7 @@ contains
     !! @param[out] err
     !!
     !! @return The z-score or z-value.
-    function std_norm_dist(alpha, err) result(z)
+    function std_norm_dist_z_score(alpha, err) result(z)
         ! Supporting Modules
         use nonlin_types, only : fcn1var, fcn1var_helper, value_pair
         use nonlin_solve, only : brent_solver
