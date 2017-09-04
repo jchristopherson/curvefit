@@ -229,7 +229,8 @@ contains
     !!  must be between 0 and 1 such that: 0 < alpha < 1.
     !! @param[out] err
     !!
-    !! @return The z-score or z-value.
+    !! @return The z-score or z-value by solving for z where: 
+    !!  alpha = ERF(z / sqrt(2)), where ERF is the error function.
     function std_norm_dist_z_score(alpha, err) result(z)
         ! Supporting Modules
         use nonlin_types, only : fcn1var, fcn1var_helper, value_pair
