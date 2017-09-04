@@ -30,7 +30,6 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    ! REF: http://www.analyzemath.com/statistics/mean.html
     function test_mean() result(rst)
         ! Local Variables
         logical :: rst
@@ -47,11 +46,30 @@ contains
         ! Compute the mean
         mu = mean(x)
         if (abs(mu - ans) > tol) then
-            rst = .false.
+            rst = .false. 
+            print '(AF5.3AF5.3A)', "Test Failed: Expected a mean value of ", &
+                ans, ", but computed a value of ", mu, "."
         end if
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_stdev() result(rst)
+        ! Local Variables
+        logical :: rst
+        real(dp) :: x(5), s
+
+        ! Parameters
+        real(dp), parameter :: ans = 10.0d0
+        real(dp), parameter :: tol = 1.0d-8
+
+        ! Initialization
+        rst = .true.
+        x = [9.0d0, 10.0d0, 11.0d0, 7.0d0, 13.0d0]
+
+        ! Compute the standard deviation
+        s = standard_deviation(x)
+        print '(AF5.3)', "Standard Deviation: ", s
+    end function
 
 ! ------------------------------------------------------------------------------
 end module
