@@ -53,22 +53,53 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    function test_stdev() result(rst)
+    function test_var() result(rst)
         ! Local Variables
         logical :: rst
-        real(dp) :: x(5), s
+        real(dp) :: x(5), v
 
         ! Parameters
-        real(dp), parameter :: ans = 10.0d0
+        real(dp), parameter :: ans = 5.0d0
         real(dp), parameter :: tol = 1.0d-8
 
         ! Initialization
         rst = .true.
         x = [9.0d0, 10.0d0, 11.0d0, 7.0d0, 13.0d0]
 
-        ! Compute the standard deviation
-        s = standard_deviation(x)
-        print '(AF5.3)', "Standard Deviation: ", s
+        ! Compute the variance
+        v = variance(x)
+        if (abs(v - ans) > tol) then
+            rst = .false.
+            print '(AF5.3AF5.3A)', "Test Failed: Expected a variance of ", &
+                ans, ", but computed a value of ", v, "."
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_confidence_interval() result(rst)
+        ! Parameters
+        integer(i32), parameter :: n = 1000
+        real(dp), parameter :: alpha = 0.95d0
+        real(dp), parameter :: z = 1.96d0   ! 95% confidence
+        real(dp), parameter :: tol = 1.0d-3 ! Do to precision of Z
+
+        ! Local Variables
+        logical :: rst
+        real(dp) :: x(n), c, ans
+
+        ! Initialization
+        rst = .true.
+        call random_number(x)
+        ans = z * standard_deviation(x) / sqrt(real(size(x), dp))
+
+        ! Compute the confidence interval
+        c = confidence_interval(x, alpha)
+        if (abs(c - ans) > tol) then
+            rst = .false.
+            print '(AF5.3AF5.3A)', &
+                "Test Failed: Expected a confidence inverval of ", ans, &
+                ", but computed a value of ", c, "."
+        end if
     end function
 
 ! ------------------------------------------------------------------------------

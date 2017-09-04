@@ -29,7 +29,10 @@ program main
     rst = test_mean()
     if (.not.rst) overall = .false.
 
-    rst = test_stdev()
+    rst = test_var()
+    if (.not.rst) overall = .false.
+
+    rst = test_confidence_interval()
     if (.not.rst) overall = .false.
 
     ! End
