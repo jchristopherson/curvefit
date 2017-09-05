@@ -56,8 +56,21 @@ module curvefit_statistics
     end interface
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the incomplete gamma function: 
+    !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
+    interface incomplete_gamma
+        module procedure :: incomplete_gamma_scalar
+        module procedure :: incomplete_gamma_array
+    end interface
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the complement of the incomplete gamma function: 
+    !! Q(a,x) = 1 - P(a,x), where 
+    !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
+    interface incomplete_gamma_comp
+        module procedure :: incomplete_gamma_comp_scalar
+        module procedure :: incomplete_gamma_comp_array
+    end interface
 
 ! ------------------------------------------------------------------------------
 
@@ -329,7 +342,7 @@ contains
     !! @par Remarks
     !! This implementation is based upon the Numerical Recipes implementation
     !! found in section 6.2 of the text (routine: gammp).
-    function incomplete_gamma(a, x, err) result(g)
+    function incomplete_gamma_scalar(a, x, err) result(g)
         ! Arguments
         real(dp), intent(in) :: a, x
         class(errors), intent(inout), optional, target :: err
@@ -353,12 +366,12 @@ contains
 
         ! Input Check
         if (x < zero) then
-            call errmgr%report_error("incomplete_gamma", &
+            call errmgr%report_error("incomplete_gamma_scalar", &
                 "The independent variable (x) must be >= 0.", &
                 CF_INVALID_INPUT_ERROR)
             return
         else if (a <= zero) then
-            call errmgr%report_error("incomplete_gamma", &
+            call errmgr%report_error("incomplete_gamma_scalar", &
                 "The parameter a must be positive.", CF_INVALID_INPUT_ERROR)
             return
         end if
@@ -369,6 +382,81 @@ contains
         else
             g = one - inc_gamma_cf(a, x)
         end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the incomplete gamma function: 
+    !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
+    !!
+    !! @param[in] a The coefficient.  This parameter must be positive-valued.
+    !! @param[in] x An N-element array of independent variables.  All values
+    !!  must be greater than or equal to zero.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is negative, or if @p a is not
+    !!      positive.
+    !!
+    !! @param return The values of the function at @p x.
+    !!
+    !! @par Remarks
+    !! This implementation is based upon the Numerical Recipes implementation
+    !! found in section 6.2 of the text (routine: gammp).
+    function incomplete_gamma_array(a, x, err) result(g)
+        ! Arguments
+        real(dp), intent(in) :: a
+        real(dp), intent(in), dimension(:) x
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(size(x)) :: g
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+
+        ! Local Variables
+        logical :: check
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: i, n
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+        g = zero
+        n = size(x)
+
+        ! Input Check
+        check = .true.
+        do i = 1, n
+            if (x(i) < zero) then
+                check = .false.
+                exit
+            end if
+        end do
+        if (.not.check) then
+            call errmgr%report_error("incomplete_gamma_array", &
+                "The independent variable (x) must be >= 0.", &
+                CF_INVALID_INPUT_ERROR)
+            return
+        else if (a <= zero) then
+            call errmgr%report_error("incomplete_gamma_array", &
+                "The parameter a must be positive.", CF_INVALID_INPUT_ERROR)
+            return
+        end if
+
+        ! Process
+        do concurrent (i = 1:n)
+            if (x(i) < a + one) then
+                g(i) = inc_gamma_series(a, x(i))
+            else
+                g(i) = one - inc_gamma_cf(a, x(i))
+            end if
+        end do
     end function
 
 ! ------------------------------------------------------------------------------
@@ -392,7 +480,7 @@ contains
     !! @par Remarks
     !! This implementation is based upon the Numerical Recipes implementation
     !! found in section 6.2 of the text (routine: gammq).
-    function incomplete_gamma_comp(a, x, err) result(g)
+    function incomplete_gamma_comp_scalar(a, x, err) result(g)
         ! Arguments
         real(dp), intent(in) :: a, x
         class(errors), intent(inout), optional, target :: err
@@ -416,12 +504,12 @@ contains
 
         ! Input Check
         if (x < zero) then
-            call errmgr%report_error("incomplete_gamma_comp", &
+            call errmgr%report_error("incomplete_gamma_comp_scalar", &
                 "The independent variable (x) must be >= 0.", &
                 CF_INVALID_INPUT_ERROR)
             return
         else if (a <= zero) then
-            call errmgr%report_error("incomplete_gamma_comp", &
+            call errmgr%report_error("incomplete_gamma_comp_scalar", &
                 "The parameter a must be positive.", CF_INVALID_INPUT_ERROR)
             return
         end if
@@ -432,6 +520,82 @@ contains
         else
             g = inc_gamma_cf(a, x)
         end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the complement of the incomplete gamma function: 
+    !! Q(a,x) = 1 - P(a,x), where 
+    !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
+    !!
+    !! @param[in] a The coefficient.  This parameter must be positive-valued.
+    !! @param[in] x An N-element array of independent variables.  All values
+    !!  must be greater than or equal to zero.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is negative, or if @p a is not
+    !!      positive.
+    !!
+    !! @param return The values of the function at @p x.
+    !!
+    !! @par Remarks
+    !! This implementation is based upon the Numerical Recipes implementation
+    !! found in section 6.2 of the text (routine: gammq).
+    function incomplete_gamma_comp_array(a, x, err) result(g)
+        ! Arguments
+        real(dp), intent(in) :: a
+        real(dp), intent(in), dimension(:) :: x
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(size(x)) :: g
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: i, n
+        logical :: check
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+        g = zero
+        n = size(x)
+
+        ! Input Check
+        check = .true.
+        do i = 1, n
+            if (x < zero) then
+                check = .false.
+                exit
+            end if
+        end do
+        if (x < zero) then
+            call errmgr%report_error("incomplete_gamma_comp_array", &
+                "The independent variable (x) must be >= 0.", &
+                CF_INVALID_INPUT_ERROR)
+            return
+        else if (a <= zero) then
+            call errmgr%report_error("incomplete_gamma_comp_array", &
+                "The parameter a must be positive.", CF_INVALID_INPUT_ERROR)
+            return
+        end if
+
+        ! Process
+        do concurrent (i = 1:n)
+            if (x(i) < a + one) then
+                g(i) = one - inc_gamma_series(a, x(i))
+            else
+                g(i) = inc_gamma_cf(a, x(i))
+            end if
+        end do
     end function
 
 ! ------------------------------------------------------------------------------
