@@ -103,4 +103,68 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_inc_gamma() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        integer(i32), parameter :: n = 1000
+        real(dp), parameter :: maxX = 10.0d0
+        real(dp), parameter :: a1 = 0.5d0
+        real(dp), parameter :: a2 = 5.0d0
+
+        ! Local Variables
+        integer(i32) :: i, id
+        real(dp) :: x(n), y1(n), y2(n)
+
+        ! Initialization
+        rst = .true.
+        x = [(maxX * (i - 1.0d0) / (n - 1.0d0), i = 1, n)]
+
+        ! Process
+        y1 = incomplete_gamma(a1, x)
+        y2 = incomplete_gamma(a2, x)
+
+        ! Write to file
+        open(newunit = id, file = "inc_gamma.txt", action = "write", &
+            status = "replace")
+        do i = 1, n
+            write(id, '(F14.10AF14.10AF14.10)') x(i), ",", y1(i), ",", y2(i)
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_inc_gamma_comp() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        integer(i32), parameter :: n = 1000
+        real(dp), parameter :: maxX = 10.0d0
+        real(dp), parameter :: a1 = 0.5d0
+        real(dp), parameter :: a2 = 5.0d0
+
+        ! Local Variables
+        integer(i32) :: i, id
+        real(dp) :: x(n), y1(n), y2(n)
+
+        ! Initialization
+        rst = .true.
+        x = [(maxX * (i - 1.0d0) / (n - 1.0d0), i = 1, n)]
+
+        ! Process
+        y1 = incomplete_gamma_comp(a1, x)
+        y2 = incomplete_gamma_comp(a2, x)
+
+        ! Write to file
+        open(newunit = id, file = "inc_gamma_comp.txt", action = "write", &
+            status = "replace")
+        do i = 1, n
+            write(id, '(F14.10AF14.10AF14.10)') x(i), ",", y1(i), ",", y2(i)
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 end module

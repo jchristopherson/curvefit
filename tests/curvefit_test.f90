@@ -35,6 +35,12 @@ program main
     rst = test_confidence_interval()
     if (.not.rst) overall = .false.
 
+    rst = test_inc_gamma()
+    if (.not.rst) overall = .false.
+
+    rst = test_inc_gamma_comp()
+    if (.not.rst) overall = .false.
+
     ! End
     if (overall) then
         print '(A)', "CURVEFIT TEST STATUS: PASS"

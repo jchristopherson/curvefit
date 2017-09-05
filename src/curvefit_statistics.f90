@@ -407,7 +407,7 @@ contains
     function incomplete_gamma_array(a, x, err) result(g)
         ! Arguments
         real(dp), intent(in) :: a
-        real(dp), intent(in), dimension(:) x
+        real(dp), intent(in), dimension(:) :: x
         class(errors), intent(inout), optional, target :: err
         real(dp), dimension(size(x)) :: g
 
@@ -572,12 +572,12 @@ contains
         ! Input Check
         check = .true.
         do i = 1, n
-            if (x < zero) then
+            if (x(i) < zero) then
                 check = .false.
                 exit
             end if
         end do
-        if (x < zero) then
+        if (.not.check) then
             call errmgr%report_error("incomplete_gamma_comp_array", &
                 "The independent variable (x) must be >= 0.", &
                 CF_INVALID_INPUT_ERROR)
