@@ -93,7 +93,7 @@ else()
   # Building a static library, simply add source code to this library
   file(GLOB_RECURSE nonlin_sources external/nonlin/src/*.f90)
   file(GLOB_RECURSE linalg_sources external/nonlin/external/linalg/src/*.f90
-    external/nonlin/external/linalg/src/QRUPDATE/*.f90
+    external/nonlin/external/linalg/src/QRUPDATE/*.f
     external/nonlin/external/linalg/LAPACK/BLAS/src/*.f
     external/nonlin/external/linalg/LAPACK/src/*.f)
   file(GLOB_RECURSE ferror_sources external/nonlin/external/linalg/ferror/src/*.f90)
