@@ -188,7 +188,59 @@ contains
                 v = v + (x(i) - oldMean) * (x(i) - newMean)
                 oldMean = newMean
             end do
-            v = v / (n - 1)
+            v = v / (n - 1.0d0)
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the covariance matrix of two data sets.
+    !!
+    !! @param[in] x An N-element array containing the first data set.
+    !! @param[in] y An N-element array containing the second data set.
+    !! @param[in,out] err
+    !!
+    !! @return The 2-by-2 covariance matrix.
+    function covariance_2sets(x, y, err) result(c)
+        ! Arguments
+        real(dp), intent(in), dimension(:) :: x, y
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(2,2) :: c
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        integer(i32) :: i, n
+        real(dp) :: oldMeanX, newMeanX, oldMeanY, newMeanY
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        n = size(x)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (size(y) /= n) then
+            ! ERROR
+        end if
+
+        ! Process
+        c = zero
+        if (n > 1) then
+            oldMeanX = x(1)
+            oldMeanY = y(1)
+            do i = 2, n
+                newMeanX = oldMeanX + (x(i) - oldMeanX) / i
+                newMeanY = oldMeanY + (y(i) - oldMeanY) / i
+                c(1,1) = c(1,1) + (x(i) - oldMeanX) * (x(i) - newMeanX)
+                c(2,2) = c(2,2) + (y(i) - oldMeanY) * (y(i) - newMeanY)
+                ! TO DO: Finish the off-diagonal elements
+            end do
+            c = c / (n - 1.0d0)
         end if
     end function
 
