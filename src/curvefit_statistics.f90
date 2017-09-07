@@ -12,6 +12,7 @@ module curvefit_statistics
     private
     public :: mean
     public :: variance
+    public :: covariance
     public :: standard_deviation
     public :: confidence_interval
     public :: z_value
@@ -33,6 +34,12 @@ module curvefit_statistics
     !> @brief Computes the sample variance of a data set.
     interface variance
         module procedure :: variance_dbl
+    end interface
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the covariance matrix of two data sets.
+    interface covariance
+        module procedure :: covariance_2sets
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -238,7 +245,9 @@ contains
                 newMeanY = oldMeanY + (y(i) - oldMeanY) / i
                 c(1,1) = c(1,1) + (x(i) - oldMeanX) * (x(i) - newMeanX)
                 c(2,2) = c(2,2) + (y(i) - oldMeanY) * (y(i) - newMeanY)
-                ! TO DO: Finish the off-diagonal elements
+                c(1,2) = c(1,2) + (x(i) - oldMeanX) * (y(i) - newMeanY)
+                oldMeanX = newMeanX
+                oldMeanY = newMeanY
             end do
             c = c / (n - 1.0d0)
         end if
