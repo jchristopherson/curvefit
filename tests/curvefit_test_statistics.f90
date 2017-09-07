@@ -258,6 +258,30 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_median() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        integer(i32), parameter :: n = 7
+        real(dp), parameter :: tol = 1.0d-8
+        real(dp), parameter :: ans = 1.0d0
+
+        ! Local Variables
+        real(dp) :: m, x(n)
+
+        ! Initialization
+        rst = .true.
+        x = [2.0d0, 3.0d0, 1.0d0, -4.0d0, -7.0d0, 1.0d0, 3.0d0]
+
+        ! Process
+        m = median(x)
+        if (abs(m - ans) > tol) then
+            rst = .false.
+            print '(AF5.3AF5.3A)', "Test Failed: Expected a median value of ", &
+                ans, ", but found a value of ", m, "."
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 end module
