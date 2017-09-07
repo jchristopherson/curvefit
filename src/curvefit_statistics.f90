@@ -318,13 +318,13 @@ contains
         do i = 2, m
             newMeans = oldMeans + (x(i,:) - oldMeans) / i
             do k = 1, n
-                c(k,1:k) = c(k,1:k) + &
+                c(1:k,k) = c(1:k,k) + &
                     (x(i,1:k) - oldMeans(1:k)) * (x(i,k) - newMeans(k))
             end do
             oldMeans = newMeans
         end do
         do k = 2, n
-            c(1:k-1,k) = c(k,1:k-1)
+            c(k,1:k-1) = c(1:k-1,k)
         end do
         c = c / (m - one)
     end function
