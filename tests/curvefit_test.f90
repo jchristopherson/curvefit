@@ -41,6 +41,9 @@ program main
     rst = test_inc_gamma_comp()
     if (.not.rst) overall = .false.
 
+    rst = test_covariance()
+    if (.not.rst) overall = .false.
+
     ! End
     if (overall) then
         print '(A)', "CURVEFIT TEST STATUS: PASS"

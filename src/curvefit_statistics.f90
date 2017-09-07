@@ -249,6 +249,7 @@ contains
                 oldMeanX = newMeanX
                 oldMeanY = newMeanY
             end do
+            c(2,1) = c(1,2)
             c = c / (n - 1.0d0)
         end if
     end function

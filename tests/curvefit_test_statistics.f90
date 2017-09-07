@@ -3,6 +3,7 @@
 module curvefit_test_statistics
     use curvefit_core
     use curvefit_statistics
+    use test_core
     implicit none
 contains
 ! ------------------------------------------------------------------------------
@@ -162,6 +163,41 @@ contains
         do i = 1, n
             write(id, '(F14.10AF14.10AF14.10)') x(i), ",", y1(i), ",", y2(i)
         end do
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_covariance() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        integer(i32), parameter :: n = 5
+        real(dp), parameter :: tol = 1.0d-8
+
+        ! Local Variables
+        integer(i32) :: i
+        real(dp) :: x(n), y(n), ans(2,2), c(2,2)
+
+        ! Initialization
+        rst = .true.
+        x = [1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0]
+        y = [1.2d0, 2.1d0, 2.7d0, 4.5d0, 4.9d0]
+        ans = reshape([2.5d0, 2.45d0, 2.45d0, 2.4920d0], [2, 2])
+
+        ! Process
+        c = covariance(x, y)
+        if (.not.is_mtx_equal(c, ans, tol)) then
+            rst = .false.
+            print '(A)', "Test Failed: Covariance matrix test of two data sets."
+            print '(A)', "Expected:"
+            do i = 1, size(ans, 1)
+                print *, ans(i,:)
+            end do
+            print '(A)', "Computed:"
+            do i = 1, size(c, 1)
+                print *, c(i,:)
+            end do
+        end if
     end function
 
 ! ------------------------------------------------------------------------------
