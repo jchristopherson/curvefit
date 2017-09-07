@@ -40,6 +40,7 @@ module curvefit_statistics
     !> @brief Computes the covariance matrix of two data sets.
     interface covariance
         module procedure :: covariance_2sets
+        module procedure :: covariance_mtx
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -204,7 +205,12 @@ contains
     !!
     !! @param[in] x An N-element array containing the first data set.
     !! @param[in] y An N-element array containing the second data set.
-    !! @param[in,out] err
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
     !!
     !! @return The 2-by-2 covariance matrix.
     function covariance_2sets(x, y, err) result(c)
@@ -215,6 +221,7 @@ contains
 
         ! Parameters
         real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
 
         ! Local Variables
         integer(i32) :: i, n
@@ -233,6 +240,9 @@ contains
         ! Input Check
         if (size(y) /= n) then
             ! ERROR
+            call errmgr%report_error("covariance_2sets", &
+                "The input arrays must be the same size.", CF_ARRAY_SIZE_ERROR)
+            return
         end if
 
         ! Process
@@ -250,8 +260,73 @@ contains
                 oldMeanY = newMeanY
             end do
             c(2,1) = c(1,2)
-            c = c / (n - 1.0d0)
+            c = c / (n - one)
         end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the covariance matrix of N data sets of M observations.
+    !!
+    !! @param[in] The M-by-N matrix.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    !!
+    !! @return The N-by-N covariance matrix.
+    function covariance_mtx(x, err) result(c)
+        ! Arguments
+        real(dp), intent(in), dimension(:,:) :: x
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(size(x, 2), size(x, 2)) :: c
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+
+        ! Local Variables
+        integer(i32) :: i, k, m, n, flag
+        real(dp), allocatable, dimension(:) :: oldMeans, newMeans
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        m = size(x, 1)
+        n = size(x, 2)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Local Memory Allocation
+        allocate(oldMeans(n), stat = flag)
+        if (flag == 0) allocate(newMeans(n), stat = flag)
+        if (flag /= 0) then
+            ! ERROR
+            call errmgr%report_error("covariance_mtx", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
+        end if
+
+        ! Process
+        c = zero
+        oldMeans = x(1,:)
+        do i = 2, m
+            newMeans = oldMeans + (x(i,:) - oldMeans) / i
+            do k = 1, n
+                c(k,1:k) = c(k,1:k) + &
+                    (x(i,1:k) - oldMeans(1:k)) * (x(i,k) - newMeans(k))
+            end do
+            oldMeans = newMeans
+        end do
+        do k = 2, n
+            c(1:k-1,k) = c(k,1:k-1)
+        end do
+        c = c / (m - one)
     end function
 
 ! ------------------------------------------------------------------------------

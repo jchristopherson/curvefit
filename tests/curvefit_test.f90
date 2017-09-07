@@ -44,6 +44,9 @@ program main
     rst = test_covariance()
     if (.not.rst) overall = .false.
 
+    rst = test_covariance_2()
+    if (.not.rst) overall = .false.
+
     ! End
     if (overall) then
         print '(A)', "CURVEFIT TEST STATUS: PASS"

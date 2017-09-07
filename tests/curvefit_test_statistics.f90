@@ -176,16 +176,73 @@ contains
 
         ! Local Variables
         integer(i32) :: i
-        real(dp) :: x(n), y(n), ans(2,2), c(2,2)
+        real(dp) :: x(n), y(n), ans(2,2), c(2,2), c2(2,2), z(n,2)
 
         ! Initialization
         rst = .true.
         x = [1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0]
         y = [1.2d0, 2.1d0, 2.7d0, 4.5d0, 4.9d0]
         ans = reshape([2.5d0, 2.45d0, 2.45d0, 2.4920d0], [2, 2])
+        z(:,1) = x
+        z(:,2) = y
+
+        ! Test 1
+        c = covariance(x, y)
+        if (.not.is_mtx_equal(c, ans, tol)) then
+            rst = .false.
+            print '(A)', "Test Failed: Covariance matrix test of two data sets."
+            print '(A)', "Expected:"
+            do i = 1, size(ans, 1)
+                print *, ans(i,:)
+            end do
+            print '(A)', "Computed:"
+            do i = 1, size(c, 1)
+                print *, c(i,:)
+            end do
+        end if
+
+        ! Test 2
+        c2 = covariance(z)
+        if (.not.is_mtx_equal(c2, ans, tol)) then
+            rst = .false.
+            print '(A)', "Test Failed: Covariance matrix test 2."
+            print '(A)', "Expected:"
+            do i = 1, size(ans, 1)
+                print *, ans(i,:)
+            end do
+            print '(A)', "Computed:"
+            do i = 1, size(c2, 1)
+                print *, c2(i,:)
+            end do
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_covariance_2() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        integer(i32), parameter :: m = 3
+        integer(i32), parameter :: n = 4
+        real(dp), parameter :: tol = 1.0d-8
+
+        ! Local Variables
+        integer(i32) :: i
+        real(dp) :: ans(n,n), c(n,n), x(m,n)
+
+        ! Initialization
+        rst = .true.
+        x = reshape([5.0d0, 1.0d0, 4.0d0, 0.0d0, -5.0d0, 9.0d0, 3.0d0, 7.0d0, &
+            8.0d0, 7.0d0, 3.0d0, 1.0d1], [m, n])
+        ans = reshape([4.33333333333333d0, 8.83333333333333d0, -3.0d0, &
+            5.66666666666667d0, 8.83333333333333d0, 50.3333333333333d0, &
+            6.5d0, 24.1666666666667d0, -3.0d0, 6.5d0, 7.0d0, 1.0d0, &
+            5.66666666666667d0, 24.1666666666667d0, 1.0d0, &
+            12.3333333333333d0], [n, n])
 
         ! Process
-        c = covariance(x, y)
+        c = covariance(x)
         if (.not.is_mtx_equal(c, ans, tol)) then
             rst = .false.
             print '(A)', "Test Failed: Covariance matrix test of two data sets."
