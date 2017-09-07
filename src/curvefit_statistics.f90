@@ -8,9 +8,11 @@
 module curvefit_statistics
     use curvefit_core
     use ferror, only : errors
+    use linalg_sorting, only : sort
     implicit none
     private
     public :: mean
+    public :: median
     public :: variance
     public :: covariance
     public :: standard_deviation
@@ -29,6 +31,10 @@ module curvefit_statistics
     end interface
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the median of a data set.
+    interface median
+        module procedure :: median_dbl
+    end interface
 
 ! ------------------------------------------------------------------------------
     !> @brief Computes the sample variance of a data set.
@@ -93,7 +99,7 @@ contains
     !! @return The mean of x.
     !!
     !! @par Remarks
-    !! To avoid overflow-type issues, Knuth's algorithm is employed.  A simple
+    !! To avoid overflow-type issues, Welford's algorithm is employed.  A simple
     !! illustration of this algorithm can be found 
     !! [here](https://www.johndcook.com/blog/standard_deviation/).
     pure function mean_dbl(x) result(z)
@@ -122,43 +128,53 @@ contains
 ! ------------------------------------------------------------------------------
     !> @brief Computes the median of a data set.
     !!
-    !! @param[in] x The monotonic data set whose median is to be found.
+    !! @param[in,out] x The data set whose median is to be found.  Ideally, the
+    !!  data set should be monotonically increasing; however, if it is not, it
+    !!  may be sorted by the routine, dependent upon the value of @p srt.  On
+    !!  output, the array contents are unchanged; however, they may be sorted
+    !!  into ascending order (dependent upon the value of @p srt).
+    !! @param[in] srt An optional flag determining if @p x should be sorted. 
+    !!  The default is to sort (true).
     !!
     !! @return The median of @p x.
-    ! function median_double(x) result(z)
-    !     ! Arguments
-    !     real(dp), intent(inout), dimension(:) :: x
-    !     real(dp) :: z
+    function median_dbl(x, srt) result(z)
+        ! Arguments
+        real(dp), intent(inout), dimension(:) :: x
+        logical, intent(in), optional :: srt
+        real(dp) :: z
 
-    !     ! Parameters
-    !     real(dp), parameter :: zero = 0.0d0
-    !     real(dp), parameter :: half = 0.5d0
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: half = 0.5d0
 
-    !     ! Local Variables
-    !     integer(i32) :: n, iflag, nmid, nmidp1
+        ! Local Variables
+        logical :: sortData
+        integer(i32) :: n, iflag, nmid, nmidp1
 
-    !     ! Initialization
-    !     n = size(x)
-    !     nmid = n / 2
-    !     nmidp1 = nmid + 1
-    !     iflag = n - 2 * nmid
+        ! Initialization
+        n = size(x)
+        nmid = n / 2
+        nmidp1 = nmid + 1
+        iflag = n - 2 * nmid
+        sortData = .true.
+        if (present(srt)) sortData = srt
 
-    !     ! Quick Return
-    !     if (n == 0) then
-    !         z = zero
-    !         return
-    !     end if
+        ! Quick Return
+        if (n == 0) then
+            z = zero
+            return
+        end if
 
-    !     ! Sort the array into ascending order
-    !     call sort_array(.true., x)
+        ! Sort the array into ascending order
+        if (sortData) call sort(x, .true.)
 
-    !     ! Compute the median
-    !     if (iflag == 0) then
-    !         z = half * (x(nmid) + x(nmidp1))
-    !     else
-    !         z = x(nmidp1)
-    !     end if
-    ! end function
+        ! Compute the median
+        if (iflag == 0) then
+            z = half * (x(nmid) + x(nmidp1))
+        else
+            z = x(nmidp1)
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
     !> @brief Computes the sample variance of a data set.
@@ -168,7 +184,7 @@ contains
     !! @return The variance of @p x.
     !!
     !! @par Remarks
-    !! To avoid overflow-type issues, Knuth's algorithm is employed.  A simple
+    !! To avoid overflow-type issues, Welford's algorithm is employed.  A simple
     !! illustration of this algorithm can be found 
     !! [here](https://www.johndcook.com/blog/standard_deviation/).
     pure function variance_dbl(x) result(v)
