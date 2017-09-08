@@ -91,7 +91,8 @@ module curvefit_regression
         procedure, public :: get_equation_count => nr_get_eqn_count
         !> @brief Gets the number of variables (coefficients).
         procedure, public :: get_variable_count => nr_get_var_count
-        !> @brief Solves the nonlinear regression problem.
+        !> @brief Computes the solution to the nonlinear regression problem 
+        !! using the Levenberg-Marquardt method.
         procedure, public :: solve => nr_solve
     end type
 
@@ -637,12 +638,21 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !
-    subroutine nr_solve(this, c, ys, err)
+    !> @brief Computes the solution to the nonlinear regression problem using
+    !! the Levenberg-Marquardt method.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @param[in,out] c On input, an array containing initial estimates of the
+    !!  coefficients.  On output, the comptued coefficient values.
+    !! @param[out] res An optional output array, whose size corresponds to the
+    !!  number of data points, that can be used to retrieve the residual error
+    !!  at each data point.
+    !! @param[out] err
+    subroutine nr_solve(this, c, res, err)
         ! Arguments
         class(nonlinear_regression), intent(in) :: this
         real(dp), intent(inout), dimension(:) :: c
-        real(dp), intent(out), dimension(:), target, optional :: ys
+        real(dp), intent(out), dimension(:), target, optional :: res
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
@@ -668,10 +678,10 @@ contains
 
         ! Local Memory Allocation
         n = this%get_equation_count()
-        if (present(ys)) then
-            if (size(ys) /= n) then
+        if (present(res)) then
+            if (size(res) /= n) then
             end if
-            fptr => ys
+            fptr => res
         else
             allocate(f(n), stat = flag)
             if (flag /= 0) then
