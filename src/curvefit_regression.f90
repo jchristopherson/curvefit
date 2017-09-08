@@ -383,7 +383,14 @@ contains
     !! value increases, the output becomes smoother.  Choosing a value in the
     !! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
     !! starting point, in the absence of better information, is a value of 0.5.
-    !! @param[out] err
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has been defined.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
     !!
     !! @return The smoothed data points.
     function ls_smooth(this, f, err) result(ys)
@@ -406,6 +413,9 @@ contains
         end if
         if (.not.this%m_init) then
             ! ERROR
+            call errmgr%report_error("ls_smooth", &
+                "No data has been defined.", CF_NO_DATA_DEFINED_ERROR)
+            return
         end if
         n = size(this%m_x)
 

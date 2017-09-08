@@ -121,6 +121,10 @@ if (BUILD_EXAMPLES)
   add_executable(curvefit_interp_example examples/curvefit_interp_example.f90)
   target_link_libraries(curvefit_interp_example curvefit)
 
+  # LOWESS Example
+  add_executable(curvefit_lowess_example examples/curvefit_lowess_example.f90)
+  target_link_libraries(curvefit_lowess_example curvefit)
+
 #   # Quasi-Newton Example
 #   add_executable(quasi_newton_example examples/nonlin_quasi_newton_example.f90)
 #   target_link_libraries(quasi_newton_example nonlin)
