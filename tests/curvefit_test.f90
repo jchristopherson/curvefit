@@ -4,6 +4,7 @@
 program main
     use curvefit_test_interp
     use curvefit_test_statistics
+    use curvefit_test_regression
     implicit none
 
     ! Local Variables
@@ -48,6 +49,10 @@ program main
     if (.not.rst) overall = .false.
 
     rst = test_median()
+    if (.not.rst) overall = .false.
+
+    ! Regression Tests
+    rst = test_lowess()
     if (.not.rst) overall = .false.
 
     ! End
