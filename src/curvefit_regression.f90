@@ -9,14 +9,38 @@ module curvefit_regression
     use curvefit_core
     use linalg_sorting, only : sort
     use ferror, only : errors
+    use nonlin_types, only : vecfcn_helper
+    use nonlin_least_squares, only : least_squares_solver
     implicit none
     private
     public :: lowess_smoothing
+    public :: reg_fcn
+    public :: nonlinear_regression
+
+! ******************************************************************************
+! INTERFACES
+! ------------------------------------------------------------------------------
+    interface
+        !> @brief Describes a routine for finding the coefficients of a function
+        !! of one variable.
+        !!
+        !! @param[in] x The independent variable.
+        !! @param[in] c An array of function coefficients.
+        !!
+        !! @result The value of the function at @p x.
+        function reg_fcn(x, c) result(f)
+            use curvefit_core, only : dp
+            real(dp), intent(in) :: x
+            real(dp), intent(in), dimension(:) :: c
+            real(dp) :: f
+        end function
+    end interface
 
 ! ******************************************************************************
 ! TYPES
 ! ------------------------------------------------------------------------------
-    !> @brief 
+    !> @brief Defines a type for computing a smoothing of an X-Y data set using 
+    !! a robust locally weighted scatterplot smoothing (LOWESS) algorithm.
     type lowess_smoothing
         private
         !> N-element array of x data points - sorted into ascending order.
@@ -39,6 +63,38 @@ module curvefit_regression
         !> @brief Performs the actual smoothing operation.
         procedure, public :: smooth => ls_smooth
     end type
+
+! ------------------------------------------------------------------------------
+    !> @brief A type for supporting nonlinear regression calculations.
+    type, extends(vecfcn_helper) :: nonlinear_regression
+        private
+        !> A pointer to the routine containing the function of interest.
+        procedure(reg_fcn), pointer, nopass :: m_rfcn => null()
+        !> The x data points.
+        real(dp), allocatable, dimension(:) :: m_x
+        !> The y data points.
+        real(dp), allocatable, dimension(:) :: m_y
+        !> The number of coefficients in the function of interest
+        integer(i32) :: m_ncoeff = 0
+        !> Tracks whether or not nr_init has been called
+        logical :: m_init = .false.
+    contains
+        !> @brief Initializes the nonlinear_regression object.
+        procedure, public :: initialize => nr_init
+        !> @brief Computes the residual between the supplied data set, and the
+        !! function value given a set of coefficients.
+        procedure, public :: fcn => nr_fcn
+        !> @brief Determines if the function has been defined.
+        procedure, public :: is_fcn_defined => nr_is_fcn_defined
+        !> @brief Gets the number of equations required to solve the regression
+        !! problem.
+        procedure, public :: get_equation_count => nr_get_eqn_count
+        !> @brief Gets the number of variables (coefficients).
+        procedure, public :: get_variable_count => nr_get_var_count
+        !> @brief Solves the nonlinear regression problem.
+        procedure, public :: solve => nr_solve
+    end type
+
 
 contains
 ! ******************************************************************************
@@ -435,9 +491,197 @@ contains
 
 ! ------------------------------------------------------------------------------
 
+! ******************************************************************************
+! nonlinear_regression MEMBERS
 ! ------------------------------------------------------------------------------
+    !> @brief Initializes the nonlinear_regression object.
+    !!
+    !! @param[in,out] this The nonlinear_regression object.
+    !! @param[in] x An N-element containing the independent variable values of
+    !!  the data set.
+    !! @param[in] y  An N-element array of the dependent variables corresponding
+    !!  to @p x.
+    !! @param[in] fcn A pointer to the function whose coefficients are to be
+    !!  determined.
+    !! @param[in] ncoeff The number of coefficients in the function defined in
+    !!  @p fcn.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p ncoeff is less than or equal to
+    !!      zero.
+    subroutine nr_init(this, x, y, fcn, ncoeff, err)
+        ! Arguments
+        class(nonlinear_regression), intent(inout) :: this
+        real(dp), intent(in), dimension(:) :: x, y
+        procedure(reg_fcn), pointer, intent(in) :: fcn
+        integer(i32), intent(in) :: ncoeff
+        class(errors), intent(inout), optional, target :: err
+
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: i, n, flag
+
+        ! Initialization
+        this%m_init = .false.
+        n = size(x)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (size(y) /= n) then
+            call errmgr%report_error("nr_init", &
+                "The input arrays must be the same size.", CF_ARRAY_SIZE_ERROR)
+            return
+        end if
+        if (ncoeff <= 0) then
+            call errmgr%report_error("nr_init", &
+                "The number of equation coefficients must be positive.", &
+                CF_INVALID_INPUT_ERROR)
+            return
+        end if
+
+        ! Allocate memory
+        if (allocated(this%m_x)) deallocate(this%m_x)
+        if (allocated(this%m_y)) deallocate(this%m_y)
+        allocate(this%m_x(n), stat = flag)
+        if (flag == 0) allocate(this%m_y(n), stat = flag)
+        if (flag /= 0) then
+            call errmgr%report_error("nr_init", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
+        end if
+
+        ! Process
+        do concurrent (i = 1:n)
+            this%m_x(i) = x(i)
+            this%m_y(i) = y(i)
+        end do
+        this%m_rfcn => fcn
+        this%m_ncoeff = ncoeff
+        this%m_init = .true.
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the residual between the supplied data set, and the
+    !! function value given a set of coefficients.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @param[in] x An N-element array containing the N coefficients.
+    !! @param[out] f An M-element array that, on output, contains the residual
+    !!  at each of the M data points.
+    subroutine nr_fcn(this, x, f)
+        ! Arguments
+        class(nonlinear_regression), intent(in) :: this
+        real(dp), intent(in), dimension(:) :: x
+        real(dp), intent(out), dimension(:) :: f
+
+        ! Local Variables
+        integer(i32) :: i, n
+
+        ! Compute the value of the function at each value of m_x
+        n = size(this%m_x)
+        do i = 1, n
+            f(i) = this%m_y(i) - this%m_rfcn(this%m_x(i), x)
+        end do
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Determines if the function has been defined.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !!
+    !! @return Returns true if the function has been defined; else, false.
+    pure function nr_is_fcn_defined(this) result(x)
+        class(nonlinear_regression), intent(in) :: this
+        logical :: x
+        x = associated(this%m_rfcn)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the number of equations required to solve the regression
+    !! problem.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !!
+    !! @return The number of equations.
+    pure function nr_get_eqn_count(this) result(n)
+        class(nonlinear_regression), intent(in) :: this
+        integer(i32) :: n
+        if (allocated(this%m_x)) then
+            n = size(this%m_x)
+        else
+            n = 0
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the number of variables (coefficients).
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !!
+    !! @return The number of variables.
+    pure function nr_get_var_count(this) result(n)
+        class(nonlinear_regression), intent(in) :: this
+        integer(i32) :: n
+        n = this%m_ncoeff
+    end function
+
+! ------------------------------------------------------------------------------
+    !
+    subroutine nr_solve(this, c, ys, err)
+        ! Arguments
+        class(nonlinear_regression), intent(in) :: this
+        real(dp), intent(inout), dimension(:) :: c
+        real(dp), intent(out), dimension(:), target, optional :: ys
+        class(errors), intent(inout), optional, target :: err
+
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: n, flag
+        real(dp), allocatable, target, dimension(:) :: f
+        real(dp), pointer, dimension(:) :: fptr
+        type(least_squares_solver) :: solver
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (.not.this%m_init) then
+        end if
+        if (size(c) /= this%get_variable_count()) then
+        end if
+
+        ! Local Memory Allocation
+        n = this%get_equation_count()
+        if (present(ys)) then
+            if (size(ys) /= n) then
+            end if
+            fptr => ys
+        else
+            allocate(f(n), stat = flag)
+            if (flag /= 0) then
+            end if
+            fptr => f
+        end if
+
+        ! Compute the solution - TO DO: implement ways to address tolerances and iteration behavior results
+        call solver%solve(this, c, fptr, err = errmgr)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
