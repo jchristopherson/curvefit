@@ -34,7 +34,10 @@ module curvefit_regression
         !> Tracks whether or not ls_init has been called
         logical :: m_init = .false.
     contains
+        !> @brief Initializes the lowess_smoothing object.
         procedure, public :: initialize => ls_init
+        !> @brief Performs the actual smoothing operation.
+        procedure, public :: smooth => ls_smooth
     end type
 
 contains
@@ -278,7 +281,26 @@ contains
 ! ******************************************************************************
 ! LOWESS_SMOOTHING MEMBERS
 ! ------------------------------------------------------------------------------
-    !
+    !> @brief Initializes the lowess_smoothing object.
+    !!
+    !! @param[in,out] this The lowess_smoothing object.
+    !! @param[in] x An N-element containing the independent variable values of
+    !!  the data set.  This array must be in a monotonically increasing order.
+    !!  The routine is capable of sorting the array into ascending order,
+    !!  dependent upon the value of @p srt.  If sorting is performed, this 
+    !!  routine will also shuffle @p y to match.
+    !! @param[in] y  An N-element array of the dependent variables corresponding
+    !!  to @p x.
+    !! @param[in] srt An optional flag determining if @p x should be sorted. 
+    !!  The default is to sort (true).
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
     subroutine ls_init(this, x, y, srt, err)
         ! Arguments
         class(lowess_smoothing), intent(inout) :: this
@@ -290,7 +312,7 @@ contains
         real(dp), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: n, flag
+        integer(i32) :: i, n, flag
         integer(i32), allocatable, dimension(:) :: indices
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
@@ -317,7 +339,6 @@ contains
         ! Memory Allocations
         if (allocated(this%m_x)) deallocate(this%m_x)
         if (allocated(this%m_y)) deallocate(this%m_y)
-        if (allocated(this%m_ys)) deallocate(this%m_ys)
         if (allocated(this%m_weights)) deallocate(this%m_weights)
         if (allocated(this%m_residuals)) deallocate(this%m_residuals)
         allocate(this%m_x(n), stat = flag)
@@ -354,25 +375,47 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    !
+    !> @brief Performs the actual smoothing operation.
+    !!
+    !! @param[in,out] this THe lowess_smoothing object.
+    !! @param[in] f Specifies the amount of smoothing.  More specifically, this
+    !! value is the fraction of points used to compute each value.  As this 
+    !! value increases, the output becomes smoother.  Choosing a value in the
+    !! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
+    !! starting point, in the absence of better information, is a value of 0.5.
+    !! @param[out] err
+    !!
+    !! @return The smoothed data points.
     function ls_smooth(this, f, err) result(ys)
         ! Arguments
-        class(lowess_smoothing), intent(in) :: this
+        class(lowess_smoothing), intent(inout) :: this
         real(dp), intent(in) :: f
         class(errors), intent(inout), optional, target :: err
         real(dp), allocatable, dimension(:) :: ys
 
         ! Local Variables
         integer(i32) :: n, flag
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
 
         ! Input Check
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
         if (.not.this%m_init) then
+            ! ERROR
         end if
         n = size(this%m_x)
 
         ! Process
         allocate(ys(n), stat = flag)
         if (flag /= 0) then
+            ! ERROR
+            call errmgr%report_error("ls_smooth", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
         end if
         call lowess(this%m_x, this%m_y, f, 2, this%m_delta, ys, &
             this%m_weights, this%m_residuals)
