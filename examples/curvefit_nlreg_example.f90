@@ -33,10 +33,10 @@ program example
     call solver%solve(cp, yf)
 
     ! Display the coefficients
-    print '(AF12.10)', "c0: ", cp(1)
-    print '(AF12.10)', "c1: ", cp(2)
-    print '(AF12.10)', "c2: ", cp(3)
-    print '(AF12.10)', "c3: ", cp(4)
+    print '(AF12.10)', "c0: ", cp(4)
+    print '(AF12.10)', "c1: ", cp(3)
+    print '(AF12.10)', "c2: ", cp(2)
+    print '(AF12.10)', "c3: ", cp(1)
     print '(AF7.5)', "Max Residual: ", maxval(abs(yf))
 
     ! Write the results to file for plotting purposes
