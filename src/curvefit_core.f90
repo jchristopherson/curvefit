@@ -83,10 +83,10 @@ module curvefit_core
         !!
         !! @result The value of the function at @p x.
         function reg_fcn(x, c) result(f)
-            use curvefit_core, only : dp
-            real(dp), intent(in) :: x
-            real(dp), intent(in), dimension(:) :: c
-            real(dp) :: f
+            use iso_fortran_env, only : real64
+            real(real64), intent(in) :: x
+            real(real64), intent(in), dimension(:) :: c
+            real(real64) :: f
         end function
     end interface
 
