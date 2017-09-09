@@ -15,7 +15,8 @@
 module curvefit_core
     use, intrinsic :: iso_fortran_env, only : int32, real64
     use nonlin_types, only : NL_ARRAY_SIZE_ERROR, NL_OUT_OF_MEMORY_ERROR, &
-        NL_INVALID_INPUT_ERROR
+        NL_INVALID_INPUT_ERROR, NL_INVALID_OPERATION_ERROR, &
+        NL_CONVERGENCE_ERROR, NL_TOLERANCE_TOO_SMALL_ERROR
     implicit none
     private
     public :: dp
@@ -25,6 +26,9 @@ module curvefit_core
     public :: CF_NO_DATA_DEFINED_ERROR
     public :: CF_INVALID_INPUT_ERROR
     public :: CF_NONMONOTONIC_ARRAY_ERROR
+    public :: CF_INVALID_OPERATION_ERROR
+    public :: CF_CONVERGENCE_ERROR
+    public :: CF_TOLERANCE_TOO_SMALL_ERROR
     public :: is_monotonic
 
 ! ******************************************************************************
@@ -49,9 +53,15 @@ module curvefit_core
     !> An error flag denoting a non-monotonic array was given when a monotonic
     !! array was expected.
     integer, parameter :: CF_NONMONOTONIC_ARRAY_ERROR = 301
-    integer, parameter :: CF_INVALID_OPERATION_ERROR = NL_INVALID_OPERATION_ERROR
+    !> An error resulting from an invalid operation.
+    integer, parameter :: CF_INVALID_OPERATION_ERROR = &
+        NL_INVALID_OPERATION_ERROR
+    !> An error resulting from a lack of convergence.
     integer, parameter :: CF_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR
-    integer, parameter :: CF_TOLERANCE_TOO_SMALL_ERROR = NL_TOLERANCE_TOO_SMALL_ERROR
+    !> An error indicating the user-requested tolerance is too small to be
+    !! practical for the problem at hand.
+    integer, parameter :: CF_TOLERANCE_TOO_SMALL_ERROR = &
+        NL_TOLERANCE_TOO_SMALL_ERROR
 
 ! ******************************************************************************
 ! INTERFACE

@@ -96,6 +96,32 @@ module curvefit_regression
         !> @brief Computes the solution to the nonlinear regression problem 
         !! using the Levenberg-Marquardt method.
         procedure, public :: solve => nr_solve
+        !> @brief Gets the maximum number of function evaluations allowed during
+        !! a single solve.
+        procedure, public :: get_max_fcn_evals => nr_get_max_eval
+        !> @brief Sets the maximum number of function evaluations allowed during
+        !! a single solve.
+        procedure, public :: set_max_fcn_evals => nr_set_max_eval
+        !> @brief Gets the convergence on function value tolerance.
+        procedure, public :: get_fcn_tolerance => nr_get_fcn_tol
+        !> @brief Sets the convergence on function value tolerance.
+        procedure, public :: set_fcn_tolerance => nr_set_fcn_tol
+        !> @brief Gets the convergence on change in variable tolerance.
+        procedure, public :: get_var_tolerance => nr_get_var_tol
+        !> @brief Sets the convergence on change in variable tolerance.
+        procedure, public :: set_var_tolerance => nr_set_var_tol
+        !> @brief Gets the convergence on slope of the gradient vector
+        !! tolerance.
+        procedure, public :: get_gradient_tolerance => nr_get_grad_tol
+        !> @brief Sets the convergence on slope of the gradient vector
+        !! tolerance.
+        procedure, public :: set_gradient_tolerance => nr_set_grad_tol
+        !> @brief Gets a logical value determining if iteration status should be
+        !! printed.
+        procedure, public :: get_print_status => nr_get_print_status
+        !> @brief Sets a logical value determining if iteration status should be
+        !! printed.
+        procedure, public :: set_print_status => nr_set_print_status
     end type
 
 
@@ -710,6 +736,120 @@ contains
 
         ! Compute the solution
         call this%m_solver%solve(this, c, fptr, ib = ib, err = errmgr)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the maximum number of function evaluations allowed during a
+    !! single solve.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @return The maximum number of function evaluations.
+    pure function nr_get_max_eval(this) result(n)
+        class(nonlinear_regression), intent(in) :: this
+        integer(i32) :: n
+        n = this%m_solver%get_max_fcn_evals()
+    end function
+
+! --------------------
+    !> @brief Sets the maximum number of function evaluations allowed during a
+    !! single solve.
+    !!
+    !! @param[in,out] this The nonlinear_regression object.
+    !! @param[in] n The maximum number of function evaluations.
+    subroutine nr_set_max_eval(this, n)
+        class(nonlinear_regression), intent(inout) :: this
+        integer(i32), intent(in) :: n
+        call this%m_solver%set_max_fcn_evals(n)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the convergence on function value tolerance.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @return The tolerance value.
+    pure function nr_get_fcn_tol(this) result(x)
+        class(nonlinear_regression), intent(in) :: this
+        real(dp) :: x
+        x = this%m_solver%get_fcn_tolerance()
+    end function
+
+! --------------------
+    !> @brief Sets the convergence on function value tolerance.
+    !!
+    !! @param[in,out] this The nonlinear_regression object.
+    !! @param[in] x The tolerance value.
+    subroutine nr_set_fcn_tol(this, x)
+        class(nonlinear_regression), intent(inout) :: this
+        real(dp), intent(in) :: x
+        call this%m_solver%set_fcn_tolerance(x)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the convergence on change in variable tolerance.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @return The tolerance value.
+    pure function nr_get_var_tol(this) result(x)
+        class(nonlinear_regression), intent(in) :: this
+        real(dp) :: x
+        x = this%m_solver%get_var_tolerance()
+    end function
+
+! --------------------
+    !> @brief Sets the convergence on change in variable tolerance.
+    !!
+    !! @param[in,out] this The nonlinear_regression object.
+    !! @param[in] x The tolerance value.
+    subroutine nr_set_var_tol(this, x)
+        class(nonlinear_regression), intent(inout) :: this
+        real(dp), intent(in) :: x
+        call this%m_solver%set_var_tolerance(x)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the convergence on slope of the gradient vector tolerance.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @return The tolerance value.
+    pure function nr_get_grad_tol(this) result(x)
+        class(nonlinear_regression), intent(in) :: this
+        real(dp) :: x
+        x = this%m_solver%get_gradient_tolerance()
+    end function
+
+! --------------------
+    !> @brief Sets the convergence on slope of the gradient vector tolerance.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @return The tolerance value.
+    subroutine nr_set_grad_tol(this, x)
+        class(nonlinear_regression), intent(inout) :: this
+        real(dp), intent(in) :: x
+        call this%m_solver%set_gradient_tolerance(x)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets a logical value determining if iteration status should be
+    !! printed.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @return True if the iteration status should be printed; else, false.
+    pure function nr_get_print_status(this) result(x)
+        class(nonlinear_regression), intent(in) :: this
+        logical :: x
+        x = this%m_solver%get_print_status()
+    end function
+
+! --------------------
+    !> @brief Sets a logical value determining if iteration status should be
+    !! printed.
+    !!
+    !! @param[in,out] this The nonlinear_regression object.
+    !! @param[in] x True if the iteration status should be printed; else, false.
+    subroutine nr_set_print_status(this, x)
+        class(nonlinear_regression), intent(inout) :: this
+        logical, intent(in) :: x
+        call this%m_solver%set_print_status(x)
     end subroutine
 
 ! ------------------------------------------------------------------------------
