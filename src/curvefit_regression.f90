@@ -9,7 +9,7 @@ module curvefit_regression
     use curvefit_core
     use linalg_sorting, only : sort
     use ferror, only : errors
-    use nonlin_types, only : vecfcn_helper
+    use nonlin_types, only : vecfcn_helper, iteration_behavior
     use nonlin_least_squares, only : least_squares_solver
     implicit none
     private
@@ -78,6 +78,8 @@ module curvefit_regression
         integer(i32) :: m_ncoeff = 0
         !> Tracks whether or not nr_init has been called
         logical :: m_init = .false.
+        !> The Levenberg-Marquardt solver
+        type(least_squares_solver) :: m_solver
     contains
         !> @brief Initializes the nonlinear_regression object.
         procedure, public :: initialize => nr_init
@@ -647,12 +649,30 @@ contains
     !! @param[out] res An optional output array, whose size corresponds to the
     !!  number of data points, that can be used to retrieve the residual error
     !!  at each data point.
-    !! @param[out] err
-    subroutine nr_solve(this, c, res, err)
+    !! @param[out] ib An optional output, that if provided, allows the
+    !!  caller to obtain iteration performance statistics.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_OPERATION_ERROR: Occurs if no equations have been defined.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if the number of equations is less than
+    !!      than the number of variables.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if any of the input arrays are not sized
+    !!      correctly.
+    !!  - CF_CONVERGENCE_ERROR: Occurs if the line search cannot converge within
+    !!      the allowed number of iterations.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    !!  - CF_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested tolerance is
+    !!      to small to be practical for the problem at hand.
+    subroutine nr_solve(this, c, res, ib, err)
         ! Arguments
-        class(nonlinear_regression), intent(in) :: this
+        class(nonlinear_regression), intent(inout) :: this
         real(dp), intent(inout), dimension(:) :: c
         real(dp), intent(out), dimension(:), target, optional :: res
+        type(iteration_behavior), intent(out), optional :: ib
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
@@ -661,7 +681,6 @@ contains
         integer(i32) :: n, flag
         real(dp), allocatable, target, dimension(:) :: f
         real(dp), pointer, dimension(:) :: fptr
-        type(least_squares_solver) :: solver
 
         ! Initialization
         if (present(err)) then
@@ -689,8 +708,8 @@ contains
             fptr => f
         end if
 
-        ! Compute the solution - TO DO: implement ways to address tolerances and iteration behavior results
-        call solver%solve(this, c, fptr, err = errmgr)
+        ! Compute the solution
+        call this%m_solver%solve(this, c, fptr, ib = ib, err = errmgr)
     end subroutine
 
 ! ------------------------------------------------------------------------------

@@ -49,6 +49,9 @@ module curvefit_core
     !> An error flag denoting a non-monotonic array was given when a monotonic
     !! array was expected.
     integer, parameter :: CF_NONMONOTONIC_ARRAY_ERROR = 301
+    integer, parameter :: CF_INVALID_OPERATION_ERROR = NL_INVALID_OPERATION_ERROR
+    integer, parameter :: CF_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR
+    integer, parameter :: CF_TOLERANCE_TOO_SMALL_ERROR = NL_TOLERANCE_TOO_SMALL_ERROR
 
 ! ******************************************************************************
 ! INTERFACE
