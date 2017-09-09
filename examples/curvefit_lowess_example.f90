@@ -32,7 +32,8 @@ program example
     ys = fit%smooth(0.2d0)
     ys2 = fit%smooth(0.8d0)
 
-    ! For comparison purposes, consider a nonlinear regression fit
+    ! For comparison purposes, consider a nonlinear regression fit.  As we know
+    ! the coefficients, they provide a very good starting guess.
     cnl = [0.5d0, 2.0d0, 20.0d0, 5.0d0, -0.1d0]
     fcn => nrfun
     call solver%initialize(x, yr, fcn, size(cnl))
@@ -42,6 +43,7 @@ program example
     end do
 
     ! Display the computed coefficients
+    print '(A)', "f(x) = c0 * sin(c1 * x) + c2 * cos(c3 * x) * exp(c4 * x):"
     print '(AF12.10)', "c0: ", cnl(1)
     print '(AF13.10)', "c1: ", cnl(2)
     print '(AF12.10)', "c2: ", cnl(3)
