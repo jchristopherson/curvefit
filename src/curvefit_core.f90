@@ -30,6 +30,7 @@ module curvefit_core
     public :: CF_CONVERGENCE_ERROR
     public :: CF_TOLERANCE_TOO_SMALL_ERROR
     public :: is_monotonic
+    public :: reg_fcn
 
 ! ******************************************************************************
 ! NUMERIC TYPE CONSTANTS
@@ -64,13 +65,31 @@ module curvefit_core
         NL_TOLERANCE_TOO_SMALL_ERROR
 
 ! ******************************************************************************
-! INTERFACE
+! INTERFACES
 ! ------------------------------------------------------------------------------
     !> @brief Tests to see if an array is montonically increasing or decreasing.
     interface is_monotonic
         module procedure :: is_monotonic_dbl
         module procedure :: is_monotonic_i32
     end interface
+
+! ------------------------------------------------------------------------------
+    interface
+        !> @brief Describes a routine for finding the coefficients of a function
+        !! of one variable.
+        !!
+        !! @param[in] x The independent variable.
+        !! @param[in] c An array of function coefficients.
+        !!
+        !! @result The value of the function at @p x.
+        function reg_fcn(x, c) result(f)
+            use curvefit_core, only : dp
+            real(dp), intent(in) :: x
+            real(dp), intent(in), dimension(:) :: c
+            real(dp) :: f
+        end function
+    end interface
+
 
 contains
 ! ------------------------------------------------------------------------------

@@ -14,27 +14,7 @@ module curvefit_regression
     implicit none
     private
     public :: lowess_smoothing
-    public :: reg_fcn
     public :: nonlinear_regression
-
-! ******************************************************************************
-! INTERFACES
-! ------------------------------------------------------------------------------
-    interface
-        !> @brief Describes a routine for finding the coefficients of a function
-        !! of one variable.
-        !!
-        !! @param[in] x The independent variable.
-        !! @param[in] c An array of function coefficients.
-        !!
-        !! @result The value of the function at @p x.
-        function reg_fcn(x, c) result(f)
-            use curvefit_core, only : dp
-            real(dp), intent(in) :: x
-            real(dp), intent(in), dimension(:) :: c
-            real(dp) :: f
-        end function
-    end interface
 
 ! ******************************************************************************
 ! TYPES
