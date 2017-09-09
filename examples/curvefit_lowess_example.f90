@@ -12,7 +12,7 @@ program example
 
     ! Local Variables
     integer(i32) :: i, id
-    real(dp) :: x(n), y(n), yr(n), ys(n), ys2(n), dx, cnl(5), ynl(n), res(n)
+    real(dp) :: x(n), y(n), yr(n), ys(n), ys2(n), dx, cnl(5), ynl(n)
     type(lowess_smoothing) :: fit
     type(nonlinear_regression) :: solver
     procedure(reg_fcn), pointer :: fcn
@@ -37,7 +37,7 @@ program example
     cnl = [0.5d0, 2.0d0, 20.0d0, 5.0d0, -0.1d0]
     fcn => nrfun
     call solver%initialize(x, yr, fcn, size(cnl))
-    call solver%solve(cnl, res)
+    call solver%solve(cnl)
     do i = 1, n
         ynl(i) = fcn(x(i), cnl)
     end do
