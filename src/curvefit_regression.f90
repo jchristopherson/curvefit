@@ -42,6 +42,12 @@ module curvefit_regression
         procedure, public :: initialize => ls_init
         !> @brief Performs the actual smoothing operation.
         procedure, public :: smooth => ls_smooth
+        !> @brief Gets the number of stored data points.
+        procedure, public :: get_count => ls_get_num_pts
+        !> @brief Gets the x component of the requested data point.
+        procedure, public :: get_x => ls_get_x
+        !> @brief Gets the y component of the requested data point.
+        procedure, public :: get_y => ls_get_y
     end type
 
 ! ------------------------------------------------------------------------------
@@ -102,6 +108,12 @@ module curvefit_regression
         !> @brief Sets a logical value determining if iteration status should be
         !! printed.
         procedure, public :: set_print_status => nr_set_print_status
+        !> @brief Gets the number of stored data points.
+        procedure, public :: get_count => nr_get_num_pts
+        !> @brief Gets the x component of the requested data point.
+        procedure, public :: get_x => nr_get_x
+        !> @brief Gets the y component of the requested data point.
+        procedure, public :: get_y => nr_get_y
     end type
 
 
@@ -497,8 +509,56 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Gets the number of stored data points.
+    !!
+    !! @param[in] this The lowess_smoothing object.
+    !! 
+    !! @return The number of data points.
+    pure function ls_get_num_pts(this) result(n)
+        class(lowess_smoothing), intent(in) :: this
+        integer(i32) :: n
+        if (this%m_init) then
+            n = size(this%m_x)
+        else
+            n = 0
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Gets the x component of the requested data point.
+    !!
+    !! @param[in] this The lowess_smoothing object.
+    !! @param[in] ind The one-based index of the data point to retrieve.
+    !!
+    !! @return The x component of the requested data point.
+    pure function ls_get_x(this, ind) result(x)
+        class(lowess_smoothing), intent(in) :: this
+        integer(i32), intent(in) :: ind
+        real(dp) :: x
+        if (this%m_init) then
+            x = this%m_x(ind)
+        else
+            x = 0.0d0
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the y component of the requested data point.
+    !!
+    !! @param[in] this The lowess_smoothing object.
+    !! @param[in] ind The one-based index of the data point to retrieve.
+    !!
+    !! @return The y component of the requested data point.
+    pure function ls_get_y(this, ind) result(y)
+        class(lowess_smoothing), intent(in) :: this
+        integer(i32), intent(in) :: ind
+        real(dp) :: y
+        if (this%m_init) then
+            y = this%m_y(ind)
+        else
+            y = 0.0d0
+        end if
+    end function
 
 ! ******************************************************************************
 ! nonlinear_regression MEMBERS
@@ -831,6 +891,58 @@ contains
         logical, intent(in) :: x
         call this%m_solver%set_print_status(x)
     end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the number of stored data points.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! 
+    !! @return The number of data points.
+    pure function nr_get_num_pts(this) result(n)
+        class(nonlinear_regression), intent(in) :: this
+        integer(i32) :: n
+        if (this%m_init) then
+            n = size(this%m_x)
+        else
+            n = 0
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the x component of the requested data point.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @param[in] ind The one-based index of the data point to retrieve.
+    !!
+    !! @return The x component of the requested data point.
+    pure function nr_get_x(this, ind) result(x)
+        class(nonlinear_regression), intent(in) :: this
+        integer(i32), intent(in) :: ind
+        real(dp) :: x
+        if (this%m_init) then
+            x = this%m_x(ind)
+        else
+            x = 0.0d0
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the y component of the requested data point.
+    !!
+    !! @param[in] this The nonlinear_regression object.
+    !! @param[in] ind The one-based index of the data point to retrieve.
+    !!
+    !! @return The y component of the requested data point.
+    pure function nr_get_y(this, ind) result(y)
+        class(nonlinear_regression), intent(in) :: this
+        integer(i32), intent(in) :: ind
+        real(dp) :: y
+        if (this%m_init) then
+            y = this%m_y(ind)
+        else
+            y = 0.0d0
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 end module
