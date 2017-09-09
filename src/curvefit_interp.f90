@@ -67,6 +67,12 @@ module curvefit_interp
         generic, public :: interpolate => im_perform, im_perform_array
         !> @brief Performs the actual interpolation.
         procedure(interp_xy), deferred :: raw_interp
+        !> @brief Gets the number of stored data points.
+        procedure, public :: get_count => im_get_num_pts
+        !> @brief Gets the x component of the requested data point.
+        procedure, public :: get_x => im_get_x
+        !> @brief Gets the y component of the requested data point.
+        procedure, public :: get_y => im_get_y
 
         procedure, non_overridable :: im_perform
         procedure, non_overridable :: im_perform_array
@@ -489,6 +495,56 @@ contains
             yy(i) = this%raw_interp(jlo, pts(i))
         end do
     end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the number of stored data points.
+    !!
+    !! @param[in] this The interp_manager object.
+    !! 
+    !! @return The number of data points.
+    pure function im_get_num_pts(this) result(n)
+        class(interp_manager), intent(in) :: this
+        integer(i32) :: n
+        n = 0
+        if (allocated(this%m_x) .and. allocated(this%m_y)) n = size(this%m_x)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the x component of the requested data point.
+    !!
+    !! @param[in] this The interp_manager object.
+    !! @param[in] ind The one-based index of the data point to retrieve.
+    !!
+    !! @return The x component of the requested data point.
+    pure function im_get_x(this, ind) result(x)
+        class(interp_manager), intent(in) :: this
+        integer(i32), intent(in) :: ind
+        real(dp) :: x
+        x = 0.0d0
+        if (allocated(this%m_x)) x = this%m_x(ind)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the y component of the requested data point.
+    !!
+    !! @param[in] this The interp_manager object.
+    !! @param[in] ind The one-based index of the data point to retrieve.
+    !!
+    !! @return The y component of the requested data point.
+    pure function im_get_y(this, ind) result(y)
+        class(interp_manager), intent(in) :: this
+        integer(i32), intent(in) :: ind
+        real(dp) :: y
+        y = 0.0d0
+        if (allocated(this%m_y)) y = this%m_y(ind)
+    end function
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
 
 ! ******************************************************************************
 ! LINEAR_INTERP MEMBERS
