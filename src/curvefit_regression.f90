@@ -3,18 +3,28 @@
 !> @brief \b curvefit_regression
 !!
 !! @par Purpose
-!! To provide routines for perforing regression operations on sets of numerical
-!! data.
+!! To provide routines for perforing regression operations, and other data
+!! smoothing operations on sets of numerical data.
 module curvefit_regression
     use curvefit_core
     use linalg_sorting, only : sort
     use ferror, only : errors
     use nonlin_types, only : vecfcn_helper, iteration_behavior
     use nonlin_least_squares, only : least_squares_solver
+    use curvefit_statistics, only : mean
     implicit none
     private
+    public :: moving_average
     public :: lowess_smoothing
     public :: nonlinear_regression
+
+! ******************************************************************************
+! INTERFACES
+! ------------------------------------------------------------------------------
+    !> @brief Applies a moving average to smooth a data set.
+    interface moving_average
+        module procedure :: moving_average_1
+    end interface
 
 ! ******************************************************************************
 ! TYPES
@@ -118,6 +128,77 @@ module curvefit_regression
 
 
 contains
+! ******************************************************************************
+! MISC. PUBLIC ROUTINES
+! ------------------------------------------------------------------------------
+    !> @brief Applies a moving average to smooth a data set.
+    !!
+    !! @param[in,out] x On input, the signal to smooth.  On output, the smoothed
+    !!  signal.
+    !! @param[in] npts The size of the averaging window.  This value must be
+    !!  at least 2, but no more than the number of elements in @p x.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p npts is less than 2, or greater
+    !!      than the length of @p x.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    subroutine moving_average_1(x, npts, err)
+        ! Arguments
+        real(dp), intent(inout), dimension(:) :: x
+        integer(i32), intent(in) :: npts
+        class(errors), intent(inout), optional, target :: err
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: i, n, flag
+        real(dp), allocatable, dimension(:) :: buffer
+
+        ! Initialization
+        n = size(x)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (npts < 2 .or. npts > n) then
+            call errmgr%report_error("moving_average_1", &
+                "The averaging size window must be at least 2, and less " // &
+                "than the size of the data set.", CF_INVALID_INPUT_ERROR)
+            return
+        end if
+
+        ! Local Memory Allocation
+        allocate(buffer(npts), stat = flag)
+        if (flag /= 0) then
+            call errmgr%report_error("moving_average_1", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
+        end if
+
+        ! Process
+        buffer = zero
+        do i = 1, n
+            ! Index the buffer
+            buffer(2:npts) = buffer(1:npts-1)
+
+            ! Add a new sample value to the buffer
+            buffer(1) = x(i)
+
+            ! Compute the mean
+            x(i) = mean(buffer)
+        end do
+    end subroutine
+
 ! ******************************************************************************
 ! LOCAL REGRESSION - LOWESS
 ! ------------------------------------------------------------------------------
