@@ -3,10 +3,6 @@ A library for fitting functions to sets of data.
 
 ## TO DO
 - Linear Regression
-- Statistics & Confidence Intervals - Related to quality of fit
-    - https://www.nist.gov/itl/sed/datapac
-- Outlier Removal
-- Moving Averages
 - Derivatives & Integrals of Fitted Curves
 - Write tests
 - C API
