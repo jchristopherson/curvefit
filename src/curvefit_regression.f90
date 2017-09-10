@@ -12,6 +12,8 @@ module curvefit_regression
     use nonlin_types, only : vecfcn_helper, iteration_behavior
     use nonlin_least_squares, only : least_squares_solver
     use curvefit_statistics, only : mean
+    use linalg_solve, only : mtx_pinverse
+    use linalg_core, only : mtx_mult
     implicit none
     private
     public :: moving_average
@@ -1043,14 +1045,56 @@ contains
     ! In the event that X * X**T is singular (no inverse), using the 
     ! pseudo-inverse, calculated by means of SVD, will at least allow us a
     ! least-squares estimate of a solution.
-    function least_squares_mdof(x, y, thrsh, err) result(a)
+    function linear_least_squares_mdof(x, y, thrsh, err) result(a)
         ! Arguments
-        real(dp), intent(in), dimension(:,:) :: x, y
+        real(dp), intent(inout), dimension(:,:) :: x, y
         real(dp), intent(in), optional :: thrsh
         class(errors), intent(inout), optional, target :: err
         real(dp), dimension(size(y,1), size(x,1)) :: a
 
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+
         ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: m, n, flag
+        real(dp), allocatable, dimension(:,:) :: xinv
+
+        ! Initialization
+        m = size(x, 1)
+        p = size(x, 2)
+        n = size(y, 1)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Checking
+        ! X is M-by-P
+        ! Y is N-by-P
+        if (size(y, 2) /= p) then
+            call errmgr%report_error("linear_least_squares_mdof", &
+                "Incompatible array dimensions.", CF_ARRAY_SIZE_ERROR)
+            return
+        end if
+
+        ! Local Memory Allocation
+        allocate(xinv(p, m), stat = flag)
+        if (flag /= 0) then
+            call errmgr%report_error("linear_least_squares_mdof", &
+                "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+            return
+        end if
+
+        ! Compute the pseudo-inverse of X
+        call mtx_pinverse(x, xinv, tol = thrsh, err = errmgr)
+        if (errmgr%has_error_occurred()) return
+
+        ! Compute A = Y * pinv(X)
+        call mtx_mult(.false., .false., one, y, xinv, zero, a)
     end function
 
 ! ------------------------------------------------------------------------------
