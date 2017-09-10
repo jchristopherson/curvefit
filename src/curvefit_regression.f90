@@ -1025,5 +1025,35 @@ contains
         end if
     end function
 
+! ******************************************************************************
+! LINEAR REGRESSION
+! ------------------------------------------------------------------------------
+    !
+    ! Y = A * X
+    ! SOLVE FOR A:
+    ! Y * X**T = A * X * X**T
+    ! Y * X**T * INV(X * X**T) = A
+    !
+    ! This all works assuming that INV(X * X**T) exists.
+    !
+    ! Simplifying by bringing in the Moore-Penrose pseudo-inverse:
+    ! PINV(X) = X**T * INV(X * X**T)
+    ! Y * PINV(X) = A
+    !
+    ! In the event that X * X**T is singular (no inverse), using the 
+    ! pseudo-inverse, calculated by means of SVD, will at least allow us a
+    ! least-squares estimate of a solution.
+    function least_squares_mdof(x, y, thrsh, err) result(a)
+        ! Arguments
+        real(dp), intent(in), dimension(:,:) :: x, y
+        real(dp), intent(in), optional :: thrsh
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(size(y,1), size(x,1)) :: a
+
+        ! Local Variables
+    end function
+
+! ------------------------------------------------------------------------------
+
 ! ------------------------------------------------------------------------------
 end module
