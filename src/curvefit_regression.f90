@@ -14,11 +14,13 @@ module curvefit_regression
     use curvefit_statistics, only : mean
     use linalg_solve, only : mtx_pinverse
     use linalg_core, only : mtx_mult
+    use nonlin_polynomials
     implicit none
     private
     public :: moving_average
     public :: lowess_smoothing
     public :: nonlinear_regression
+    public :: linear_least_squares
 
 ! ******************************************************************************
 ! INTERFACES
@@ -26,6 +28,14 @@ module curvefit_regression
     !> @brief Applies a moving average to smooth a data set.
     interface moving_average
         module procedure :: moving_average_1
+    end interface
+
+! ------------------------------------------------------------------------------
+    !> @brief Employs a least squares fit to determine the coefficient A in the
+    !! linear system: Y = A * X, where A can either be a scalar, or a matrix.
+    interface linear_least_squares
+        module procedure :: linear_least_squares_1var
+        module procedure :: linear_least_squares_nvar
     end interface
 
 ! ******************************************************************************
@@ -1030,24 +1040,81 @@ contains
 ! ******************************************************************************
 ! LINEAR REGRESSION
 ! ------------------------------------------------------------------------------
-    !
-    ! Y = A * X
-    ! SOLVE FOR A:
-    ! Y * X**T = A * X * X**T
-    ! Y * X**T * INV(X * X**T) = A
-    !
-    ! This all works assuming that INV(X * X**T) exists.
-    !
-    ! Simplifying by bringing in the Moore-Penrose pseudo-inverse:
-    ! PINV(X) = X**T * INV(X * X**T)
-    ! Y * PINV(X) = A
-    !
-    ! In the event that X * X**T is singular (no inverse), using the 
-    ! pseudo-inverse, calculated by means of SVD, will at least allow us a
-    ! least-squares estimate of a solution.
-    function linear_least_squares_mdof(x, y, thrsh, err) result(a)
+    !> @brief Employs a least squares fit to determine the coefficient A in the
+    !! linear system: Y = A * X.
+    !!
+    !! @param[in] x An N-element array containing the independent variable data.
+    !! @param[in,out] y An N-element array containing the dependent variable
+    !!  data corresponding to @p x.  On output, the contents of this array are
+    !!  overwritten as it is used for storage purposes by the algorithm.
+    !! @param[out] err
+    !!
+    !! @return The scalar coefficient A.
+    function linear_least_squares_1var(x, y, err) result(a)
         ! Arguments
-        real(dp), intent(inout), dimension(:,:) :: x, y
+        real(dp), intent(in), dimension(:) :: x
+        real(dp), intent(inout), dimension(:) :: y
+        class(errors), intent(inout), optional, target :: err
+        real(dp) :: a
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        integer(i32) :: n
+        type(polynomial) :: poly
+
+        ! Initialization
+        a = zero
+        n = size(x)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (size(y) /= n) then
+        end if
+
+        ! Process
+        call poly%fit_thru_zero(x, y, 1, err = errmgr)
+        if (errmgr%has_error_occurred()) return
+        a = poly%get(2)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Employs a least squares fit to determine the coefficient A in the
+    !! linear system: Y = A * X.
+    !!
+    !! @param[in,out] x An M-by-P matrix containing the P data points of the
+    !!  M independent variables.
+    !! @param[in] y An N-by-P matrix containing the P data points of the N
+    !!  dependent variables.
+    !! @param[in] thrsh An optional threshold value that defines a lower cutoff
+    !!  for singular values.  Any singular values falling below this value will
+    !!  have their reciprocal replaced with zero.
+    !! @param[out] err
+    !!
+    !! @return An N-by-M matrix relating Y to X such that: Y = A * X.
+    !!
+    !! @par Remarks
+    !! The algorithm attempts to compute the coefficient matrix A as follows.
+    !! Y * X**T = A * X * X**T
+    !! Y * X**T * INV(X * X**T) = A
+    !! This does require that X * X**T does not result in a singular matrix.  To
+    !! handle the situation where X * X**T is singular, the Moore-Penrose
+    !! pseudo-inverse, computed by means of singular value decomposition, is
+    !! utilized to still arrive at a solution that, at minimum, has a minimum
+    !! Euclidean norm of its residual.
+    !! Let: PINV(X) = X**T * INV(X * X**T),
+    !! Then: A = Y * PINV(X)
+    function linear_least_squares_nvar(x, y, thrsh, err) result(a)
+        ! Arguments
+        real(dp), intent(inout), dimension(:,:) :: x
+        real(dp), intent(in), dimension(:,:) :: y
         real(dp), intent(in), optional :: thrsh
         class(errors), intent(inout), optional, target :: err
         real(dp), dimension(size(y,1), size(x,1)) :: a
@@ -1059,7 +1126,7 @@ contains
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: m, n, flag
+        integer(i32) :: m, n, p, flag
         real(dp), allocatable, dimension(:,:) :: xinv
 
         ! Initialization
