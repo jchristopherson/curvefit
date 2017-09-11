@@ -1143,7 +1143,7 @@ contains
         ! X is M-by-P
         ! Y is N-by-P
         if (size(y, 2) /= p) then
-            call errmgr%report_error("linear_least_squares_mdof", &
+            call errmgr%report_error("linear_least_squares_nvar", &
                 "Incompatible array dimensions.", CF_ARRAY_SIZE_ERROR)
             return
         end if
@@ -1151,7 +1151,7 @@ contains
         ! Local Memory Allocation
         allocate(xinv(p, m), stat = flag)
         if (flag /= 0) then
-            call errmgr%report_error("linear_least_squares_mdof", &
+            call errmgr%report_error("linear_least_squares_nvar", &
                 "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
             return
         end if
@@ -1163,8 +1163,6 @@ contains
         ! Compute A = Y * pinv(X)
         call mtx_mult(.false., .false., one, y, xinv, zero, a)
     end function
-
-! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module

@@ -1,12 +1,6 @@
 # curvefit
 A library for fitting functions to sets of data.
 
-## TO DO
-- Linear Regression
-- Derivatives & Integrals of Fitted Curves
-- Write tests
-- C API
-
 ## Example 1
 This example illustrates the use of cubic spline interpolation using both natural and forced boundary conditions.  Notice, the forced boundary conditions are arbitrarily chosen to illustrate their use.
 ```fortran
@@ -148,3 +142,15 @@ c3: 4.7192350135
 c4: -0.3716661815
 ```
 ![](images/lowess_example_1.png?raw=true)
+
+## Building CURVEFIT
+This library can be built using CMake.  For instructions on using CMake see [Running CMake](https://cmake.org/runningcmake/).
+
+## External Libraries
+This library relies upon 3 other libraries.
+- [NONLIN](https://github.com/jchristopherson/nonlin)
+- [LINALG](https://github.com/jchristopherson/linalg)
+- [FERROR](https://github.com/jchristopherson/ferror)
+
+## TO DO
+- C API
