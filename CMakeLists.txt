@@ -74,7 +74,8 @@ endif (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 # Specify source files
 set(sources src/curvefit_core.f90 src/curvefit_interp.f90
-  src/curvefit_statistics.f90 src/curvefit_regression.f90)
+  src/curvefit_statistics.f90 src/curvefit_regression.f90
+  src/curvefit_c_binding.f90)
 
 # Define necessary CMake variables, and define the dependency.
 if (BUILD_SHARED_LIBS)
