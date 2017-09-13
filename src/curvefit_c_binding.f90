@@ -38,7 +38,7 @@ module curvefit_c_binding
 ! ******************************************************************************
 ! TYPES
 ! ------------------------------------------------------------------------------
-    !> @brief A C compatiable type encapsulating a linear_interp object.
+    !> @brief A C compatible type encapsulating a linear_interp object.
     type, bind(C) :: c_linear_interp
         !> @brief A pointer to the linear_interp object.
         type(c_ptr) :: ptr
@@ -46,6 +46,14 @@ module curvefit_c_binding
         integer(i32) :: n
     end type
 
+! ------------------------------------------------------------------------------
+    !> @brief A C compatible type encapsulating a polynomial_interp object.
+    type, bind(C) :: c_polynomial_interp
+        !> @brief A pointer to the polynomial_interp
+        type(c_ptr) :: ptr
+        !> @brief The size of the polynomial_interp object, in bytes.
+        integer(i32) :: n
+    end type
 
 contains
 ! ******************************************************************************
@@ -231,6 +239,177 @@ contains
         do concurrent (i = 1:npts)
             x(i) = li%get_x(i)
             y(i) = li%get_y(i)
+        end do
+    end subroutine
+
+! ******************************************************************************
+! POLYNOMIAL INTERPOLATION ROUTINES
+! ------------------------------------------------------------------------------
+    !> @brief Retrieves the polynomial_interp object from the C compatible
+    !! c_polynomial_interp data structure.
+    !!
+    !! @param[in] obj The C compatible c_polynomial_interp object.
+    !! @param[out] interp A pointer to the resulting polynomial_interp object.
+    !!  This pointer can be NULL dependent upon the state of @p obj.
+    subroutine get_polynomial_interp(obj, interp)
+        ! Arguments
+        type(c_polynomial_interp), intent(in), target :: obj
+        type(polynomial_interp), intent(out), pointer :: interp
+
+        ! Local Variables
+        type(c_ptr) :: testptr
+
+        ! Process
+        testptr = c_loc(obj)
+        nullify(interp)
+        if (.not.c_associated(testptr)) return
+        if (.not.c_associated(obj%ptr)) return
+        if (obj%n == 0) return
+        call c_f_pointer(obj%ptr, interp)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Initializes a new c_polynomial_interp object.
+    !!
+    !! @param[out] obj The c_polynomial_interp object to initialize.
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the x-components of each data
+    !!  point.  This array must be monotonic (ascending or descending only).
+    !! @param[in] y An N-element array containing the y-components of each data
+    !!  point.
+    !! @param[in] order The order of the interpolating polynomial.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!      increasing or decreasing.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
+    subroutine polyinterp_init_c(obj, n, x, y, order, err) &
+            bind(C, name = "alloc_polynomial_interp")
+        ! Arguments
+        type(c_polynomial_interp), intent(out) :: obj
+        integer(i32), intent(in), value :: n, order
+        real(dp), intent(in) :: x(n), y(n)
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+        type(polynomial_interp), pointer :: interp
+
+        ! Process
+        allocate(interp)
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            call interp%initialize(x, y, order, eptr)
+        else
+            call interp%initialize(x, y, order)
+        end if
+        obj%ptr = c_loc(interp)
+        obj%n = sizeof(interp)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Frees resources held by a c_polynomial_interp object.
+    !!
+    !! @param[in,out] obj The c_polynomial_interp object.
+    subroutine polyinterp_free_c(obj) bind(C, name = "free_polynomial_interp")
+        ! Arguments
+        type(c_polynomial_interp), intent(inout), target :: obj
+
+        ! Local Variables
+        type(polynomial_interp), pointer :: interp
+
+        ! Process
+        call get_polynomial_interp(obj, interp)
+        if (associated(interp)) deallocate(interp)
+        obj%n = 0
+        obj%ptr = c_null_ptr
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Performs a polynomial interpolation to determine the points @p y 
+    !! that for the requested indendent variable values in @p x.
+    !!
+    !! @param[in] obj The c_polynomial_interp object.
+    !! @param[in] n The number of points to interpolate.
+    !! @param[in] x An N-element array containing the values of the independent
+    !!  variable at which to interpolate.
+    !! @param[out] y An N-element array where the interpolated values can be
+    !!  written.
+    subroutine polyinterp_interp_c(obj, n, x, y) &
+            bind(C, name = "polynomial_interpolate")
+        ! Arguments
+        type(c_polynomial_interp), intent(in), target :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp), intent(out) :: y(n)
+
+        ! Local Variables
+        type(polynomial_interp), pointer :: interp
+
+        ! Process
+        call get_polynomial_interp(obj, interp)
+        if (.not.associated(interp)) return
+        y = interp%interpolate(x)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the number of points used by the interpolation object.
+    !!
+    !! @param[in] obj The c_polynomial_interp object.
+    !!
+    !! @return The number of points.
+    function polyinterp_get_pt_count_c(obj) result(n) &
+            bind(C, name = "polynomial_interp_get_point_count")
+        ! Arguments
+        type(c_polynomial_interp), intent(in), target :: obj
+        integer(i32) :: n
+
+        ! Local Variables
+        type(polynomial_interp), pointer :: interp
+
+        ! Process
+        n = 0
+        call get_polynomial_interp(obj, interp)
+        if (.not.associated(interp)) return
+        n = interp%get_count()
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets a copy of the data points stored by the interpolation object.
+    !!
+    !! @param[in] obj The c_polynomial_interp object.
+    !! @param[in] n The size of the buffer arrays.
+    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !!  written.
+    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !!  written.
+    !!
+    !! @par Remarks
+    !! If @p n is different than the actual number of points that exist, the 
+    !! lesser of the two values will be utilized.  The interpolation object
+    !! can be queried to determine the quantity of stored points.
+    subroutine polyinterp_get_pts_c(obj, n, x, y) &
+            bind(C, name = "polynomial_interp_get_points")
+        ! Arguments
+        type(c_polynomial_interp), intent(in), target :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(out) :: x(n), y(n)
+
+        ! Local Variables
+        integer(i32) :: i, npts
+        type(polynomial_interp), pointer :: interp
+
+        ! Process
+        call get_polynomial_interp(obj, interp)
+        if (.not.associated(interp)) return
+        npts = min(n, interp%get_count())
+        do concurrent (i = 1:npts)
+            x(i) = interp%get_x(i)
+            y(i) = interp%get_y(i)
         end do
     end subroutine
 
