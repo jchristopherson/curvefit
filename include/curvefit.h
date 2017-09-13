@@ -7,23 +7,38 @@
 #include "nonlin.h"
 
 /** @brief An error flag denoting an improperly sized array. */
-#define CF_ARRAY_SIZE_ERROR = NL_ARRAY_SIZE_ERROR;
+#define CF_ARRAY_SIZE_ERROR NL_ARRAY_SIZE_ERROR
 /** @brief An error denoting that there is insufficient memory available. */
-#define CF_OUT_OF_MEMORY_ERROR = NL_OUT_OF_MEMORY_ERROR;
+#define CF_OUT_OF_MEMORY_ERROR NL_OUT_OF_MEMORY_ERROR
 /** @brief An error denoting that no data has been defined. */
-#define CF_NO_DATA_DEFINED_ERROR = 300;
+#define CF_NO_DATA_DEFINED_ERROR 300
 /** @brief An error flag denoting an invalid input. */
-#define CF_INVALID_INPUT_ERROR = NL_INVALID_INPUT_ERROR;
+#define CF_INVALID_INPUT_ERROR NL_INVALID_INPUT_ERROR
 /** @brief An error flag denoting a non-monotonic array was given when a
 !! monotonic array was expected. */
-#define CF_NONMONOTONIC_ARRAY_ERROR = 301;
+#define CF_NONMONOTONIC_ARRAY_ERROR 301
 /** @brief An error resulting from an invalid operation. */
-#define CF_INVALID_OPERATION_ERROR = NL_INVALID_OPERATION_ERROR;
+#define CF_INVALID_OPERATION_ERROR NL_INVALID_OPERATION_ERROR
 /** @brief An error resulting from a lack of convergence. */
-#define CF_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR;
+#define CF_CONVERGENCE_ERROR NL_CONVERGENCE_ERROR
 /** @brief An error indicating the user-requested tolerance is too small to be
 !! practical for the problem at hand. */
-#define CF_TOLERANCE_TOO_SMALL_ERROR = NL_TOLERANCE_TOO_SMALL_ERROR;
+#define CF_TOLERANCE_TOO_SMALL_ERROR NL_TOLERANCE_TOO_SMALL_ERROR
+
+/** Indicates that the spline is quadratic over the interval under
+!! consideration (beginning or ending interval).  This is equivalent to
+!! allowing a "natural" boundary condition at either the initial or final
+!! point. */
+#define SPLINE_QUADRATIC_OVER_INTERVAL 1000
+/** Indicates a known first derivative at either the beginning or ending 
+!! point. */
+#define SPLINE_KNOWN_FIRST_DERIVATIVE 1001
+/** Indicates a known second derivative at either the beginning or ending 
+!! point. */
+#define SPLINE_KNOWN_SECOND_DERIVATIVE 1002
+/** Indicates a continuous third derivative at either the beginning or ending 
+!! point. */
+#define SPLINE_CONTINUOUS_THIRD_DERIVATIVE 1003
 
 /** @brief Describes a routine for finding the coefficients of a function
 !! of one variable.
