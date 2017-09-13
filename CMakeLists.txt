@@ -130,24 +130,16 @@ if (BUILD_EXAMPLES)
   add_executable(curvefit_nlreg_example examples/curvefit_nlreg_example.f90)
   target_link_libraries(curvefit_nlreg_example curvefit)
 
-#   # Quasi-Newton Example
-#   add_executable(quasi_newton_example examples/nonlin_quasi_newton_example.f90)
-#   target_link_libraries(quasi_newton_example nonlin)
+# --------------------
+include_directories(${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/external/nonlin/include
+  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/include
+  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/ferror/include)
 
-#   # Least-Squares Example
-#   add_executable(least_squares_example 
-#     examples/nonlin_least_squares_example.f90)
-#   target_link_libraries(least_squares_example nonlin)
+  # Linear Interpolation Example
+add_executable(curvefit_c_interp_example examples/curvefit_c_interp_example.c)
+target_link_libraries(curvefit_c_interp_example curvefit)
 
-#   # Polynomial Fitting Example
-#   add_executable(poly_fit_example examples/nonlin_poly_fit_example.f90)
-#   target_link_libraries(poly_fit_example nonlin)
-
-#   # Nelder-Mead Example
-#   add_executable(nm_opt_example examples/nonlin_nm_opt_example.f90)
-#   target_link_libraries(nm_opt_example nonlin)
-
-# # --------------------
 #   include_directories(${PROJECT_SOURCE_DIR}/include
 #     ${PROJECT_SOURCE_DIR}/external/linalg/ferror/include
 #     ${PROJECT_SOURCE_DIR}/external/linalg/include)
