@@ -229,8 +229,8 @@ contains
         if (.not.associated(li)) return
         npts = min(n, li%get_count())
         do concurrent (i = 1:npts)
-            x(i) = this%get_x(i)
-            y(i) = this%get_y(i)
+            x(i) = li%get_x(i)
+            y(i) = li%get_y(i)
         end do
     end subroutine
 
