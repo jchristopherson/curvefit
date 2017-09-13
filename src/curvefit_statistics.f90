@@ -96,12 +96,7 @@ contains
     !!
     !! @param[in] x The data set.
     !!
-    !! @return The mean of x.
-    !!
-    !! @par Remarks
-    !! To avoid overflow-type issues, Welford's algorithm is employed.  A simple
-    !! illustration of this algorithm can be found 
-    !! [here](https://www.johndcook.com/blog/standard_deviation/).
+    !! @return The mean of @p x.
     pure function mean_dbl(x) result(z)
         ! Arguments
         real(dp), intent(in), dimension(:) :: x
@@ -283,7 +278,7 @@ contains
 ! ------------------------------------------------------------------------------
     !> @brief Computes the covariance matrix of N data sets of M observations.
     !!
-    !! @param[in] The M-by-N matrix.
+    !! @param[in] x The M-by-N matrix.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
     !!  execution.  If not provided, a default implementation of the errors

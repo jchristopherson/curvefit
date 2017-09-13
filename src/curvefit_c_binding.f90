@@ -672,7 +672,133 @@ contains
         y = interp%second_derivative(x)
     end subroutine
 
+! ******************************************************************************
+! STATISTICS ROUTINES
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the mean of a data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the data set.
+    !!
+    !! @return The mean of @p x.
+    pure function mean_c(n, x) result(z) bind(C, name = "mean")
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp) :: z
+        z = mean(x)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the median of a data set.
+    !!
+    !! @param[in,out] x The data set whose median is to be found.  Ideally, the
+    !!  data set should be monotonically increasing; however, if it is not, it
+    !!  may be sorted by the routine, dependent upon the value of @p srt.  On
+    !!  output, the array contents are unchanged; however, they may be sorted
+    !!  into ascending order (dependent upon the value of @p srt).
+    !! @param[in] srt A logical flag determining if @p x should be sorted.
+    !!
+    !! @return The median of @p x.
+    function median_c(n, x, srt) result(z) bind(C, name = "median")
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        logical(c_bool), intent(in), value :: srt
+        real(dp) :: z
+        z = median(x, logical(srt))
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the sample variance of a data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the data set.
+    !!
+    !! @return The variance of @p x.
+    !!
+    !! @par Remarks
+    !! To avoid overflow-type issues, Welford's algorithm is employed.  A simple
+    !! illustration of this algorithm can be found 
+    !! [here](https://www.johndcook.com/blog/standard_deviation/).
+    pure function variance_c(n, x) result(v) bind(C, name = "variance")
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp) :: v
+        v = variance(x)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the covariance matrix of N data sets of M observations.
+    !!
+    !! @param[in] m The number of observations.
+    !! @param[in] n The number of data sets.
+    !! @param[in] x The M-by-N matrix of data.
+    !! @param[out] c The N-by-N matrix where the resulting covariance matrix
+    !!  will be written.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    !!
+    !! @return The N-by-N covariance matrix.
+    subroutine covariance_c(m, n, x, c, err) bind(C, name = "covariance")
+        ! Arguments
+        integer(i32), intent(in), value :: m, n
+        real(dp), intent(in) :: x(m,n)
+        real(dp), intent(out) :: c(n,n)
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            c = covariance(x, eptr)
+        else
+            c = covariance(x)
+        end if
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the corrected standard deviation of a data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the data set.
+    !!
+    !! @return The standard deviation of @p x.
+    pure function stdev_c(n, x) result(s) bind(C, name = "standard_deviation")
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp) :: s
+        s = standard_deviation(x)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the confidence interval based upon a standard normal 
+    !! distribution.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the data set.
+    !! @param[in] alpha The confidence level.  This value must lie between
+    !! zero and one such that: 0 < alpha < 1.
+    !!
+    !! @return The confidence interval as the deviation from the mean.
+    !!
+    !! @par Remarks
+    !! The confidence interval, assuming a standard normal distribution, is
+    !! as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the
+    !! standard deviation.  This routine computes the z * s / sqrt(n) portion 
+    !! leaving the computation of the mean to the user.
+    function conf_int_c(n, x, alpha) result(c) &
+            bind(C, name = "confidence_interval")
+        integer(i32), intent(in) :: n
+        real(dp), intent(in) :: x(n)
+        real(dp), intent(in), value :: alpha
+        real(dp) :: c
+        c = confidence_interval(x, alpha)
+    end function
 
 ! ------------------------------------------------------------------------------
 
