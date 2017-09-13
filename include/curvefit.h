@@ -84,7 +84,7 @@ bool is_monotonic(int n, const double *x);
 !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
 !!      increasing or decreasing.
  */
-void allolinear_interp(linear_interp *obj, int n, const double *x, 
+void alloc_linear_interp(linear_interp *obj, int n, const double *x, 
                          const double *y, errorhandler *err);
 
 /** @brief Frees resources held by a linear_inter object.
@@ -150,7 +150,7 @@ void linear_interp_get_points(const linear_interp *obj, int n, double *x,
 !!      increasing or decreasing.
 !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
  */
-void allopolynomial_interp(polynomial_interp *obj, int n, const double *x, 
+void alloc_polynomial_interp(polynomial_interp *obj, int n, const double *x, 
                              const double *y, int order, errorhandler *err);
 
 /** @brief Frees resources held by a polynomial_interp object.
