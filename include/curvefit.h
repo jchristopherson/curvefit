@@ -53,6 +53,14 @@ typedef struct {
     int n;
 } polynomial_interp;
 
+/** @brief A type encapsulating the Fortran spline_interp type. */
+typedef struct {
+    /** @brief A pointer to the Fortran spline_interp object. */
+    void *ptr;
+    /** @brief The size of the Fortran spline_interp object, in bytes. */
+    int n;
+} spline_interp;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -196,6 +204,119 @@ int polynomial_interp_get_point_count(const polynomial_interp *obj);
  */
 void polynomial_interp_get_points(const polynomial_interp *obj, int n, 
                                   double *x, double *y);
+
+/** @brief Initializes a new spline_interp object.
+!!
+!! @param[out] obj The spline_interp object to initialize.
+!! @param[in] n The number of data points.
+!! @param[in] x An N-element array containing the x-components of each data
+!!  point.  This array must be monotonic (ascending or descending only).
+!! @param[in] y An N-element array containing the y-components of each data
+!!  point.
+!! @param[in] ibcbeg An input that defines the nature of the 
+!!  boundary condition at the beginning of the spline.  If an invalid
+!!  parameter is used, the code defaults to SPLINE_QUADRATIC_OVER_INTERVAL.
+!!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+!!      initial interval.  No value is required for @p ybcbeg.
+!!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+!!      initial point is provided in @p ybcbeg.
+!!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+!!      initial point is provided in @p ybcbeg.
+!!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+!!      at x(2).  No value is required for @p ybcbeg.
+!! @param[in] ybcbeg If needed, the value of the initial point boundary
+!!  condition.  If not needed, this parameter is ignored.
+!! @param[in] ibcend An input that defines the nature of the 
+!!  boundary condition at the end of the spline.  If an invalid
+!!  parameter is used, the code defaults to SPLINE_QUADRATIC_OVER_INTERVAL.
+!!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+!!      final interval.  No value is required for @p ybcend.
+!!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+!!      initial point is provided in @p ybcend.
+!!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+!!      initial point is provided in @p ybcend.
+!!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+!!      at x(n-1).  No value is required for @p ybcend.
+!! @param[in] ybcend If needed, the value of the final point boundary
+!!  condition.  If not needed, this parameter is ignored.
+!! @param[in,out] err The errorhandler object.  If no error handling is
+!!  desired, simply pass NULL, and errors will be dealt with by the default
+!!  internal error handler.  Possible errors that may be encountered are as
+!!  follows.
+!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+!!      available.
+!!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+!!      increasing or decreasing.
+ */
+void alloc_spline_interp(spline_interp *obj, int n, const double *x, 
+                         const double *y, int ibcbeg, double ybcbeg, int ibcend,
+                         double ybcend, errorhandler *err);
+
+/** @brief Frees resources held by a spline_interp object.
+!!
+!! @param[in,out] obj The spline_interp object.
+ */
+void free_spline_interp(spline_interp *obj);
+
+/** @brief Performs a spline interpolation to determine the points @p y 
+!! that for the requested indendent variable values in @p x.
+!!
+!! @param[in] obj The spline_interp object.
+!! @param[in] n The number of points to interpolate.
+!! @param[in] x An N-element array containing the values of the independent
+!!  variable at which to interpolate.
+!! @param[out] y An N-element array where the interpolated values can be
+!!  written.
+ */
+void spline_interpolate(const spline_interp *obj, int n, const double *x, 
+                        double *y);
+
+/** @brief Gets the number of points used by the interpolation object.
+!!
+!! @param[in] obj The spline_interp object.
+!!
+!! @return The number of points.
+ */
+int spline_interp_get_point_count(const spline_interp *obj);
+
+/** @brief Gets a copy of the data points stored by the interpolation object.
+!!
+!! @param[in] obj The spline_interp object.
+!! @param[in] n The size of the buffer arrays.
+!! @param[out] x An N-element array where the x-coordinate data will be 
+!!  written.
+!! @param[out] y An N-element array where the y-coordinate data will be 
+!!  written.
+!!
+!! @par Remarks
+!! If @p n is different than the actual number of points that exist, the 
+!! lesser of the two values will be utilized.  The interpolation object
+!! can be queried to determine the quantity of stored points.
+ */
+void spline_interp_get_points(const spline_interp *obj, int n, double *x, 
+                              double *y);
+
+/** @brief Computes the interpolated first derivative.
+!!
+!! @param[in] obj The spline_interp object.
+!! @param[in] n The number of points to interpolate.
+!! @param[in] x An N-element array containing the values of the independent
+!!  variable at which to interpolate.
+!! @param[out] y An N-element array where the interpolated values can be
+!!  written.
+ */
+void spline_interp_diff1(const spline_interp *obj, int n, double *x, double *y);
+
+/** @brief Computes the interpolated second derivative.
+!!
+!! @param[in] obj The spline_interp object.
+!! @param[in] n The number of points to interpolate.
+!! @param[in] x An N-element array containing the values of the independent
+!!  variable at which to interpolate.
+!! @param[out] y An N-element array where the interpolated values can be
+!!  written.
+ */
+void spline_interp_diff2(const spline_interp *obj, int n, double *x, double *y);
 
 #ifdef __cplusplus
 }

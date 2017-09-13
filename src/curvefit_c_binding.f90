@@ -55,6 +55,15 @@ module curvefit_c_binding
         integer(i32) :: n
     end type
 
+! ------------------------------------------------------------------------------
+    !> @brief A C compatible type encapsulating a spline_interp object.
+    type, bind(C) :: c_spline_interp
+        !> @brief A pointer to the spline_interp
+        type(c_ptr) :: ptr
+        !> @brief The size of the spline_interp object, in bytes.
+        integer(i32) :: n
+    end type
+
 contains
 ! ******************************************************************************
 ! CURVEFIT_CORE MEMBERS
@@ -413,11 +422,255 @@ contains
         end do
     end subroutine
 
+! ******************************************************************************
+! SPLINE INTERPOLATION ROUTINES
 ! ------------------------------------------------------------------------------
+    !> @brief Retrieves the spline_interp object from the C compatible
+    !! c_spline_interp data structure.
+    !!
+    !! @param[in] obj The C compatible c_spline_interp object.
+    !! @param[out] interp A pointer to the resulting spline_interp object.
+    !!  This pointer can be NULL dependent upon the state of @p obj.
+    subroutine get_spline_interp(obj, interp)
+        ! Arguments
+        type(c_spline_interp), intent(in), target :: obj
+        type(spline_interp), intent(out), pointer :: interp
+
+        ! Local Variables
+        type(c_ptr) :: testptr
+
+        ! Process
+        testptr = c_loc(obj)
+        nullify(interp)
+        if (.not.c_associated(testptr)) return
+        if (.not.c_associated(obj%ptr)) return
+        if (obj%n == 0) return
+        call c_f_pointer(obj%ptr, interp)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Initializes a new c_spline_interp object.
+    !!
+    !! @param[out] obj The c_spline_interp object to initialize.
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the x-components of each data
+    !!  point.  This array must be monotonic (ascending or descending only).
+    !! @param[in] y An N-element array containing the y-components of each data
+    !!  point.
+    !! @param[in] ibcbeg An input that defines the nature of the 
+    !!  boundary condition at the beginning of the spline.  If an invalid
+    !!  parameter is used, the code defaults to SPLINE_QUADRATIC_OVER_INTERVAL.
+    !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+    !!      initial interval.  No value is required for @p ybcbeg.
+    !!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+    !!      initial point is provided in @p ybcbeg.
+    !!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+    !!      initial point is provided in @p ybcbeg.
+    !!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+    !!      at x(2).  No value is required for @p ybcbeg.
+    !! @param[in] ybcbeg If needed, the value of the initial point boundary
+    !!  condition.  If not needed, this parameter is ignored.
+    !! @param[in] ibcend An input that defines the nature of the 
+    !!  boundary condition at the end of the spline.  If an invalid
+    !!  parameter is used, the code defaults to SPLINE_QUADRATIC_OVER_INTERVAL.
+    !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
+    !!      final interval.  No value is required for @p ybcend.
+    !!  - SPLINE_KNOWN_FIRST_DERIVATIVE: The spline's first derivative at its
+    !!      initial point is provided in @p ybcend.
+    !!  - SPLINE_KNOWN_SECOND_DERIVATIVE: The spline's second derivative at its
+    !!      initial point is provided in @p ybcend.
+    !!  - SPLINE_CONTINUOUS_THIRD_DERIVATIVE: The third derivative is continuous
+    !!      at x(n-1).  No value is required for @p ybcend.
+    !! @param[in] ybcend If needed, the value of the final point boundary
+    !!  condition.  If not needed, this parameter is ignored.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!      increasing or decreasing.
+    subroutine splineinterp_init_c(obj, n, x, y, ibcbeg, ybcbeg, ibcend, &
+            ybcend, err) bind(C, name = "alloc_spline_interp")
+        ! Arguments
+        type(c_spline_interp), intent(out) :: obj
+        integer(i32), intent(in), value :: n, ibcbeg, ibcend
+        real(dp), intent(in), value :: ybcbeg, ybcend
+        real(dp), intent(in) :: x(n), y(n)
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+        type(spline_interp), pointer :: interp
+
+        ! Process
+        allocate(interp)
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            call interp%initialize_spline(x, y, ibcbeg, ybcbeg, ibcend, &
+                ybcend, eptr)
+        else
+            call interp%initialize_spline(x, y, ibcbeg, ybcbeg, ibcend, &
+                ybcend)
+        end if
+        obj%ptr = c_loc(interp)
+        obj%n = sizeof(interp)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Frees resources held by a c_spline_interp object.
+    !!
+    !! @param[in,out] obj The c_spline_interp object.
+    subroutine splineinterp_free_c(obj) bind(C, name = "free_spline_interp")
+        ! Arguments
+        type(c_spline_interp), intent(inout), target :: obj
+
+        ! Local Variables
+        type(spline_interp), pointer :: interp
+
+        ! Process
+        call get_spline_interp(obj, interp)
+        if (associated(interp)) deallocate(interp)
+        obj%n = 0
+        obj%ptr = c_null_ptr
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Performs a spline interpolation to determine the points @p y 
+    !! that for the requested indendent variable values in @p x.
+    !!
+    !! @param[in] obj The c_spline_interp object.
+    !! @param[in] n The number of points to interpolate.
+    !! @param[in] x An N-element array containing the values of the independent
+    !!  variable at which to interpolate.
+    !! @param[out] y An N-element array where the interpolated values can be
+    !!  written.
+    subroutine splineinterp_interp_c(obj, n, x, y) &
+            bind(C, name = "spline_interpolate")
+        ! Arguments
+        type(c_spline_interp), intent(in), target :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp), intent(out) :: y(n)
+
+        ! Local Variables
+        type(spline_interp), pointer :: interp
+
+        ! Process
+        call get_spline_interp(obj, interp)
+        if (.not.associated(interp)) return
+        y = interp%interpolate(x)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the number of points used by the interpolation object.
+    !!
+    !! @param[in] obj The c_spline_interp object.
+    !!
+    !! @return The number of points.
+    function splineinterp_get_pt_count_c(obj) result(n) &
+            bind(C, name = "spline_interp_get_point_count")
+        ! Arguments
+        type(c_spline_interp), intent(in), target :: obj
+        integer(i32) :: n
+
+        ! Local Variables
+        type(spline_interp), pointer :: interp
+
+        ! Process
+        n = 0
+        call get_spline_interp(obj, interp)
+        if (.not.associated(interp)) return
+        n = interp%get_count()
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets a copy of the data points stored by the interpolation object.
+    !!
+    !! @param[in] obj The c_spline_interp object.
+    !! @param[in] n The size of the buffer arrays.
+    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !!  written.
+    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !!  written.
+    !!
+    !! @par Remarks
+    !! If @p n is different than the actual number of points that exist, the 
+    !! lesser of the two values will be utilized.  The interpolation object
+    !! can be queried to determine the quantity of stored points.
+    subroutine splineinterp_get_pts_c(obj, n, x, y) &
+            bind(C, name = "spline_interp_get_points")
+        ! Arguments
+        type(c_spline_interp), intent(in), target :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(out) :: x(n), y(n)
+
+        ! Local Variables
+        integer(i32) :: i, npts
+        type(spline_interp), pointer :: interp
+
+        ! Process
+        call get_spline_interp(obj, interp)
+        if (.not.associated(interp)) return
+        npts = min(n, interp%get_count())
+        do concurrent (i = 1:npts)
+            x(i) = interp%get_x(i)
+            y(i) = interp%get_y(i)
+        end do
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the interpolated first derivative.
+    !!
+    !! @param[in] obj The c_spline_interp object.
+    !! @param[in] n The number of points to interpolate.
+    !! @param[in] x An N-element array containing the values of the independent
+    !!  variable at which to interpolate.
+    !! @param[out] y An N-element array where the interpolated values can be
+    !!  written.
+    subroutine splineinterp_diff1_c(obj, n, x, y) &
+            bind(C, name = "spline_interp_diff1")
+        ! Arguments
+        type(c_spline_interp), intent(in), target :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp), intent(out) :: y(n)
+
+        ! Local Variables
+        type(spline_interp), pointer :: interp
+
+        ! Process
+        call get_spline_interp(obj, interp)
+        if (.not.associated(interp)) return
+        y = interp%first_derivative(x)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the interpolated second derivative.
+    !!
+    !! @param[in] obj The c_spline_interp object.
+    !! @param[in] n The number of points to interpolate.
+    !! @param[in] x An N-element array containing the values of the independent
+    !!  variable at which to interpolate.
+    !! @param[out] y An N-element array where the interpolated values can be
+    !!  written.
+    subroutine splineinterp_diff2_c(obj, n, x, y) &
+            bind(C, name = "spline_interp_diff2")
+        ! Arguments
+        type(c_spline_interp), intent(in), target :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp), intent(out) :: y(n)
+
+        ! Local Variables
+        type(spline_interp), pointer :: interp
+
+        ! Process
+        call get_spline_interp(obj, interp)
+        if (.not.associated(interp)) return
+        y = interp%second_derivative(x)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 
