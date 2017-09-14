@@ -70,6 +70,8 @@ module curvefit_regression
         procedure, public :: get_x => ls_get_x
         !> @brief Gets the y component of the requested data point.
         procedure, public :: get_y => ls_get_y
+        !> @brief Gets the residuals from each data point.
+        procedure, public :: get_residuals => ls_get_residual
     end type
 
 ! ------------------------------------------------------------------------------
@@ -652,6 +654,25 @@ contains
             y = 0.0d0
         end if
     end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the residuals from each data point.
+    !!
+    !! @param[in] this The lowess_smoothing object.
+    !! @param[out] x An N-element array where the residual data should be 
+    !!  written.
+    subroutine ls_get_residual(this, x)
+        ! Arguments
+        class(lowess_smoothing), intent(in) :: this
+        real(dp), intent(out), dimension(:) :: x
+
+        ! Local Variables
+        integer(i32) :: n
+
+        ! Process
+        n = min(size(x), this%get_count())
+        x(1:n) = this%m_residuals(1:n)
+    end subroutine
 
 ! ******************************************************************************
 ! nonlinear_regression MEMBERS
