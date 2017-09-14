@@ -131,27 +131,18 @@ if (BUILD_EXAMPLES)
   target_link_libraries(curvefit_nlreg_example curvefit)
 
 # --------------------
-include_directories(${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/external/nonlin/include
-  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/include
-  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/ferror/include)
+  include_directories(${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/external/nonlin/include
+    ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/include
+    ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/ferror/include)
 
   # Linear Interpolation Example
-add_executable(curvefit_c_interp_example examples/curvefit_c_interp_example.c)
-target_link_libraries(curvefit_c_interp_example curvefit)
+  add_executable(curvefit_c_interp_example examples/curvefit_c_interp_example.c)
+  target_link_libraries(curvefit_c_interp_example curvefit)
 
-#   include_directories(${PROJECT_SOURCE_DIR}/include
-#     ${PROJECT_SOURCE_DIR}/external/linalg/ferror/include
-#     ${PROJECT_SOURCE_DIR}/external/linalg/include)
-  
-#   # C Quasi-Newton Example
-#   add_executable(nonlin_quasi_newton_c_example 
-#     examples/nonlin_quasi_newton_c_example.c)
-#   target_link_libraries(nonlin_quasi_newton_c_example nonlin)
-
-#   # C BFGS Example
-#   add_executable(nonlin_bfgs_c_example examples/nonlin_bfgs_c_example.c)
-#   target_link_libraries(nonlin_bfgs_c_example nonlin)
+  # LOWESS Example
+  add_executable(curvefit_c_lowess_example examples/curvefit_c_lowess_example.c)
+  target_link_libraries(curvefit_c_lowess_example curvefit)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -163,9 +154,11 @@ set(curvefit_test_sources tests/curvefit_test.f90
   tests/curvefit_test_regression.f90)
 add_executable(curvefit_test ${curvefit_test_sources})
 target_link_libraries(curvefit_test curvefit)
-add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
-  COMMAND curvefit_test)
-add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
+    COMMAND curvefit_test)
+  add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
+endif()
 
 # # C Test
 # include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
