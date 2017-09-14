@@ -547,7 +547,7 @@ contains
 ! ------------------------------------------------------------------------------
     !> @brief Performs the actual smoothing operation.
     !!
-    !! @param[in,out] this THe lowess_smoothing object.
+    !! @param[in,out] this The lowess_smoothing object.
     !! @param[in] f Specifies the amount of smoothing.  More specifically, this
     !! value is the fraction of points used to compute each value.  As this 
     !! value increases, the output becomes smoother.  Choosing a value in the
@@ -1047,7 +1047,13 @@ contains
     !! @param[in,out] y An N-element array containing the dependent variable
     !!  data corresponding to @p x.  On output, the contents of this array are
     !!  overwritten as it is used for storage purposes by the algorithm.
-    !! @param[out] err
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if insufficient memory is available.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are different sizes.
     !!
     !! @return The scalar coefficient A.
     function linear_least_squares_1var(x, y, err) result(a)
@@ -1096,7 +1102,15 @@ contains
     !! @param[in] thrsh An optional threshold value that defines a lower cutoff
     !!  for singular values.  Any singular values falling below this value will
     !!  have their reciprocal replaced with zero.
-    !! @param[out] err
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if any of the matrix dimensions are not
+    !!      compatiable.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
     !!
     !! @return An N-by-M matrix relating Y to X such that: Y = A * X.
     !!

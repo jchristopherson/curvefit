@@ -76,6 +76,14 @@ typedef struct {
     int n;
 } spline_interp;
 
+/** @brief A type encapsulating the Fortran lowess_smoothing type. */
+typedef struct {
+    /** @brief A pointer to the Fortran lowess_smoothing object. */
+    void *ptr;
+    /** @brief The size of the Fortran lowess_smoothing object, in bytes. */
+    int n;
+} lowess_smoothing;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -332,6 +340,237 @@ void spline_interp_diff1(const spline_interp *obj, int n, double *x, double *y);
  *  written.
  */
 void spline_interp_diff2(const spline_interp *obj, int n, double *x, double *y);
+
+/** @brief Computes the mean of a data set.
+ *
+ * @param n The number of data points.
+ * @param x An N-element array containing the data set.
+ *
+ * @return The mean of @p x.
+ */
+double mean(int n, const double *x);
+
+/** @brief Computes the median of a data set.
+ *
+ * @param n The number of data points.
+ * @param x The data set whose median is to be found.  Ideally, the
+ *  data set should be monotonically increasing; however, if it is not, it
+ *  may be sorted by the routine, dependent upon the value of @p srt.  On
+ *  output, the array contents are unchanged; however, they may be sorted
+ *  into ascending order (dependent upon the value of @p srt).
+ * @param srt A logical flag determining if @p x should be sorted.
+ *
+ * @return The median of @p x.
+ */
+double median(int n, double *x, bool srt);
+
+/** @brief Computes the sample variance of a data set.
+ *
+ * @param n The number of data points.
+ * @param x An N-element array containing the data set.
+ *
+ * @return The variance of @p x.
+ *
+ * @par Remarks
+ * To avoid overflow-type issues, Welford's algorithm is employed.  A simple
+ * illustration of this algorithm can be found 
+ * [here](https://www.johndcook.com/blog/standard_deviation/).
+ */
+double variance(int n, const double *x);
+
+/** @brief Computes the covariance matrix of N data sets of M observations.
+ *
+ * @param m The number of observations.
+ * @param n The number of data sets.
+ * @param x The M-by-N matrix of data.
+ * @param c The N-by-N matrix where the resulting covariance matrix
+ *  will be written.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+ *      available.
+ */
+void covariance(int m, int n, const double *x, double *c, errorhandler *err);
+
+/** @brief Computes the corrected standard deviation of a data set.
+ *
+ * @param n The number of data points.
+ * @param x An N-element array containing the data set.
+ *
+ * @return The standard deviation of @p x.
+ */
+double standard_deviation(int n, const double *x);
+
+/** @brief Computes the confidence interval based upon a standard normal 
+ * distribution.
+ *
+ * @param n The number of data points.
+ * @param x An N-element array containing the data set.
+ * @param alpha The confidence level.  This value must lie between
+ * zero and one such that: 0 < alpha < 1.
+ *
+ * @return The confidence interval as the deviation from the mean.
+ *
+ * @par Remarks
+ * The confidence interval, assuming a standard normal distribution, is
+ * as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the
+ * standard deviation.  This routine computes the z * s / sqrt(n) portion 
+ * leaving the computation of the mean to the user.
+ */
+double confidence_interval(int n, const double *x, double alpha);
+
+/** @brief Applies a moving average to smooth a data set.
+!!
+!! @param[in] n The number of data points.
+!! @param[in,out] x On input, the signal to smooth.  On output, the smoothed
+!!  signal.
+!! @param[in] npts The size of the averaging window.  This value must be
+!!  at least 2, but no more than the number of elements in @p x.
+!! @param[in,out] err The errorhandler object.  If no error handling is
+!!  desired, simply pass NULL, and errors will be dealt with by the default
+!!  internal error handler.  Possible errors that may be encountered are as
+!!  follows.
+!!  - CF_INVALID_INPUT_ERROR: Occurs if @p npts is less than 2, or greater
+!!      than the length of @p x.
+!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+!!      available.
+ */
+void moving_average(int n, double *x, int npts, errorhandler *err);
+
+/** @brief Employs a least squares fit to determine the coefficient A in the
+!! linear system: Y = A * X.
+!!
+!! @param[in] n The number of data points.
+!! @param[in] x An N-element array containing the independent variable data.
+!! @param[in,out] y An N-element array containing the dependent variable
+!!  data corresponding to @p x.  On output, the contents of this array are
+!!  overwritten as it is used for storage purposes by the algorithm.
+!! @param[in,out] err The errorhandler object.  If no error handling is
+!!  desired, simply pass NULL, and errors will be dealt with by the default
+!!  internal error handler.  Possible errors that may be encountered are as
+!!  follows.
+!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if insufficient memory is available.
+!!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are different sizes.
+!!
+!! @return The scalar coefficient A.
+ */
+double least_squares_fit_1var(int n, const double *x, double *y, 
+                              errorhandler *err);
+
+/** @brief Employs a least squares fit to determine the coefficient A in the
+!! linear system: Y = A * X.
+!!
+!! @param[in] m The number of dependent variables.
+!! @param[in] n The number of independent variables.
+!! @param[in,out] x An N-by-NPTS matrix containing the P data points of the
+!!  N independent variables.
+!! @param[in] y An M-by-NPTS matrix containing the P data points of the M
+!!  dependent variables.
+!! @param[out] a The M-by-N matrix where the resulting coefficient matrix A
+!!  will be written.
+!! @param[in,out] err The errorhandler object.  If no error handling is
+!!  desired, simply pass NULL, and errors will be dealt with by the default
+!!  internal error handler.  Possible errors that may be encountered are as
+!!  follows.
+!!  - CF_ARRAY_SIZE_ERROR: Occurs if any of the matrix dimensions are not
+!!      compatiable.
+!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+!!      available.
+!!
+!! @par Remarks
+!! The algorithm attempts to compute the coefficient matrix A as follows.
+!! Y * X**T = A * X * X**T
+!! Y * X**T * INV(X * X**T) = A
+!! This does require that X * X**T does not result in a singular matrix.  To
+!! handle the situation where X * X**T is singular, the Moore-Penrose
+!! pseudo-inverse, computed by means of singular value decomposition, is
+!! utilized to still arrive at a solution that, at minimum, has a minimum
+!! Euclidean norm of its residual.
+!! Let: PINV(X) = X**T * INV(X * X**T),
+!! Then: A = Y * PINV(X)
+ */
+void least_squares_fit_nvar(int m, int n, int npts, double *x, const double *y,
+                            double *a, errorhandler *err);
+
+/** @brief Initializes a new c_lowess_smoothing object.
+!!
+!! @param[out] obj The c_lowess_smoothing object.
+!! @param[in] n The number of data points.
+!! @param[in] x An N-element array containing the x-coordinate data.  
+!!  Ideally, the data set should be monotonically increasing; however, if 
+!!  it is not, it may be sorted by the routine, dependent upon the value 
+!!  of @p srt.
+!! @param[in] y An N-element array containing the y-coordinate data.
+!! @param[in] srt A logical flag determining if @p x should be sorted.
+!! @param[in,out] err The errorhandler object.  If no error handling is
+!!  desired, simply pass NULL, and errors will be dealt with by the default
+!!  internal error handler.  Possible errors that may be encountered are as
+!!  follows.
+!!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+!!      available.
+ */
+void alloc_lowess(lowess_smoothing *obj, int n, const double *x, 
+                  const double *y, bool srt, errorhandler *err);
+
+/** @brief Frees resources held by a c_lowess_smoothing object.
+!!
+!! @param[in,out] obj The c_lowess_smoothing object.
+ */
+void free_lowess(lowess_smoothing *obj);
+
+/** @brief Performs the actual smoothing operation.
+!!
+!! @param[in,out] obj The c_lowess_smoothing object.
+!! @param[in] f Specifies the amount of smoothing.  More specifically, this
+!! value is the fraction of points used to compute each value.  As this 
+!! value increases, the output becomes smoother.  Choosing a value in the
+!! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
+!! starting point, in the absence of better information, is a value of 0.5.
+!! @param[in] n The size of the buffer @p y.  Ideally, this parameter is
+!!  equal to the number of points stored in @p obj; however, the routine
+!!  will only traverse the minimum of the this parameter or the number of
+!!  points stored in @p obj.
+!! @param[out] y An N-element array to which the smoothed data will be
+!!  written.
+!! @param[in,out] err The errorhandler object.  If no error handling is
+!!  desired, simply pass NULL, and errors will be dealt with by the default
+!!  internal error handler.  Possible errors that may be encountered are as
+!!  follows.
+!!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has been defined.
+!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+!!      available.
+ */
+void lowess_smooth(lowess_smoothing *obj, double f, int n, double *y, 
+                   errorhandler *err);
+
+/** @brief Gets the number of points used by the lowess_smoothing object.
+!!
+!! @param[in] obj The c_lowess_smoothing object.
+!!
+!! @return The number of points.
+ */
+int lowess_get_point_count(const lowess_smoothing *obj);
+
+/** @brief Gets a copy of the data points stored by the lowess_smoothing
+!! object.
+!!
+!! @param[in] obj The c_lowess_smoothing object.
+!! @param[in] n The size of the buffer arrays.
+!! @param[out] x An N-element array where the x-coordinate data will be 
+!!  written.
+!! @param[out] y An N-element array where the y-coordinate data will be 
+!!  written.
+!!
+!! @par Remarks
+!! If @p n is different than the actual number of points that exist, the 
+!! lesser of the two values will be utilized.  The lowess_smoothing object
+!! can be queried to determine the quantity of stored points.
+ */
+void lowess_get_points(const lowess_smoothing *obj, int n, double *x, 
+                       double *y);
 
 #ifdef __cplusplus
 }

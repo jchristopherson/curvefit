@@ -49,7 +49,7 @@ module curvefit_c_binding
 ! ------------------------------------------------------------------------------
     !> @brief A C compatible type encapsulating a polynomial_interp object.
     type, bind(C) :: c_polynomial_interp
-        !> @brief A pointer to the polynomial_interp
+        !> @brief A pointer to the polynomial_interp object.
         type(c_ptr) :: ptr
         !> @brief The size of the polynomial_interp object, in bytes.
         integer(i32) :: n
@@ -58,11 +58,28 @@ module curvefit_c_binding
 ! ------------------------------------------------------------------------------
     !> @brief A C compatible type encapsulating a spline_interp object.
     type, bind(C) :: c_spline_interp
-        !> @brief A pointer to the spline_interp
+        !> @brief A pointer to the spline_interp object.
         type(c_ptr) :: ptr
         !> @brief The size of the spline_interp object, in bytes.
         integer(i32) :: n
     end type
+
+! ------------------------------------------------------------------------------
+    !> @brief A C compatible type encapsulating a lowess_smoothing object.
+    type, bind(C) :: c_lowess_smoothing
+        !> @brief A pointer to the lowess_smoothing object.
+        type(c_ptr) :: ptr
+        !> @brief The size of the lowess_smoothing object, in bytes.
+        integer(i32) :: n
+    end type
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 contains
 ! ******************************************************************************
@@ -691,6 +708,7 @@ contains
 ! ------------------------------------------------------------------------------
     !> @brief Computes the median of a data set.
     !!
+    !! @param[in] n The number of data points.
     !! @param[in,out] x The data set whose median is to be found.  Ideally, the
     !!  data set should be monotonically increasing; however, if it is not, it
     !!  may be sorted by the routine, dependent upon the value of @p srt.  On
@@ -701,7 +719,7 @@ contains
     !! @return The median of @p x.
     function median_c(n, x, srt) result(z) bind(C, name = "median")
         integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
+        real(dp), intent(inout) :: x(n)
         logical(c_bool), intent(in), value :: srt
         real(dp) :: z
         z = median(x, logical(srt))
@@ -740,8 +758,6 @@ contains
     !!  follows.
     !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
     !!      available.
-    !!
-    !! @return The N-by-N covariance matrix.
     subroutine covariance_c(m, n, x, c, err) bind(C, name = "covariance")
         ! Arguments
         integer(i32), intent(in), value :: m, n
@@ -799,6 +815,331 @@ contains
         real(dp) :: c
         c = confidence_interval(x, alpha)
     end function
+
+! ******************************************************************************
+! REGRESSION & SMOOTHING ROUTINES
+! ------------------------------------------------------------------------------
+    !> @brief Applies a moving average to smooth a data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in,out] x On input, the signal to smooth.  On output, the smoothed
+    !!  signal.
+    !! @param[in] npts The size of the averaging window.  This value must be
+    !!  at least 2, but no more than the number of elements in @p x.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p npts is less than 2, or greater
+    !!      than the length of @p x.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    subroutine moving_average_c(n, x, npts, err) &
+            bind(C, name = "moving_average")
+        ! Arguments
+        integer(i32), intent(in), value :: n, npts
+        real(dp), intent(inout) :: x(n)
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            call moving_average(x, npts, eptr)
+        else
+            call moving_average(x, npts)
+        end if
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Employs a least squares fit to determine the coefficient A in the
+    !! linear system: Y = A * X.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the independent variable data.
+    !! @param[in,out] y An N-element array containing the dependent variable
+    !!  data corresponding to @p x.  On output, the contents of this array are
+    !!  overwritten as it is used for storage purposes by the algorithm.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if insufficient memory is available.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are different sizes.
+    !!
+    !! @return The scalar coefficient A.
+    function linlsq_1var_c(n, x, y, err) result(a) &
+            bind(C, name = "least_squares_fit_1var")
+        ! Arguments
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n)
+        real(dp), intent(inout) :: y(n)
+        type(errorhandler), intent(inout) :: err
+        real(dp) :: a
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            a = linear_least_squares(x, y, eptr)
+        else
+            a = linear_least_squares(x, y)
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Employs a least squares fit to determine the coefficient A in the
+    !! linear system: Y = A * X.
+    !!
+    !! @param[in] m The number of dependent variables.
+    !! @param[in] n The number of independent variables.
+    !! @param[in,out] x An N-by-NPTS matrix containing the P data points of the
+    !!  N independent variables.
+    !! @param[in] y An M-by-NPTS matrix containing the P data points of the M
+    !!  dependent variables.
+    !! @param[out] a The M-by-N matrix where the resulting coefficient matrix A
+    !!  will be written.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if any of the matrix dimensions are not
+    !!      compatiable.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    !!
+    !! @par Remarks
+    !! The algorithm attempts to compute the coefficient matrix A as follows.
+    !! Y * X**T = A * X * X**T
+    !! Y * X**T * INV(X * X**T) = A
+    !! This does require that X * X**T does not result in a singular matrix.  To
+    !! handle the situation where X * X**T is singular, the Moore-Penrose
+    !! pseudo-inverse, computed by means of singular value decomposition, is
+    !! utilized to still arrive at a solution that, at minimum, has a minimum
+    !! Euclidean norm of its residual.
+    !! Let: PINV(X) = X**T * INV(X * X**T),
+    !! Then: A = Y * PINV(X)
+    subroutine linlsq_nvar_c(m, n, npts, x, y, a, err) &
+            bind(C, name = "least_squares_fit_nvar")
+        ! Arguments
+        integer(i32), intent(in), value :: m, n, npts
+        real(dp), intent(inout) :: x(n,npts)
+        real(dp), intent(in) :: y(m,npts)
+        real(dp), intent(out) :: a(m,n)
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            a = linear_least_squares(x, y, err = eptr)
+        else
+            a = linear_least_squares(x, y)
+        end if
+    end subroutine
+
+! ******************************************************************************
+! LOWESS SMOOTHING ROUTINES
+! ------------------------------------------------------------------------------
+    !> @brief Retrieves the lowess_smoothing object from the C compatible 
+    !! c_lowess_smoothing data structure.
+    !!
+    !! @param[in] obj The C compatible c_lowess_smoothing object.
+    !! @param[out] ptr A pointer to the resulting lowess_smoothing object.  This
+    !!  pointer can be NULL dependent upon the state of @p obj.
+    subroutine get_lowess_smoothing(obj, ptr)
+        ! Arguments
+        type(c_lowess_smoothing), intent(in), target :: obj
+        type(lowess_smoothing), intent(out), pointer :: ptr
+
+        ! Local Variables
+        type(c_ptr) :: testptr
+
+        ! Process
+        testptr = c_loc(obj)
+        nullify(ptr)
+        if (.not.c_associated(testptr)) return
+        if (.not.c_associated(obj%ptr)) return
+        if (obj%n == 0) return
+        call c_f_pointer(obj%ptr, ptr)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Initializes a new c_lowess_smoothing object.
+    !!
+    !! @param[out] obj The c_lowess_smoothing object.
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element array containing the x-coordinate data.  
+    !!  Ideally, the data set should be monotonically increasing; however, if 
+    !!  it is not, it may be sorted by the routine, dependent upon the value 
+    !!  of @p srt.
+    !! @param[in] y An N-element array containing the y-coordinate data.
+    !! @param[in] srt A logical flag determining if @p x should be sorted.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    subroutine lowess_init_c(obj, n, x, y, srt, err) &
+            bind(C, name = "alloc_lowess")
+        ! Arguments
+        type(c_lowess_smoothing), intent(out) :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: x(n), y(n)
+        logical(c_bool), intent(in), value :: srt
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+        type(lowess_smoothing), pointer :: ptr
+
+        ! Process
+        allocate(ptr)
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            call ptr%initialize(x, y, logical(srt), eptr)
+        else
+            call ptr%initialize(x, y, logical(srt))
+        end if
+        obj%ptr = c_loc(ptr)
+        obj%n = sizeof(ptr)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Frees resources held by a c_lowess_smoothing object.
+    !!
+    !! @param[in,out] obj The c_lowess_smoothing object.
+    subroutine lowess_free_c(obj) bind(C, name = "free_lowess")
+        ! Arguments
+        type(c_lowess_smoothing), intent(inout), target :: obj
+
+        ! Local Variables
+        type(lowess_smoothing), pointer :: ptr
+
+        ! Process
+        call get_lowess_smoothing(obj, ptr)
+        if (associated(ptr)) deallocate(ptr)
+        obj%n = 0
+        obj%ptr = c_null_ptr
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Performs the actual smoothing operation.
+    !!
+    !! @param[in,out] obj The c_lowess_smoothing object.
+    !! @param[in] f Specifies the amount of smoothing.  More specifically, this
+    !! value is the fraction of points used to compute each value.  As this 
+    !! value increases, the output becomes smoother.  Choosing a value in the
+    !! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
+    !! starting point, in the absence of better information, is a value of 0.5.
+    !! @param[in] n The size of the buffer @p y.  Ideally, this parameter is
+    !!  equal to the number of points stored in @p obj; however, the routine
+    !!  will only traverse the minimum of the this parameter or the number of
+    !!  points stored in @p obj.
+    !! @param[out] y An N-element array to which the smoothed data will be
+    !!  written.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has been defined.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!      available.
+    subroutine lowess_smooth_c(obj, f, n, y, err) &
+            bind(C, name = "lowess_smooth")
+        ! Arguments
+        type(c_lowess_smoothing), intent(inout) :: obj
+        real(dp), intent(in), value :: f
+        integer(i32), intent(in), value :: n
+        real(dp), intent(out) :: y(n)
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+        type(lowess_smoothing), pointer :: ptr
+        integer(i32) :: npts
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        call get_lowess_smoothing(obj, ptr)
+        if (.not.associated(ptr)) return
+        npts = min(n, ptr%get_count())
+        if (associated(eptr)) then
+            y(1:npts) = ptr%smooth(f, eptr)
+        else
+            y(1:npts) = ptr%smooth(f)
+        end if
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets the number of points used by the lowess_smoothing object.
+    !!
+    !! @param[in] obj The c_lowess_smoothing object.
+    !!
+    !! @return The number of points.
+    function lowess_get_pt_count_c(obj) result(n) &
+            bind(C, name = "lowess_get_point_count")
+        ! Arguments
+        type(c_lowess_smoothing), intent(in) :: obj
+        integer(i32) :: n
+
+        ! Local Variables
+        type(lowess_smoothing), pointer :: ptr
+
+        ! Process
+        n = 0
+        call get_lowess_smoothing(obj, ptr)
+        if (.not.associated(ptr)) return
+        n = ptr%get_count()
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Gets a copy of the data points stored by the lowess_smoothing
+    !! object.
+    !!
+    !! @param[in] obj The c_lowess_smoothing object.
+    !! @param[in] n The size of the buffer arrays.
+    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !!  written.
+    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !!  written.
+    !!
+    !! @par Remarks
+    !! If @p n is different than the actual number of points that exist, the 
+    !! lesser of the two values will be utilized.  The lowess_smoothing object
+    !! can be queried to determine the quantity of stored points.
+    subroutine lowess_get_pts_c(obj, n, x, y) &
+            bind(C, name = "lowess_get_points")
+        ! Arguments
+        type(c_lowess_smoothing), intent(in) :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(out) :: x(n), y(n)
+
+        ! Local Variables
+        integer(i32) :: i, npts
+        type(lowess_smoothing), pointer :: ptr
+
+        ! Process
+        call get_lowess_smoothing(obj, ptr)
+        if (.not.associated(ptr)) return
+        npts = min(n, ptr%get_count())
+        do concurrent (i = 1:npts)
+            x(i) = ptr%get_x(i)
+            y(i) = ptr%get_y(i)
+        end do
+    end subroutine
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 
