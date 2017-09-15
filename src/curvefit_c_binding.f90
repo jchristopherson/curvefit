@@ -1138,6 +1138,27 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Gets the residuals from each data point.
+    !!
+    !! @param[in] this The c_lowess_smoothing object.
+    !! @param[in] n The number of elements available in the buffer array @p x.
+    !! @param[out] x An N-element array where the residual data should be 
+    !!  written.
+    subroutine lowess_get_residual_c(obj, n, x) &
+            bind(C, name = "lowess_get_residuals")
+        ! Arguments
+        type(c_lowess_smoothing), intent(in) :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(out) :: x(n)
+
+        ! Local Variables
+        type(lowess_smoothing), pointer :: ptr 
+
+        ! Process
+        call get_lowess_smoothing(obj, ptr)
+        if (.not.associated(ptr)) return
+        call ptr%get_residuals(x)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 

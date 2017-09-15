@@ -572,6 +572,15 @@ int lowess_get_point_count(const lowess_smoothing *obj);
 void lowess_get_points(const lowess_smoothing *obj, int n, double *x, 
                        double *y);
 
+/** @brief Gets the residuals from each data point.
+!!
+!! @param[in] this The c_lowess_smoothing object.
+!! @param[in] n The number of elements available in the buffer array @p x.
+!! @param[out] x An N-element array where the residual data should be 
+!!  written.
+ */
+void lowess_get_residuals(const lowess_smoothing *obj, int n, double *x);
+
 #ifdef __cplusplus
 }
 #endif
