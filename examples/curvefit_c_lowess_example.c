@@ -47,5 +47,6 @@ int main() {
     fclose(f);
 
     // End
+    free_lowess(&obj);
     return 0;
 }
