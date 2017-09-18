@@ -589,6 +589,37 @@ void lowess_get_points(const lowess_smoothing *obj, int n, double *x,
  */
 void lowess_get_residuals(const lowess_smoothing *obj, int n, double *x);
 
+/** @brief Initializes a new c_nonlinear_regression object.
+!!
+!! @param[out] obj The c_nonlinear_regression object.
+!! @param[in] n The number of data points.
+!! @param[in] x An N-element containing the independent variable values of
+!!  the data set.
+!! @param[in] y  An N-element array of the dependent variables corresponding
+!!  to @p x.
+!! @param[in] fcn A pointer to the function whose coefficients are to be
+!!  determined.
+!! @param[in] ncoeff The number of coefficients in the function defined in
+!!  @p fcn.
+!! @param[in,out] err The errorhandler object.  If no error handling is
+!!  desired, simply pass NULL, and errors will be dealt with by the default
+!!  internal error handler.  Possible errors that may be encountered are as
+!!  follows.
+!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+!!      available.
+!!  - CF_INVALID_INPUT_ERROR: Occurs if @p ncoeff is less than or equal to
+!!      zero.
+ */
+void alloc_nonlinear_regression(nonlinear_regression *obj, int n, 
+                                const double *x, const double *y, reg_fcn fcn,
+                                int ncoeff, errorhandler *err);
+
+/** @brief Frees resources held by a c_nonlinear_regression object.
+!!
+!! @param[in,out] obj The c_nonlinear_regression object.
+ */
+void free_nonlinear_regression(nonlinear_regression *obj);
+
 #ifdef __cplusplus
 }
 #endif

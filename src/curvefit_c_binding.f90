@@ -83,6 +83,22 @@ module curvefit_c_binding
     end type
 
 ! ------------------------------------------------------------------------------
+    !> @brief A type for helping to interface between a C function pointer, and
+    !! the nonlinear_regression type.
+    type, extends(nonlinear_regression) :: cnonlin_reg_helper
+        private
+        !> A pointer to the target creg_fcn routine.
+        procedure(creg_fcn), pointer, nopass :: m_cfcn => null()
+    contains
+        !> @brief Executes the routine containing the function to evaluate.
+        procedure, public :: fcn => crh_fcn
+        !> @brief Tests if the pointer to the function containing the equation
+        !! to solve has been assigned.
+        procedure, public :: is_fcn_defined => crh_is_fcn_defined
+        !> @brief Establishes a pointer to the routine containing the equations
+        !! to solve.
+        procedure, public :: set_cfcn => crh_set_fcn
+    end type
 
 ! ------------------------------------------------------------------------------
 
@@ -1170,16 +1186,16 @@ contains
 ! ******************************************************************************
 ! NONLINEAR REGRESSION ROUTINES
 ! ------------------------------------------------------------------------------
-    !> @brief Retrieves the nonlinear_regression object from the C compatible
+    !> @brief Retrieves the cnonlin_reg_helper object from the C compatible
     !! c_nonlinear_regression data structure.
     !!
     !! @param[in] obj The C compatible c_nonlinear_regression object.
-    !! @param[out] ptr A pointer to the resulting nonlinear_regression object.
+    !! @param[out] ptr A pointer to the resulting cnonlin_reg_helper object.
     !!  This pointer can be NULL dependent upon the state of @p obj.
     subroutine get_nonlinear_regression(obj, ptr)
         ! Arguments
         type(c_nonlinear_regression), intent(in), target :: obj
-        type(nonlinear_regression), intent(out), pointer :: ptr
+        type(cnonlin_reg_helper), intent(out), pointer :: ptr
 
         ! Local Variables
         type(c_ptr) :: testptr
@@ -1214,7 +1230,8 @@ contains
     !!      available.
     !!  - CF_INVALID_INPUT_ERROR: Occurs if @p ncoeff is less than or equal to
     !!      zero.
-    subroutine nlr_init_c(obj, n, x, y, fcn, ncoeff, err)
+    subroutine nlr_init_c(obj, n, x, y, fcn, ncoeff, err) &
+            bind(C, name = "alloc_nonlinear_regression")
         ! Arguments
         type(c_nonlinear_regression), intent(out) :: obj
         integer(i32), intent(in), value :: n, ncoeff
@@ -1224,20 +1241,103 @@ contains
 
         ! Local Variables
         type(errors), pointer :: eptr
-        type(nonlinear_regression), pointer :: ptr
+        type(cnonlin_reg_helper), pointer :: ptr
         procedure(creg_fcn), pointer :: fptr
+        procedure(reg_fcn), pointer :: nullfptr
 
         ! Process
+        nullfptr => null()
+        call c_f_procpointer(fcn, fptr)
         allocate(ptr)
         call get_errorhandler(err, eptr)
         if (associated(eptr)) then
+            call ptr%initialize(x, y, nullfptr, ncoeff, eptr)
         else
+            call ptr%initialize(x, y, nullfptr, ncoeff, eptr)
         end if
+        call ptr%set_cfcn(fptr)
         obj%ptr = c_loc(ptr)
         obj%n = sizeof(ptr)
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Frees resources held by a c_nonlinear_regression object.
+    !!
+    !! @param[in,out] obj The c_nonlinear_regression object.
+    subroutine nlr_free_c(obj) bind(C, name = "free_nonlinear_regression")
+        ! Arguments
+        type(c_nonlinear_regression), intent(inout), target :: obj
+
+        ! Local Variables
+        type(cnonlin_reg_helper), pointer :: ptr
+
+        ! Process
+        call get_nonlinear_regression(obj, ptr)
+        if (associated(ptr)) deallocate(ptr)
+        obj%n = 0
+        obj%ptr = c_null_ptr
+    end subroutine
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ******************************************************************************
+! CNONLIN_REG_HELPER MEMBERS
+! ------------------------------------------------------------------------------
+    !> @brief Computes the residual between the supplied data set, and the
+    !! function value given a set of coefficients.
+    !!
+    !! @param[in] this The cnonlin_reg_helper object.
+    !! @param[in] x An N-element array containing the N coefficients.
+    !! @param[out] f An M-element array that, on output, contains the residual
+    !!  at each of the M data points.
+    subroutine crh_fcn(this, x, f)
+        ! Arguments
+        class(cnonlin_reg_helper), intent(in) :: this
+        real(dp), intent(in), dimension(:) :: x
+        real(dp), intent(out), dimension(:) :: f
+
+        ! Local Variables
+        integer(i32) :: i, n, ncoeff
+
+        ! Compute the value of the function at each value of x (get_x)
+        n = this%get_equation_count()
+        ncoeff = this%get_variable_count()
+        do i = 1, n
+            f(i) = this%get_y(i) - this%m_cfcn(this%get_x(i), ncoeff, x)
+        end do
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Tests if the pointer to the function containing the equation to
+    !! solve has been assigned.
+    !!
+    !! @param[in] this The cnonlin_reg_helper object.
+    !! @return Returns true if the pointer has been assigned; else, false.
+    pure function crh_is_fcn_defined(this) result(x)
+        class(cnonlin_reg_helper), intent(in) :: this
+        logical :: x
+        x = associated(this%m_cfcn)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Establishes a pointer to the routine containing the equations to
+    !! solve.
+    !!
+    !! @param[in,out] this The cnonlin_reg_helper object.
+    !! @param[in] fcn The function pointer.
+    subroutine crh_set_fcn(this, fcn)
+        class(cnonlin_reg_helper), intent(inout) :: this
+        procedure(creg_fcn), intent(in), pointer :: fcn
+        this%m_cfcn => fcn
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
