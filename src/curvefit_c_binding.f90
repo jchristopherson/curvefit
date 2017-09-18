@@ -809,7 +809,7 @@ contains
     !! leaving the computation of the mean to the user.
     function conf_int_c(n, x, alpha) result(c) &
             bind(C, name = "confidence_interval")
-        integer(i32), intent(in) :: n
+        integer(i32), intent(in), value :: n
         real(dp), intent(in) :: x(n)
         real(dp), intent(in), value :: alpha
         real(dp) :: c
