@@ -84,6 +84,14 @@ typedef struct {
     int n;
 } lowess_smoothing;
 
+/** @brief A type encapsulating the Fortran nonlinear_regression type. */
+typedef struct {
+    /** @brief A pointer to the Fortran nonlinear_regression object. */
+    void *ptr;
+    /** @brief The size of the Fortran nonlinear_regression object, in bytes. */
+    int n;
+} nonlinear_regression;
+
 
 #ifdef __cplusplus
 extern "C" {

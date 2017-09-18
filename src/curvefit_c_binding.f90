@@ -74,6 +74,13 @@ module curvefit_c_binding
     end type
 
 ! ------------------------------------------------------------------------------
+    !> @brief A C compatible type encapsulating a nonlinear_regression object.
+    type, bind(C) :: c_nonlinear_regression
+        !> @brief A pointer to the nonlinear_regression object.
+        type(c_ptr) :: ptr
+        !> @brief The size of the nonlinear_regression object, in bytes.
+        integer(i32) :: n
+    end type
 
 ! ------------------------------------------------------------------------------
 
@@ -1160,9 +1167,75 @@ contains
         call ptr%get_residuals(x)
     end subroutine
 
+! ******************************************************************************
+! NONLINEAR REGRESSION ROUTINES
 ! ------------------------------------------------------------------------------
+    !> @brief Retrieves the nonlinear_regression object from the C compatible
+    !! c_nonlinear_regression data structure.
+    !!
+    !! @param[in] obj The C compatible c_nonlinear_regression object.
+    !! @param[out] ptr A pointer to the resulting nonlinear_regression object.
+    !!  This pointer can be NULL dependent upon the state of @p obj.
+    subroutine get_nonlinear_regression(obj, ptr)
+        ! Arguments
+        type(c_nonlinear_regression), intent(in), target :: obj
+        type(nonlinear_regression), intent(out), pointer :: ptr
+
+        ! Local Variables
+        type(c_ptr) :: testptr
+
+        ! Process
+        testptr = c_loc(obj)
+        nullify(ptr)
+        if (.not.c_associated(testptr)) return
+        if (.not.c_associated(obj%ptr)) return
+        if (obj%n == 0) return
+        call c_f_pointer(obj%ptr, ptr)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Initializes a new c_nonlinear_regression object.
+    !!
+    !! @param[out] obj The c_nonlinear_regression object.
+    !! @param[in] n The number of data points.
+    !! @param[in] x An N-element containing the independent variable values of
+    !!  the data set.
+    !! @param[in] y  An N-element array of the dependent variables corresponding
+    !!  to @p x.
+    !! @param[in] fcn A pointer to the function whose coefficients are to be
+    !!  determined.
+    !! @param[in] ncoeff The number of coefficients in the function defined in
+    !!  @p fcn.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p ncoeff is less than or equal to
+    !!      zero.
+    subroutine nlr_init_c(obj, n, x, y, fcn, ncoeff, err)
+        ! Arguments
+        type(c_nonlinear_regression), intent(out) :: obj
+        integer(i32), intent(in), value :: n, ncoeff
+        real(dp), intent(in) :: x(n), y(n)
+        type(c_funptr), intent(in), value :: fcn
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+        type(nonlinear_regression), pointer :: ptr
+        procedure(creg_fcn), pointer :: fptr
+
+        ! Process
+        allocate(ptr)
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+        else
+        end if
+        obj%ptr = c_loc(ptr)
+        obj%n = sizeof(ptr)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 
