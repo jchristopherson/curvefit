@@ -1279,6 +1279,18 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    !
+    subroutine nlr_solve_c(obj, c, ib, err)
+        ! Arguments
+        type(c_nonlinear_regression), intent(inout) :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(inout) :: c(n)
+        type(iteration_behavior), intent(out) :: ib
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: err
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 
