@@ -245,7 +245,7 @@ contains
         c = covariance(x)
         if (.not.is_mtx_equal(c, ans, tol)) then
             rst = .false.
-            print '(A)', "Test Failed: Covariance matrix test of two data sets."
+            print '(A)', "Test Failed: Covariance matrix test of 4 data sets."
             print '(A)', "Expected:"
             do i = 1, size(ans, 1)
                 print *, ans(i,:)

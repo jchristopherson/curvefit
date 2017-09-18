@@ -5,11 +5,13 @@
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>
+#include "c_test_core.h"
 
 bool test_mean();
 bool test_variance();
 bool test_confidence_interval();
 bool test_median();
+bool test_covariance();
 
 int main() {
     // Local Variables
@@ -29,6 +31,9 @@ int main() {
     if (!rst) overall = false;
 
     rst = test_median();
+    if (!rst) overall = false;
+
+    rst = test_covariance();
     if (!rst) overall = false;
 
     // End
@@ -145,6 +150,32 @@ bool test_median() {
 }
 
 /* ************************************************************************** */
+bool test_covariance() {
+    // Constants
+    const int m = 3;
+    const int n = 4;
+    const double tol = 1.0e-8;
+
+    // Local Variables
+    bool rst;
+    double c[n*n], 
+        x[12] = {5.0, 1.0, 4.0, 0.0, -5.0, 9.0, 3.0, 7.0, 8.0, 7.0, 3.0, 1.0e1},
+        ans[16] = {4.33333333333333, 8.83333333333333, -3.0,
+            5.66666666666667, 8.83333333333333, 50.3333333333333,
+            6.5, 24.1666666666667, -3.0, 6.5, 7.0, 1.0,
+            5.66666666666667, 24.1666666666667, 1.0, 12.3333333333333};
+    
+    // Process
+    rst = true;
+    covariance(m, n, x, c, NULL);
+    if (!is_dbl_mtx_equal(n, n, c, ans, tol)) {
+        rst = false;
+        printf("Test Failed: Covariance matrix of 4 data sets.\n");
+    }
+
+    // End
+    return rst;
+}
 
 /* ************************************************************************** */
 
