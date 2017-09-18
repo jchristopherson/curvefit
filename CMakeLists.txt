@@ -164,15 +164,15 @@ add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
   COMMAND curvefit_test)
 add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
 
-# # C Test
-# include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
-#   ${PROJECT_SOURCE_DIR}/external/linalg/ferror/include
-#   ${PROJECT_SOURCE_DIR}/external/linalg/tests 
-#   ${PROJECT_SOURCE_DIR}/external/linalg/include)
-# set(c_nonlin_test_sources tests/nonlin_c_test.c tests/nonlin_c_test_solve.c
-#   external/linalg/tests/c_test_core.c tests/nonlin_c_test_poly.c)
-# add_executable(nonlin_c_test ${c_nonlin_test_sources})
-# target_link_libraries(nonlin_c_test nonlin m)
-# add_custom_command(OUTPUT nonlin_c_tests DEPENDS ${c_nonlin_test_sources}
-#   COMMAND nonlin_c_test)
-# add_custom_target(run_nonlin_c_tests ALL DEPENDS nonlin_c_tests)
+# C Test
+include_directories(${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/external/nonlin/include
+  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/include
+  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/ferror/include)
+set(curvefit_c_test_sources tests/curvefit_c_test.c)
+add_executable(curvefit_c_test ${curvefit_c_test_sources})
+target_link_libraries(curvefit_c_test curvefit)
+add_custom_command(OUTPUT curvefit_c_tests_cmd 
+  DEPENDS ${curvefit_c_test_sources}
+  COMMAND curvefit_c_test)
+add_custom_target(run_curvefit_c_tests ALL DEPENDS curvefit_c_tests_cmd)
