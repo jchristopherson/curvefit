@@ -645,8 +645,53 @@ void free_nonlinear_regression(nonlinear_regression *obj);
 !!  - CF_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested tolerance is
 !!      to small to be practical for the problem at hand.
  */
-void nonlinear_regression_solve(nonlinear_regression *obj, int n, double *c, 
-                                iteration_behavior *ib, errorhandler *err);
+void nonlinreg_solve(nonlinear_regression *obj, int n, double *c, 
+                     iteration_behavior *ib, errorhandler *err);
+
+/** @brief Gets the number of points used by the c_nonlinear_regression
+!! object.
+!!
+!! @param[in] obj The c_nonlinear_regression object.
+!!
+!! @return The number of points.
+ */
+int nonlinreg_get_point_count(const nonlinear_regression *obj);
+
+/** @brief Gets a copy of the data points stored by the 
+!! c_nonlinear_regression object.
+!!
+!! @param[in] obj The c_nonlinear_regression object.
+!! @param[in] n The size of the buffer arrays.
+!! @param[out] x An N-element array where the x-coordinate data will be 
+!!  written.
+!! @param[out] y An N-element array where the y-coordinate data will be 
+!!  written.
+!!
+!! @par Remarks
+!! If @p n is different than the actual number of points that exist, the 
+!! lesser of the two values will be utilized.  The c_nonlinear_regression
+!! object can be queried to determine the quantity of stored points.
+ */
+void nonlinreg_get_points(const nonlinear_regression *obj, int n, double *x, 
+                          double *y);
+
+/** @brief Gets the nonlinear regression solver solution control parameters.
+!!
+!! @param[in] obj The c_nonlinear_regression object.
+!! @param[out] cntrl The solver_control object that, on output, will contain
+!!  the current solver control parameters.
+ */
+void nonlinreg_get_solver_params(const nonlinear_regression *obj, 
+                                 solver_control *cntrl);
+
+/** @brief Sets  the nonlinear regression solver solution control parameters.
+!!
+!! @param[in,out] obj The c_nonlinear_regression object.
+!! @param[in] cntrl The solver_control object that contains the current 
+!!  solver control parameters.
+ */
+void nonlinreg_set_solver_params(nonlinear_regression *obj, 
+                                 const solver_control *cntrl);
 
 #ifdef __cplusplus
 }

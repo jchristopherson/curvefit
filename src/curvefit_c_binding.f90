@@ -13,6 +13,7 @@ module curvefit_c_binding
     use ferror, only : errors
     use ferror_c_binding, only : errorhandler, get_errorhandler
     use nonlin_types, only : iteration_behavior
+    use nonlin_c_binding, only : solver_control
     implicit none
 
 ! ******************************************************************************
@@ -1305,7 +1306,7 @@ contains
     !!  - CF_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested tolerance is
     !!      to small to be practical for the problem at hand.
     subroutine nlr_solve_c(obj, n, c, ib, err) &
-            bind(C, name = "nonlinear_regression_solve")
+            bind(C, name = "nonlinreg_solve")
         ! Arguments
         type(c_nonlinear_regression), intent(inout) :: obj
         integer(i32), intent(in), value :: n
@@ -1328,12 +1329,113 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Gets the number of points used by the c_nonlinear_regression
+    !! object.
+    !!
+    !! @param[in] obj The c_nonlinear_regression object.
+    !!
+    !! @return The number of points.
+    function nlr_get_pt_count_c(obj) result(n) &
+            bind(C, name = "nonlinreg_get_point_count")
+        ! Arguments
+        type(c_nonlinear_regression), intent(in) :: obj
+        integer(i32) :: n
+
+        ! Local Variables
+        type(cnonlin_reg_helper), pointer :: cptr
+
+        ! Process
+        n = 0
+        call get_nonlinear_regression(obj, cptr)
+        if (.not.associated(cptr)) return
+        n = cptr%get_count()
+    end function
 
 ! ------------------------------------------------------------------------------
+    !> @brief Gets a copy of the data points stored by the 
+    !! c_nonlinear_regression object.
+    !!
+    !! @param[in] obj The c_nonlinear_regression object.
+    !! @param[in] n The size of the buffer arrays.
+    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !!  written.
+    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !!  written.
+    !!
+    !! @par Remarks
+    !! If @p n is different than the actual number of points that exist, the 
+    !! lesser of the two values will be utilized.  The c_nonlinear_regression
+    !! object can be queried to determine the quantity of stored points.
+    subroutine nlr_get_pts_c(obj, n, x, y) &
+            bind(C, name = "nonlinreg_get_points")
+        ! Arguments
+        type(c_nonlinear_regression), intent(in) :: obj
+        integer(i32), intent(in), value :: n
+        real(dp), intent(out) :: x(n), y(n)
+
+        ! Local Variables
+        integer(i32) :: i, npts
+        type(cnonlin_reg_helper), pointer :: ptr
+
+        ! Process
+        call get_nonlinear_regression(obj, ptr)
+        if (.not.associated(ptr)) return
+        npts = min(n, ptr%get_count())
+        do concurrent (i = 1:npts)
+            x(i) = ptr%get_x(i)
+            y(i) = ptr%get_y(i)
+        end do
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Gets the nonlinear regression solver solution control parameters.
+    !!
+    !! @param[in] obj The c_nonlinear_regression object.
+    !! @param[out] cntrl The solver_control object that, on output, will contain
+    !!  the current solver control parameters.
+    subroutine nlr_get_solver_params_c(obj, cntrl) &
+            bind(C, name = "nonlinreg_get_solver_params")
+        ! Arguments
+        type(c_nonlinear_regression), intent(in) :: obj
+        type(solver_control), intent(out) :: cntrl
+
+        ! Local Variables
+        type(cnonlin_reg_helper), pointer :: ptr
+
+        ! Process
+        call get_nonlinear_regression(obj, ptr)
+        if (.not.associated(ptr)) return
+        cntrl%max_evals = ptr%get_max_fcn_evals()
+        cntrl%fcn_tolerance = ptr%get_fcn_tolerance()
+        cntrl%var_tolerance = ptr%get_var_tolerance()
+        cntrl%grad_tolerance = ptr%get_gradient_tolerance()
+        cntrl%print_status = ptr%get_print_status()
+    end subroutine
 
 ! ------------------------------------------------------------------------------
+    !> @brief Sets  the nonlinear regression solver solution control parameters.
+    !!
+    !! @param[in,out] obj The c_nonlinear_regression object.
+    !! @param[in] cntrl The solver_control object that contains the current 
+    !!  solver control parameters.
+    subroutine nlr_set_solver_params_c(obj, cntrl) &
+            bind(C, name = "nonlinreg_set_solver_params")
+        ! Arguments
+        type(c_nonlinear_regression), intent(inout) :: obj
+        type(solver_control), intent(in) :: cntrl
+
+        ! Local Variables
+        type(cnonlin_reg_helper), pointer :: ptr
+
+        ! Process
+        call get_nonlinear_regression(obj, ptr)
+        if (.not.associated(ptr)) return
+        call ptr%set_max_fcn_evals(cntrl%max_evals)
+        call ptr%set_fcn_tolerance(cntrl%fcn_tolerance)
+        call ptr%set_var_tolerance(cntrl%var_tolerance)
+        call ptr%set_gradient_tolerance(cntrl%grad_tolerance)
+        call ptr%set_print_status(logical(cntrl%print_status))
+    end subroutine
 
 ! ******************************************************************************
 ! CNONLIN_REG_HELPER MEMBERS
