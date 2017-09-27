@@ -5,6 +5,7 @@ program main
     use curvefit_test_interp
     use curvefit_test_statistics
     use curvefit_test_regression
+    use curvefit_test_calibration
     implicit none
 
     ! Local Variables
@@ -53,6 +54,10 @@ program main
 
     ! Regression Tests
     rst = test_lowess()
+    if (.not.rst) overall = .false.
+
+    ! Calibration Tests
+    rst = test_seb()
     if (.not.rst) overall = .false.
 
     ! End
