@@ -66,6 +66,9 @@ program main
     rst = test_term_nonlin()
     if (.not.rst) overall = .false.
 
+    rst = test_hysteresis()
+    if (.not.rst) overall = .false.
+
     ! End
     if (overall) then
         print '(A)', "CURVEFIT TEST STATUS: PASS"
