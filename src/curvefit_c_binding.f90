@@ -12,6 +12,7 @@ module curvefit_c_binding
     use curvefit_regression
     use ferror, only : errors
     use ferror_c_binding, only : errorhandler, get_errorhandler
+    use nonlin_types, only : iteration_behavior
     implicit none
 
 ! ******************************************************************************
@@ -1279,8 +1280,32 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    !
-    subroutine nlr_solve_c(obj, c, ib, err)
+    !> @brief Computes the solution to the nonlinear regression problem using
+    !! the Levenberg-Marquardt method.
+    !!
+    !! @param[in,out] obj The c_nonlinear_regression object.
+    !! @param[in] n The number of coefficients to determine.
+    !! @param[in,out] c On input, an array containing initial estimates of the
+    !!  coefficients.  On output, the comptued coefficient values.
+    !! @param[out] ib An output parameter that allows the caller to obtain 
+    !!  iteration performance statistics.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_INVALID_OPERATION_ERROR: Occurs if no equations have been defined.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if the number of equations is less than
+    !!      than the number of variables.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if any of the input arrays are not sized
+    !!      correctly.
+    !!  - CF_CONVERGENCE_ERROR: Occurs if the line search cannot converge within
+    !!      the allowed number of iterations.
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+    !!      available.
+    !!  - CF_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested tolerance is
+    !!      to small to be practical for the problem at hand.
+    subroutine nlr_solve_c(obj, n, c, ib, err) &
+            bind(C, name = "nonlinear_regression_solve")
         ! Arguments
         type(c_nonlinear_regression), intent(inout) :: obj
         integer(i32), intent(in), value :: n
@@ -1289,7 +1314,17 @@ contains
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
-        type(errors), pointer :: err
+        type(errors), pointer :: eptr
+        type(cnonlin_reg_helper), pointer :: cptr
+
+        ! Process
+        call get_nonlinear_regression(obj, cptr)
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            call cptr%solve(c, ib = ib, err = eptr)
+        else
+            call cptr%solve(c, ib = ib)
+        end if
     end subroutine
 
 ! ------------------------------------------------------------------------------
