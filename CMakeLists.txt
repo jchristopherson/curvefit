@@ -149,6 +149,10 @@ if (BUILD_EXAMPLES)
   # LOWESS Example
   add_executable(curvefit_c_lowess_example examples/curvefit_c_lowess_example.c)
   target_link_libraries(curvefit_c_lowess_example curvefit)
+
+  # Nonlinear Regression Example
+  add_executable(curvefit_c_nlreg_example examples/curvefit_c_nlreg_example.c)
+  target_link_libraries(curvefit_c_nlreg_example curvefit)
 endif()
 
 # ------------------------------------------------------------------------------
