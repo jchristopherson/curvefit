@@ -41,10 +41,76 @@ contains
                 sebout_ans, " mV/V, but computed an SEB Output of: ", &
                 s%output, "mV/V"
         end if
-        print '(AF8.5A)', "SEB: ", 1.0d2 * s%seb / fullscale, "%"
-        print '(AF7.5A)', "Output: ", s%output, " mV/V"
-        print '(AF10.5A)', "Slope: ", s%slope, " N/mV/V"
+    end function
 
+! ------------------------------------------------------------------------------
+    function test_nonlin() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        real(dp), parameter :: ans = -0.062122611d0
+        real(dp), parameter :: slope = 178.5558182d0
+        real(dp), parameter :: tol = 1.0d-4
+
+        ! Local Variables
+        real(dp), dimension(11) :: applied, output, measured
+        real(dp) :: x
+
+        ! Initialization
+        rst = .true.
+        applied = [0.0d0, 1.0d2, 2.0d2, 3.0d2, 4.0d2, 5.0d2, 4.0d2, 3.0d2, &
+            2.0d2, 1.0d2, 0.0d0]
+        output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
+            2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
+        
+        ! Apply the calibration
+        measured = slope * output
+
+        ! Test
+        x = nonlinearity(applied, measured)
+        if (abs(x - ans) > tol) then
+            rst = .false.
+            print '(AF7.5AF7.5)', &
+                "Test Failed: Expected a nonlinearity error of: ", ans, &
+                ", but computed: ", x
+            return
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_term_nonlin() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        real(dp), parameter :: ans = -0.073918276d0
+        real(dp), parameter :: slope = 178.5465596d0
+        real(dp), parameter :: tol = 1.0d-4
+
+        ! Local Variables
+        real(dp), dimension(11) :: applied, output, measured
+        real(dp) :: x
+
+        ! Initialization
+        rst = .true.
+        applied = [0.0d0, 1.0d2, 2.0d2, 3.0d2, 4.0d2, 5.0d2, 4.0d2, 3.0d2, &
+            2.0d2, 1.0d2, 0.0d0]
+        output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
+            2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
+        
+        ! Apply the calibration
+        measured = slope * output
+
+        ! Test
+        x = terminal_nonlinearity(applied, measured)
+        if (abs(x - ans) > tol) then
+            rst = .false.
+            print '(AF7.5AF7.5)', &
+                "Test Failed: Expected a terminal nonlinearity error of: ", &
+                ans, ", but computed: ", x
+            return
+        end if
     end function
 
 ! ------------------------------------------------------------------------------
