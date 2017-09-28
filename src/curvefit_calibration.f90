@@ -21,6 +21,7 @@ module curvefit_calibration
     public :: terminal_nonlinearity
     public :: hysteresis
     public :: return_to_zero
+    public :: crosstalk
     public :: split_ascend_descend
 
 ! ******************************************************************************
@@ -80,6 +81,11 @@ module curvefit_calibration
     end interface
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the crosstalk errors for a multiple degree-of-freedom
+    !! data set.
+    interface crosstalk
+        module procedure :: xtalk_1
+    end interface
 
 ! ------------------------------------------------------------------------------
     !> @brief Splits a data set into ascending and descending components.
@@ -572,7 +578,201 @@ contains
     ! REPEATABILITY
 
 ! ------------------------------------------------------------------------------
-    ! CROSSTALK
+    !> @brief Computes the crosstalk errors for a multiple degree-of-freedom
+    !! data set.
+    !!
+    !! @param[in] xerr An NPTS-by-NDOF matrix containing the measurement error
+    !!  values (computed such that XERR = X MEASURED - X APPLIED).
+    !! @param[in] indices A 2*NDOF element array containing row indices defining
+    !!  the rows where each degree-of-freedom was applied in the data set 
+    !!  @p xerr.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p indices is not 2*NDOF in size.
+    !!  - CF_ARRAY_INDEX_ERROR: Occurs if any of the entries in @p indices are
+    !!      outside the row bounds of @p xerr.
+    !!
+    !! @return A NDOF-by-NDOF matrix containing the crosstalk errors such that
+    !!  each loaded degree of freedom is represented by its own row, and each
+    !!  responding degree of freedom is represented by its own column.
+    !!
+    !! @par Usage
+    !! The following program computes the crosstalk errors for a 2 DOF system.
+    !! The applied data is as follows (there are 34 data points for each DOF):
+    !! @verbatim
+    !! 0	    0
+    !! 3000	    0
+    !! 6000	    0
+    !! 7500	    0
+    !! 9000	    0
+    !! 12000	0
+    !! 15000	0
+    !! 7500	    0
+    !! 0	    0
+    !! 0	    0
+    !! -3000	0
+    !! -6000	0
+    !! -7500	0
+    !! -9000	0
+    !! -12000	0
+    !! -15000	0
+    !! -7500	0
+    !! 0	    0
+    !! --------------------
+    !! 0	    0
+    !! 0	    67.79087067
+    !! 0	    135.5817413
+    !! 0	    203.3726196
+    !! 0	    271.1634827
+    !! 0	    338.9543762
+    !! 0	    203.3726196
+    !! 0	    0
+    !! 0	    0
+    !! 0	    -67.79087067
+    !! 0	    -135.5817413
+    !! 0	    -203.3726196
+    !! 0	    -271.1634827
+    !! 0	    -338.9543762
+    !! 0	    -203.3726196
+    !! 0	    0
+    !! @endverbatim
+    !! The data output from the instrument under test is as follows:
+    !! @verbatim
+    !! 0	            0
+    !! 0.389050007	    1.22E-03
+    !! 0.778159976	    2.59E-03
+    !! 0.972689986	    2.90E-03
+    !! 1.167140007	    3.14E-03
+    !! 1.555999994	    3.38E-03
+    !! 1.944839954	    3.56E-03
+    !! 0.972599983	    4.77E-03
+    !! -1E-05	        -1.00E-05
+    !! 0	            0
+    !! -0.388886005	    2.10E-04
+    !! -0.777750015	    5.10E-04
+    !! -0.972150028	    6.90E-04
+    !! -1.166540027	    8.80E-04
+    !! -1.555330038	    1.30E-03
+    !! -1.944100022	    1.78E-03
+    !! -0.971710026	    5.80E-04
+    !! 4.00E-05	        3.00E-05
+    !! ----------------------------
+    !! 0	            0
+    !! -4.40E-04	    0.271560013
+    !! -1.30E-03	    0.543290019
+    !! -2.40E-03	    0.815069973
+    !! -3.82E-03	    1.086820006
+    !! -5.28E-03	    1.358809948
+    !! -2.57E-03	    0.815530002
+    !! 1.50E-04	        1.00E-05
+    !! 0	            0
+    !! 1.44E-03	        -0.271450013
+    !! 3.06E-03	        -0.543120027
+    !! 4.46E-03	        -0.814930022
+    !! 5.67E-03	        -1.086799979
+    !! 6.88E-03	        -1.35879004
+    !! 4.51E-03	        -0.815479994
+    !! -2.00E-05	    0
+    !! @endverbatim
+    !! @code{.f90}
+    !! program main
+    !!   ! Parameters
+    !!   integer(i32), parameter :: npts = 34
+    !!   integer(i32), parameter :: ndof = 2
+    !!
+    !!   ! Local Variables
+    !!   integer(i32) :: i, indices(2*ndof)
+    !!   real(dp), dimension(npts, ndof) :: xin, xout, xerr, xmeas
+    !!   real(dp), dimension(ndof, npts) :: xint, xmeast
+    !!   real(dp), dimension(ndof, ndof) :: c, ans, xt
+    !!
+    !!   ! Initialization
+    !!   xin = reshape([0.0, 3000.0, 6000.0, 7500.0, 9000.0, 12000.0, &
+    !!       15000.0, 7500.0, 0.0, 0.0, -3000.0, -6000.0, -7500.0, -9000.0, &
+    !!       -12000.0, -15000.0, -7500.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
+    !!       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
+    !!       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
+    !!       0.0, 0.0, 0.0, 67.7908728, 135.5817456, 203.3726184, 271.1634912, &
+    !!       338.954364, 203.3726184, 0.0, 0.0, -67.7908728, -135.5817456, &
+    !!       -203.3726184, -271.1634912, -338.954364, -203.3726184, 0.0], &
+    !!       [npts, ndof])
+    !!   xout = reshape([0.0, 0.38905, 0.77816, 0.97269, 1.16714, 1.556, &
+    !!       1.94484, 0.9726, -1.0e-5, 0.0, -0.388886, -0.77775, -0.97215, &
+    !!       -1.16654, -1.55533, -1.9441, -0.97171, 4.0e-5, 0.0, -0.00044, &
+    !!       -0.0013, -0.0024, -0.00382, -0.00528, -0.00257, 0.00015, 0.0, &
+    !!       0.00144, 0.00306, 0.00446, 0.00567, 0.00688, 0.00451, -2.0e-5, &
+    !!       0.0, 0.00122, 0.00259, 0.0029, 0.00314, 0.00338, 0.00356, 0.00477,&
+    !!       -1.0e-5, 0.0, 0.00021, 0.00051, 0.00069, 0.00088, 0.0013, 0.00178,&
+    !!       0.00058, 3.0e-5, 0.0, 0.27156, 0.54329, 0.81507, 1.08682, 1.35881,&
+    !!       0.81553, 1.0e-5, 0.0, -0.27145, -0.54312, -0.81493, -1.0868, &
+    !!       -1.35879, -0.81548, 0.0], [npts, ndof])
+    !!    
+    !!   ! Compute the calibration gains
+    !!   xint = transpose(xin)
+    !!   xmeast = transpose(xout)
+    !!   c = linear_least_squares(xmeast, xint)
+    !!   xmeas = matmul(xout, transpose(c))
+    !!   xerr = xmeas - xin
+    !!
+    !!   ! The indices are
+    !!   indices = [1, 17, 18, 34]
+    !!
+    !!   ! Compute the crosstalk matrix
+    !!   xt = crosstalk(xerr, indices)
+    !! end program
+    !! @endcode
+    !! The least squares fit generates the following matrix of calibration 
+    !! gains.
+    !! @verbatim
+    !! 7713.710427	    33.5206917
+    !! -0.214743728	    249.4768498
+    !! @endverbatim
+    !! The resulting measured values are then as follows.
+    !! @verbatim
+    !! 0	            0
+    !! 3001.05999	    0.220815702
+    !! 6002.58754	    0.479040049
+    !! 7503.146099	    0.514603781
+    !! 9003.085297	    0.532721294
+    !! 12002.64668	    0.509090486
+    !! 15002.05157	    0.470495427
+    !! 7502.514526	    0.981144827
+    !! -0.077472309	    -0.002492621
+    !! 0	            0
+    !! -2999.74699	    0.135900968
+    !! -5999.321307	    0.294250127
+    !! -7498.860677	    0.380902151
+    !! -8998.322469	    0.470046784
+    !! -11997.32196	    0.658317276
+    !! -14996.16495	    0.861552092
+    !! -7495.47032	    0.353365205
+    !! 0.30955403	    7.48E-03
+    !! ----------------------------
+    !! 0	            0
+    !! 5.708846869	    67.74803112
+    !! 8.183633648	    135.5385616
+    !! 8.808803389	    203.3416047
+    !! 6.96458466	    271.1372518
+    !! 4.81985707	    338.9927591
+    !! 7.512893885	    203.4564077
+    !! 1.157391826	    2.46E-03
+    !! 0	            0
+    !! 2.008550989	    -67.72080332
+    !! 5.398195074	    -135.4965304
+    !! 7.086130239	    -203.3071324
+    !! 7.306450061	    -271.1326527
+    !! 7.522743936	    -338.9881361
+    !! 7.453379661	    -203.4443484
+    !! -0.154274205	    4.29E-06
+    !! @endverbatim
+    !! The crosstalk error matrix is then as follows.
+    !! @verbatim
+    !! 0	            0.981144827
+    !! 8.808803389	    0
+    !! @endverbatim
     function xtalk_1(xerr, indices, err) result(xt)
         ! Arguments
         real(dp), intent(in), dimension(:,:) :: xerr
@@ -600,18 +800,37 @@ contains
         xt = zero
 
         ! Input Check
-        if (mod(n, 2) /= 0) then
-            call errmgr%report_error("xtalk_1", "The length of the " // &
-                "indices array must be an even-valued integer.", &
-                CF_INVALID_INPUT_ERROR)
+        if (size(indices) /= 2 * ndof) then
+            call errmgr%report_error("xtalk_1", "The indices array is " // &
+                "not compatible in size with the supplied data array.", &
+                CF_ARRAY_SIZE_ERROR)
             return
         end if
         if (maxval(indices) > npts .or. minval(indices) < 1) then
             call errmgr%report_error("xtalk_1", "There are entries in " // &
                 "indices that exceed the bounds of the input data array.", &
                 CF_ARRAY_INDEX_ERROR)
+            return
         end if
+        
 
+        ! Process
+        do i = 1, ndof ! Cycle over each DOF
+            ! Locate the starting and stopping row indices for the DOF
+            first = indices(2 * i - 1)
+            last = indices(2 * i)
+
+            ! Compute the error for each DOF over the specified range
+            do j = 1, ndof
+                if (i /= j) then
+                    npts = last - first + 1
+                    ind = IDAMAX(npts, xerr(first:last,j), 1) + first - 1
+                    xt(i,j) = xerr(ind,j)
+                else
+                    xt(i,j) = zero
+                end if
+            end do
+        end do
     end function
     
 ! ------------------------------------------------------------------------------

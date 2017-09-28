@@ -3,6 +3,8 @@
 module curvefit_test_calibration
     use curvefit_core
     use curvefit_calibration
+    use curvefit_regression, only : linear_least_squares
+    use test_core
     implicit none
 contains
 ! ------------------------------------------------------------------------------
@@ -180,6 +182,71 @@ contains
                 "Test Failed: Expected a return to zero error of: ", &
                 ans, ", but computed: ", x
             return
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_crosstalk() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        integer(i32), parameter :: npts = 34
+        integer(i32), parameter :: ndof = 2
+        real(dp), parameter :: tol = 1.0d-4
+
+        ! Local Variables
+        integer(i32) :: indices(2*ndof)
+        real(dp), dimension(npts, ndof) :: xin, xout, xerr, xmeas
+        real(dp), dimension(ndof, npts) :: xint, xmeast
+        real(dp), dimension(ndof, ndof) :: c, ans, xt
+
+        ! Initialization
+        rst = .true.
+        xin = reshape([0.0, 3000.0, 6000.0, 7500.0, 9000.0, 12000.0, &
+            15000.0, 7500.0, 0.0, 0.0, -3000.0, -6000.0, -7500.0, -9000.0, &
+            -12000.0, -15000.0, -7500.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
+            0.0, 0.0, 0.0, 67.7908728, 135.5817456, 203.3726184, 271.1634912, &
+            338.954364, 203.3726184, 0.0, 0.0, -67.7908728, -135.5817456, &
+            -203.3726184, -271.1634912, -338.954364, -203.3726184, 0.0], &
+            [npts, ndof])
+        xout = reshape([0.0, 0.38905, 0.77816, 0.97269, 1.16714, 1.556, &
+            1.94484, 0.9726, -1.0e-5, 0.0, -0.388886, -0.77775, -0.97215, &
+            -1.16654, -1.55533, -1.9441, -0.97171, 4.0e-5, 0.0, -0.00044, &
+            -0.0013, -0.0024, -0.00382, -0.00528, -0.00257, 0.00015, 0.0, &
+            0.00144, 0.00306, 0.00446, 0.00567, 0.00688, 0.00451, -2.0e-5, &
+            0.0, 0.00122, 0.00259, 0.0029, 0.00314, 0.00338, 0.00356, 0.00477, &
+            -1.0e-5, 0.0, 0.00021, 0.00051, 0.00069, 0.00088, 0.0013, 0.00178, &
+            0.00058, 3.0e-5, 0.0, 0.27156, 0.54329, 0.81507, 1.08682, 1.35881, &
+            0.81553, 1.0e-5, 0.0, -0.27145, -0.54312, -0.81493, -1.0868, &
+            -1.35879, -0.81548, 0.0], [npts, ndof])
+        
+        ! Compute the calibration gains
+        xint = transpose(xin)
+        xmeast = transpose(xout)
+        c = linear_least_squares(xmeast, xint)
+        xmeas = matmul(xout, transpose(c))
+        xerr = xmeas - xin
+
+        ! The solution is:
+        ans(1,1) = 0.0d0
+        ans(2,1) = nonlinearity(xin(18:34,1), xmeas(18:34,1))
+
+        ans(1,2) = nonlinearity(xin(1:17,2), xmeas(1:17,2))
+        ans(2,2) = 0.0d0
+
+        ! The indices are
+        indices = [1, 17, 18, 34]
+
+        ! Compute the crosstalk matrix
+        xt = crosstalk(xerr, indices)
+
+        ! Test
+        if (.not.is_mtx_equal(xt, ans, tol)) then
+            rst = .false.
+            print '(A)', "Test Failed: The crosstalk error test failed."
         end if
     end function
 
