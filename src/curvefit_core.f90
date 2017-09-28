@@ -29,6 +29,7 @@ module curvefit_core
     public :: CF_INVALID_OPERATION_ERROR
     public :: CF_CONVERGENCE_ERROR
     public :: CF_TOLERANCE_TOO_SMALL_ERROR
+    public :: CF_ARRAY_INDEX_ERROR
     public :: is_monotonic
     public :: reg_fcn
 
@@ -63,6 +64,8 @@ module curvefit_core
     !! practical for the problem at hand.
     integer, parameter :: CF_TOLERANCE_TOO_SMALL_ERROR = &
         NL_TOLERANCE_TOO_SMALL_ERROR
+    !> An error indicating an array index was out of bounds.
+    integer, parameter :: CF_ARRAY_INDEX_ERROR = 302
 
 ! ******************************************************************************
 ! INTERFACES

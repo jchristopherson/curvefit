@@ -600,6 +600,18 @@ contains
         xt = zero
 
         ! Input Check
+        if (mod(n, 2) /= 0) then
+            call errmgr%report_error("xtalk_1", "The length of the " // &
+                "indices array must be an even-valued integer.", &
+                CF_INVALID_INPUT_ERROR)
+            return
+        end if
+        if (maxval(indices) > npts .or. minval(indices) < 1) then
+            call errmgr%report_error("xtalk_1", "There are entries in " // &
+                "indices that exceed the bounds of the input data array.", &
+                CF_ARRAY_INDEX_ERROR)
+        end if
+
     end function
     
 ! ------------------------------------------------------------------------------

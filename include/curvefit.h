@@ -24,6 +24,8 @@
 /** @brief An error indicating the user-requested tolerance is too small to be
  * practical for the problem at hand. */
 #define CF_TOLERANCE_TOO_SMALL_ERROR NL_TOLERANCE_TOO_SMALL_ERROR
+/** @brief An error indicating an array index was out of bounds. */
+#define CF_ARRAY_INDEX_ERROR 302
 
 /** Indicates that the spline is quadratic over the interval under
  * consideration (beginning or ending interval).  This is equivalent to
