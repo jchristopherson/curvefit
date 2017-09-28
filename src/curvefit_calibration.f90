@@ -20,6 +20,7 @@ module curvefit_calibration
     public :: nonlinearity
     public :: terminal_nonlinearity
     public :: hysteresis
+    public :: return_to_zero
     public :: split_ascend_descend
 
 ! ******************************************************************************
@@ -72,6 +73,11 @@ module curvefit_calibration
     end interface
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the return to zero error in an ascending/descending data
+    !! set.
+    interface return_to_zero
+        module procedure :: rtz_1
+    end interface
 
 ! ------------------------------------------------------------------------------
 
@@ -411,6 +417,8 @@ contains
     !!  warning messages that may be encountered are as follows.
     !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if the calibration data is not
     !!      monotonic in nature (either ascending or descending).
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p applied and @p measured are not the
+    !!      same size.
     !!
     !! @return The hysteresis error.
     !!
@@ -474,6 +482,90 @@ contains
 
         ! Compute the hysteresis
         rst = hysteresis_1(xa(1:na), ya, xd(1:nd), yd, err)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the return to zero error in an ascending/descending data
+    !! set.
+    !!
+    !! @param[in] applied An N-element array containing the values applied to
+    !!  the measurement instrument.
+    !! @param[in] measured An N-element array containing the calibrated output
+    !!  of the instrument as a result of the values given in @p applied.
+    !! @param[in] tol An optional input that specifies the tolerance used in
+    !!  finding the matching data points.  If no value is specified, the default
+    !!  value of the square root of machine precision times the largest
+    !!  magnitude value in @p xcal is used.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p applied and @p measured are not the
+    !!      same size.
+    !!
+    !! @return The return to zero error.
+    function rtz_1(applied, measured, tol, err) result(rst)
+        ! Arguments
+        real(dp), intent(in), dimension(:) :: applied, measured
+        real(dp), intent(in), optional :: tol
+        class(errors), intent(inout), optional, target :: err
+        real(dp) :: rst
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        integer(i32) :: i, i1, i2, n
+        real(dp) :: t, eps
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        n = size(applied)
+        rst = zero
+        eps = epsilon(eps)
+        t = zero
+        if (present(tol)) t = tol
+        if (t <= eps) then
+            i1 = IDAMAX(n, applied, 1)
+            t = sqrt(eps) * abs(applied(i1))
+        end if
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Checking
+        if (size(measured) /= n) then
+            call errmgr%report_error("rtz_1", "The measured data " // &
+                "array must be the same size as the applied data array.", &
+                CF_ARRAY_SIZE_ERROR)
+            return
+        end if
+
+        ! Determine the indices of the matching values - base the search on the
+        ! applied values, not the measured values
+        i1 = 0
+        i2 = 0
+        do i = 1, n
+            if (abs(applied(i)) < t) then
+                i1 = i
+                exit
+            end if
+        end do
+        if (i1 == 0) return
+        do i = i1 + 1, n
+            if (abs(applied(i)) < t) then
+                i2 = i
+                exit
+            end if
+        end do
+        if (i2 == 0) return
+
+        ! Compute the return to zero error
+        rst = measured(i2) - measured(i1)
     end function
 
 ! ------------------------------------------------------------------------------
