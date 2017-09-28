@@ -573,6 +573,34 @@ contains
 
 ! ------------------------------------------------------------------------------
     ! CROSSTALK
+    function xtalk_1(xerr, indices, err) result(xt)
+        ! Arguments
+        real(dp), intent(in), dimension(:,:) :: xerr
+        integer(i32), intent(in), dimension(:) :: indices
+        real(dp), dimension(size(xerr, 2), size(xerr, 2)) :: xt
+        class(errors), intent(inout), optional, target :: err
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        integer(i32) :: i, j, n, npts, ndof, first, last, ind
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        npts = size(xerr, 1)
+        ndof = size(xerr, 2)
+        n = size(indices) ! must be even
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+        xt = zero
+
+        ! Input Check
+    end function
     
 ! ------------------------------------------------------------------------------
 
