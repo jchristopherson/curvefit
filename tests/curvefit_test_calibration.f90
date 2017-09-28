@@ -186,6 +186,53 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_repeatability() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        integer(i32), parameter :: npts = 15
+        integer(i32), parameter :: ntests = 3
+        real(dp), parameter :: slope = 2736.031907d0
+        real(dp), parameter :: ans = 0.30096351d0
+        real(dp), parameter :: tol = 1.0d-4
+
+        ! Local Variables
+        real(dp), dimension(npts, ntests) :: applied, output, measured
+        real(dp) :: x
+
+        ! Initialization
+        rst = .true.
+        applied = reshape([0.0d0, 100.0d0, 300.0d0, 600.0d0, 900.0d0, &
+            1200.0d0, 1500.0d0, 1800.0d0, 2100.0d0, 2400.0d0, 2700.0d0, &
+            3000.0d0, 3400.0d0, 1500.0d0, 0.0d0, 0.0d0, 100.0d0, 300.0d0, &
+            600.0d0, 900.0d0, 1200.0d0, 1500.0d0, 1800.0d0, 2100.0d0, &
+            2400.0d0, 2700.0d0, 3000.0d0, 3400.0d0, 1500.0d0, 0.0d0, 0.0d0, &
+            100.0d0, 300.0d0, 600.0d0, 900.0d0, 1200.0d0, 1500.0d0, 1800.0d0, &
+            2100.0d0, 2400.0d0, 2700.0d0, 3000.0d0, 3400.0d0, 1500.0d0, &
+            0.0d0], [npts, ntests])
+        output = reshape([0.0d0, 0.03654d0, 0.10961d0, 0.2192d0, 0.32883d0, &
+            0.43845d0, 0.5481d0, 0.65775d0, 0.76743d0, 0.87711d0, 0.9868d0, &
+            1.09646d0, 1.2427d0, 0.5481d0, 0.0d0, 0.0d0, 0.03655d0, 0.10965d0, &
+            0.21925d0, 0.32888d0, 0.43852d0, 0.54818d0, 0.65784d0, 0.76752d0, &
+            0.8772d0, 0.98689d0, 1.09656d0, 1.24281d0, 0.54814d0, 0.00001d0, &
+            0.0d0, 0.03655d0, 0.10961d0, 0.21921d0, 0.32884d0, 0.43847d0, &
+            0.54813d0, 0.65779d0, 0.76746d0, 0.87715d0, 0.98682d0, 1.09648d0, &
+            1.24274d0, 0.54813d0, 0.00001d0], [npts, ntests])
+        measured = slope * output
+
+        ! Test
+        x = repeatability(applied, measured)
+        if (abs(x - ans) > tol) then
+            rst = .false.
+            print '(AF7.5AF7.5)', &
+                "Test Failed: Expected a repeatability error of: ", &
+                ans, ", but computed: ", x
+            return
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
     function test_crosstalk() result(rst)
         ! Arguments
         logical :: rst

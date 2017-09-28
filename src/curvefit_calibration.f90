@@ -21,6 +21,7 @@ module curvefit_calibration
     public :: terminal_nonlinearity
     public :: hysteresis
     public :: return_to_zero
+    public :: repeatability
     public :: crosstalk
     public :: split_ascend_descend
 
@@ -78,6 +79,12 @@ module curvefit_calibration
     !! set.
     interface return_to_zero
         module procedure :: rtz_1
+    end interface
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the repeatability of a sequence of tests.
+    interface repeatability
+        module procedure :: repeat_1
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -575,7 +582,106 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    ! REPEATABILITY
+    !> @brief Computes the repeatability of a sequence of tests.
+    !!
+    !! @param[in] applied An NPTS-by-NTEST matrix containing at least 2 columns
+    !!  (tests) of NPTS values applied to the measurement instrument.
+    !! @param[in] measured An NPTS-by-NTEST matrix containing the corresponding
+    !!  calibrated output from the instrument.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p applied and @p measured are not the
+    !!      same size.
+    !!
+    !! @return The largest magnitude deviation from the initial test.
+    !!
+    !! @par Remarks
+    !! Repeatability is considered as the largest magnitude deviation of 
+    !! subsequent tests from the initial test.  Noting that it is very likely 
+    !! that consecutive test points will vary slightly, test 2 through test N 
+    !! are linearly interpolated such that their test points line up with those 
+    !! from test 1.
+    function repeat_1(applied, measured, err) result(rst)
+        ! Arguments
+        real(dp), intent(in), dimension(:,:) :: applied, measured
+        class(errors), intent(inout), optional, target :: err
+        real(dp) :: rst
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+
+        ! Local Variables
+        integer(i32) :: i, npts, ntests, ip
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        type(linear_interp) :: interp
+        logical :: ascending
+        real(dp), allocatable, dimension(:) :: y
+
+        ! Initialization
+        npts = size(applied, 1)
+        ntests = size(applied, 2)
+        rst = zero
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (size(measured, 1) /= npts .or. size(measured, 2) /= ntests) then
+            call errmgr%report_error("repeat_1", "The measured data array " // &
+                "must be the same size as the applied data array.", &
+                CF_ARRAY_SIZE_ERROR)
+            return
+        end if
+
+        ! Quick Return
+        if (npts < 2 .or. ntests < 2) return
+
+        ! Determine where the inflection point is within the data such that
+        ! ascending and descending segments may be considered seperately
+        ascending = applied(2,1) - applied(1,1) > zero
+        ip = npts
+        do i = 2, npts
+            if (ascending) then
+                if (applied(i,1) < applied(i-1,1)) then
+                    ip = i - 1
+                    exit
+                end if
+            else
+                if (applied(i,1) > applied(i-1,1)) then
+                    ip = i - 1
+                    exit
+                end if
+            end if
+        end do
+
+        ! Cycle over each test, and use the initial test (column 1) as the 
+        ! reference
+        do i = 2, ntests
+            ! Determine how far subsequent tests move from the initial test
+            ! for the ascending data
+            call interp%initialize(applied(1:ip,i), measured(1:ip,i), &
+                err = errmgr)
+            if (errmgr%has_error_occurred()) return
+            y = abs(interp%interpolate(applied(1:ip,1)) - measured(1:ip,1))
+            rst = max(rst, maxval(y))
+
+            ! Consider the descending data
+            if (ip < npts) then
+                call interp%initialize(applied(ip:npts,i), &
+                    measured(ip:npts,i), err = errmgr)
+                if (errmgr%has_error_occurred()) return
+                y = abs(interp%interpolate(applied(ip:npts,1)) - &
+                    measured(ip:npts,1))
+                rst = max(rst, maxval(y))
+            end if
+        end do
+    end function
 
 ! ------------------------------------------------------------------------------
     !> @brief Computes the crosstalk errors for a multiple degree-of-freedom

@@ -75,6 +75,9 @@ program main
     rst = test_crosstalk()
     if (.not.rst) overall = .false.
 
+    rst = test_repeatability()
+    if (.not.rst) overall = .false.
+
     ! End
     if (overall) then
         print '(A)', "CURVEFIT TEST STATUS: PASS"
