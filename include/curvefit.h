@@ -94,6 +94,16 @@ typedef struct {
     int n;
 } nonlinear_regression;
 
+/** @brief Defines a container for static error band related information. */
+typedef struct {
+    /** @brief The static error band. */
+    double seb;
+    /** @brief The static error band output, at full scale load. */
+    double output;
+    /** @brief The slope of the static error band fit. */
+    double slope;
+} seb_results;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -432,268 +442,459 @@ double standard_deviation(int n, const double *x);
 double confidence_interval(int n, const double *x, double alpha);
 
 /** @brief Applies a moving average to smooth a data set.
-!!
-!! @param[in] n The number of data points.
-!! @param[in,out] x On input, the signal to smooth.  On output, the smoothed
-!!  signal.
-!! @param[in] npts The size of the averaging window.  This value must be
-!!  at least 2, but no more than the number of elements in @p x.
-!! @param[in,out] err The errorhandler object.  If no error handling is
-!!  desired, simply pass NULL, and errors will be dealt with by the default
-!!  internal error handler.  Possible errors that may be encountered are as
-!!  follows.
-!!  - CF_INVALID_INPUT_ERROR: Occurs if @p npts is less than 2, or greater
-!!      than the length of @p x.
-!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
-!!      available.
+ *
+ * @param n The number of data points.
+ * @param x On input, the signal to smooth.  On output, the smoothed
+ *  signal.
+ * @param npts The size of the averaging window.  This value must be
+ *  at least 2, but no more than the number of elements in @p x.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_INVALID_INPUT_ERROR: Occurs if @p npts is less than 2, or greater
+ *      than the length of @p x.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+ *      available.
  */
 void moving_average(int n, double *x, int npts, errorhandler *err);
 
 /** @brief Employs a least squares fit to determine the coefficient A in the
-!! linear system: Y = A * X.
-!!
-!! @param[in] n The number of data points.
-!! @param[in] x An N-element array containing the independent variable data.
-!! @param[in,out] y An N-element array containing the dependent variable
-!!  data corresponding to @p x.  On output, the contents of this array are
-!!  overwritten as it is used for storage purposes by the algorithm.
-!! @param[in,out] err The errorhandler object.  If no error handling is
-!!  desired, simply pass NULL, and errors will be dealt with by the default
-!!  internal error handler.  Possible errors that may be encountered are as
-!!  follows.
-!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if insufficient memory is available.
-!!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are different sizes.
-!!
-!! @return The scalar coefficient A.
+ * linear system: Y = A * X.
+ *
+ * @param n The number of data points.
+ * @param x An N-element array containing the independent variable data.
+ * @param y An N-element array containing the dependent variable
+ *  data corresponding to @p x.  On output, the contents of this array are
+ *  overwritten as it is used for storage purposes by the algorithm.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if insufficient memory is available.
+ *  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are different sizes.
+ *
+ * @return The scalar coefficient A.
  */
 double least_squares_fit_1var(int n, const double *x, double *y, 
                               errorhandler *err);
 
 /** @brief Employs a least squares fit to determine the coefficient A in the
-!! linear system: Y = A * X.
-!!
-!! @param[in] m The number of dependent variables.
-!! @param[in] n The number of independent variables.
-!! @param[in,out] x An N-by-NPTS matrix containing the P data points of the
-!!  N independent variables.
-!! @param[in] y An M-by-NPTS matrix containing the P data points of the M
-!!  dependent variables.
-!! @param[out] a The M-by-N matrix where the resulting coefficient matrix A
-!!  will be written.
-!! @param[in,out] err The errorhandler object.  If no error handling is
-!!  desired, simply pass NULL, and errors will be dealt with by the default
-!!  internal error handler.  Possible errors that may be encountered are as
-!!  follows.
-!!  - CF_ARRAY_SIZE_ERROR: Occurs if any of the matrix dimensions are not
-!!      compatiable.
-!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
-!!      available.
-!!
-!! @par Remarks
-!! The algorithm attempts to compute the coefficient matrix A as follows.
-!! Y * X**T = A * X * X**T
-!! Y * X**T * INV(X * X**T) = A
-!! This does require that X * X**T does not result in a singular matrix.  To
-!! handle the situation where X * X**T is singular, the Moore-Penrose
-!! pseudo-inverse, computed by means of singular value decomposition, is
-!! utilized to still arrive at a solution that, at minimum, has a minimum
-!! Euclidean norm of its residual.
-!! Let: PINV(X) = X**T * INV(X * X**T),
-!! Then: A = Y * PINV(X)
+ * linear system: Y = A * X.
+ *
+ * @param m The number of dependent variables.
+ * @param n The number of independent variables.
+ * @param x An N-by-NPTS matrix containing the P data points of the
+ *  N independent variables.
+ * @param y An M-by-NPTS matrix containing the P data points of the M
+ *  dependent variables.
+ * @param a The M-by-N matrix where the resulting coefficient matrix A
+ *  will be written.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_ARRAY_SIZE_ERROR: Occurs if any of the matrix dimensions are not
+ *      compatiable.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+ *      available.
+ *
+ * @par Remarks
+ * The algorithm attempts to compute the coefficient matrix A as follows.
+ * Y * X**T = A * X * X**T
+ * Y * X**T * INV(X * X**T) = A
+ * This does require that X * X**T does not result in a singular matrix.  To
+ * handle the situation where X * X**T is singular, the Moore-Penrose
+ * pseudo-inverse, computed by means of singular value decomposition, is
+ * utilized to still arrive at a solution that, at minimum, has a minimum
+ * Euclidean norm of its residual.
+ * Let: PINV(X) = X**T * INV(X * X**T),
+ * Then: A = Y * PINV(X)
  */
 void least_squares_fit_nvar(int m, int n, int npts, double *x, const double *y,
                             double *a, errorhandler *err);
 
 /** @brief Initializes a new c_lowess_smoothing object.
-!!
-!! @param[out] obj The c_lowess_smoothing object.
-!! @param[in] n The number of data points.
-!! @param[in] x An N-element array containing the x-coordinate data.  
-!!  Ideally, the data set should be monotonically increasing; however, if 
-!!  it is not, it may be sorted by the routine, dependent upon the value 
-!!  of @p srt.
-!! @param[in] y An N-element array containing the y-coordinate data.
-!! @param[in] srt A logical flag determining if @p x should be sorted.
-!! @param[in,out] err The errorhandler object.  If no error handling is
-!!  desired, simply pass NULL, and errors will be dealt with by the default
-!!  internal error handler.  Possible errors that may be encountered are as
-!!  follows.
-!!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
-!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
-!!      available.
+ *
+ * @param obj The c_lowess_smoothing object.
+ * @param n The number of data points.
+ * @param x An N-element array containing the x-coordinate data.  
+ *  Ideally, the data set should be monotonically increasing; however, if 
+ *  it is not, it may be sorted by the routine, dependent upon the value 
+ *  of @p srt.
+ * @param y An N-element array containing the y-coordinate data.
+ * @param srt A logical flag determining if @p x should be sorted.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+ *      available.
  */
 void alloc_lowess(lowess_smoothing *obj, int n, const double *x, 
                   const double *y, bool srt, errorhandler *err);
 
 /** @brief Frees resources held by a c_lowess_smoothing object.
-!!
-!! @param[in,out] obj The c_lowess_smoothing object.
+ *
+ * @param obj The c_lowess_smoothing object.
  */
 void free_lowess(lowess_smoothing *obj);
 
 /** @brief Performs the actual smoothing operation.
-!!
-!! @param[in,out] obj The c_lowess_smoothing object.
-!! @param[in] f Specifies the amount of smoothing.  More specifically, this
-!! value is the fraction of points used to compute each value.  As this 
-!! value increases, the output becomes smoother.  Choosing a value in the
-!! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
-!! starting point, in the absence of better information, is a value of 0.5.
-!! @param[in] n The size of the buffer @p y.  Ideally, this parameter is
-!!  equal to the number of points stored in @p obj; however, the routine
-!!  will only traverse the minimum of the this parameter or the number of
-!!  points stored in @p obj.
-!! @param[out] y An N-element array to which the smoothed data will be
-!!  written.
-!! @param[in,out] err The errorhandler object.  If no error handling is
-!!  desired, simply pass NULL, and errors will be dealt with by the default
-!!  internal error handler.  Possible errors that may be encountered are as
-!!  follows.
-!!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has been defined.
-!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
-!!      available.
+ *
+ * @param obj The c_lowess_smoothing object.
+ * @param f Specifies the amount of smoothing.  More specifically, this
+ * value is the fraction of points used to compute each value.  As this 
+ * value increases, the output becomes smoother.  Choosing a value in the
+ * range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
+ * starting point, in the absence of better information, is a value of 0.5.
+ * @param n The size of the buffer @p y.  Ideally, this parameter is
+ *  equal to the number of points stored in @p obj; however, the routine
+ *  will only traverse the minimum of the this parameter or the number of
+ *  points stored in @p obj.
+ * @param y An N-element array to which the smoothed data will be
+ *  written.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has been defined.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+ *      available.
  */
 void lowess_smooth(lowess_smoothing *obj, double f, int n, double *y, 
                    errorhandler *err);
 
 /** @brief Gets the number of points used by the lowess_smoothing object.
-!!
-!! @param[in] obj The c_lowess_smoothing object.
-!!
-!! @return The number of points.
+ *
+ * @param obj The c_lowess_smoothing object.
+ *
+ * @return The number of points.
  */
 int lowess_get_point_count(const lowess_smoothing *obj);
 
 /** @brief Gets a copy of the data points stored by the lowess_smoothing
-!! object.
-!!
-!! @param[in] obj The c_lowess_smoothing object.
-!! @param[in] n The size of the buffer arrays.
-!! @param[out] x An N-element array where the x-coordinate data will be 
-!!  written.
-!! @param[out] y An N-element array where the y-coordinate data will be 
-!!  written.
-!!
-!! @par Remarks
-!! If @p n is different than the actual number of points that exist, the 
-!! lesser of the two values will be utilized.  The lowess_smoothing object
-!! can be queried to determine the quantity of stored points.
+ * object.
+ *
+ * @param obj The c_lowess_smoothing object.
+ * @param n The size of the buffer arrays.
+ * @param x An N-element array where the x-coordinate data will be 
+ *  written.
+ * @param y An N-element array where the y-coordinate data will be 
+ *  written.
+ *
+ * @par Remarks
+ * If @p n is different than the actual number of points that exist, the 
+ * lesser of the two values will be utilized.  The lowess_smoothing object
+ * can be queried to determine the quantity of stored points.
  */
 void lowess_get_points(const lowess_smoothing *obj, int n, double *x, 
                        double *y);
 
 /** @brief Gets the residuals from each data point.
-!!
-!! @param[in] this The c_lowess_smoothing object.
-!! @param[in] n The number of elements available in the buffer array @p x.
-!! @param[out] x An N-element array where the residual data should be 
-!!  written.
+ *
+ * @param this The c_lowess_smoothing object.
+ * @param n The number of elements available in the buffer array @p x.
+ * @param x An N-element array where the residual data should be 
+ *  written.
  */
 void lowess_get_residuals(const lowess_smoothing *obj, int n, double *x);
 
 /** @brief Initializes a new c_nonlinear_regression object.
-!!
-!! @param[out] obj The c_nonlinear_regression object.
-!! @param[in] n The number of data points.
-!! @param[in] x An N-element containing the independent variable values of
-!!  the data set.
-!! @param[in] y  An N-element array of the dependent variables corresponding
-!!  to @p x.
-!! @param[in] fcn A pointer to the function whose coefficients are to be
-!!  determined.
-!! @param[in] ncoeff The number of coefficients in the function defined in
-!!  @p fcn.
-!! @param[in,out] err The errorhandler object.  If no error handling is
-!!  desired, simply pass NULL, and errors will be dealt with by the default
-!!  internal error handler.  Possible errors that may be encountered are as
-!!  follows.
-!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
-!!      available.
-!!  - CF_INVALID_INPUT_ERROR: Occurs if @p ncoeff is less than or equal to
-!!      zero.
+ *
+ * @param obj The c_nonlinear_regression object.
+ * @param n The number of data points.
+ * @param x An N-element containing the independent variable values of
+ *  the data set.
+ * @param y  An N-element array of the dependent variables corresponding
+ *  to @p x.
+ * @param fcn A pointer to the function whose coefficients are to be
+ *  determined.
+ * @param ncoeff The number of coefficients in the function defined in
+ *  @p fcn.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+ *      available.
+ *  - CF_INVALID_INPUT_ERROR: Occurs if @p ncoeff is less than or equal to
+ *      zero.
  */
 void alloc_nonlinear_regression(nonlinear_regression *obj, int n, 
                                 const double *x, const double *y, reg_fcn fcn,
                                 int ncoeff, errorhandler *err);
 
 /** @brief Frees resources held by a c_nonlinear_regression object.
-!!
-!! @param[in,out] obj The c_nonlinear_regression object.
+ *
+ * @param obj The c_nonlinear_regression object.
  */
 void free_nonlinear_regression(nonlinear_regression *obj);
 
 /** @brief Computes the solution to the nonlinear regression problem using
-!! the Levenberg-Marquardt method.
-!!
-!! @param[in,out] obj The c_nonlinear_regression object.
-!! @param[in] n The number of coefficients to determine.
-!! @param[in,out] c On input, an array containing initial estimates of the
-!!  coefficients.  On output, the comptued coefficient values.
-!! @param[out] ib An output parameter that allows the caller to obtain 
-!!  iteration performance statistics.
-!! @param[in,out] err The errorhandler object.  If no error handling is
-!!  desired, simply pass NULL, and errors will be dealt with by the default
-!!  internal error handler.  Possible errors that may be encountered are as
-!!  follows.
-!!  - CF_INVALID_OPERATION_ERROR: Occurs if no equations have been defined.
-!!  - CF_INVALID_INPUT_ERROR: Occurs if the number of equations is less than
-!!      than the number of variables.
-!!  - CF_ARRAY_SIZE_ERROR: Occurs if any of the input arrays are not sized
-!!      correctly.
-!!  - CF_CONVERGENCE_ERROR: Occurs if the line search cannot converge within
-!!      the allowed number of iterations.
-!!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
-!!      available.
-!!  - CF_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested tolerance is
-!!      to small to be practical for the problem at hand.
+ * the Levenberg-Marquardt method.
+ *
+ * @param obj The c_nonlinear_regression object.
+ * @param n The number of coefficients to determine.
+ * @param c On input, an array containing initial estimates of the
+ *  coefficients.  On output, the comptued coefficient values.
+ * @param ib An output parameter that allows the caller to obtain 
+ *  iteration performance statistics.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_INVALID_OPERATION_ERROR: Occurs if no equations have been defined.
+ *  - CF_INVALID_INPUT_ERROR: Occurs if the number of equations is less than
+ *      than the number of variables.
+ *  - CF_ARRAY_SIZE_ERROR: Occurs if any of the input arrays are not sized
+ *      correctly.
+ *  - CF_CONVERGENCE_ERROR: Occurs if the line search cannot converge within
+ *      the allowed number of iterations.
+ *  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
+ *      available.
+ *  - CF_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested tolerance is
+ *      to small to be practical for the problem at hand.
  */
 void nonlinreg_solve(nonlinear_regression *obj, int n, double *c, 
                      iteration_behavior *ib, errorhandler *err);
 
 /** @brief Gets the number of points used by the c_nonlinear_regression
-!! object.
-!!
-!! @param[in] obj The c_nonlinear_regression object.
-!!
-!! @return The number of points.
+ * object.
+ *
+ * @param obj The c_nonlinear_regression object.
+ *
+ * @return The number of points.
  */
 int nonlinreg_get_point_count(const nonlinear_regression *obj);
 
 /** @brief Gets a copy of the data points stored by the 
-!! c_nonlinear_regression object.
-!!
-!! @param[in] obj The c_nonlinear_regression object.
-!! @param[in] n The size of the buffer arrays.
-!! @param[out] x An N-element array where the x-coordinate data will be 
-!!  written.
-!! @param[out] y An N-element array where the y-coordinate data will be 
-!!  written.
-!!
-!! @par Remarks
-!! If @p n is different than the actual number of points that exist, the 
-!! lesser of the two values will be utilized.  The c_nonlinear_regression
-!! object can be queried to determine the quantity of stored points.
+ * c_nonlinear_regression object.
+ *
+ * @param obj The c_nonlinear_regression object.
+ * @param n The size of the buffer arrays.
+ * @param x An N-element array where the x-coordinate data will be 
+ *  written.
+ * @param y An N-element array where the y-coordinate data will be 
+ *  written.
+ *
+ * @par Remarks
+ * If @p n is different than the actual number of points that exist, the 
+ * lesser of the two values will be utilized.  The c_nonlinear_regression
+ * object can be queried to determine the quantity of stored points.
  */
 void nonlinreg_get_points(const nonlinear_regression *obj, int n, double *x, 
                           double *y);
 
 /** @brief Gets the nonlinear regression solver solution control parameters.
-!!
-!! @param[in] obj The c_nonlinear_regression object.
-!! @param[out] cntrl The solver_control object that, on output, will contain
-!!  the current solver control parameters.
+ *
+ * @param obj The c_nonlinear_regression object.
+ * @param cntrl The solver_control object that, on output, will contain
+ *  the current solver control parameters.
  */
 void nonlinreg_get_solver_params(const nonlinear_regression *obj, 
                                  solver_control *cntrl);
 
 /** @brief Sets  the nonlinear regression solver solution control parameters.
-!!
-!! @param[in,out] obj The c_nonlinear_regression object.
-!! @param[in] cntrl The solver_control object that contains the current 
-!!  solver control parameters.
+ *
+ * @param obj The c_nonlinear_regression object.
+ * @param cntrl The solver_control object that contains the current 
+ *  solver control parameters.
  */
 void nonlinreg_set_solver_params(nonlinear_regression *obj, 
                                  const solver_control *cntrl);
+
+/** @brief Computes the static error band of a data set.
+ *
+ * @param n The number of data points.
+ * @param applied An N-element array containing the values applied to
+ *  the measurement instrument.
+ * @param output An N-element array containing the values output by
+ *  the instrument as a result of the values given in @p applied.
+ * @param fullscale The full scale measurement value for the instrument.
+ *  The units must be consistent with those of @p applied.
+ * @param rst An seb_results object where the calculation results will
+ *  be written.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_ARRAY_SIZE_ERROR: Occurs if @p applied and @p output are not the
+ *      same size.
+ *  - CF_INVALID_INPUT_ERROR: Occurs if @p fullscale is sufficiently close
+ *      to zero to be considered zero.  Sufficiently close in this instance
+ *      is considered to be the square root of machine precision.
+ */
+void seb(int n, const double *applied, const double *output, double fullscale, 
+         seb_results *rst, errorhandler *err);
+
+/** @brief Computes the best-fit nonlinearity of a data set.
+ *
+ * @param n The number of data points.
+ * @param applied An N-element array containing the values applied to
+ *  the measurement instrument.
+ * @param measured An N-element array containing the calibrated output
+ *  of the instrument as a result of the values given in @p applied.
+ *
+ * @return The nonlinearity error.
+ */
+double nonlinearity(int n, const double *applied, const double *measured);
+
+/** @brief Computes the terminal nonlinearity of a data set.
+ *
+ * @param n The number of data points.
+ * @param applied An N-element array containing the values applied to
+ *  the measurement instrument.
+ * @param measured An N-element array containing the calibrated output
+ *  of the instrument as a result of the values given in @p applied.
+ *
+ * @return The nonlinearity error.
+ */
+double terminal_nonlinearity(int n, const double *applied, 
+                             const double *measured);
+
+/** @brief Computes the hysteresis in an ascending/descending data set.
+ *
+ * @param n The number of data points.
+ * @param applied An N-element array containing the values applied to
+ *  the measurement instrument.
+ * @param measured An N-element array containing the calibrated output
+ *  of the instrument as a result of the values given in @p applied.
+ *
+ * @return The hysteresis error.
+ */
+double hysteresis(int n, const double *applied, const double *measured);
+
+/** @brief Computes the return to zero error in an ascending/descending data
+ * set.
+ *
+ * @param n The number of data points.
+ * @param applied An N-element array containing the values applied to
+ *  the measurement instrument.
+ * @param measured An N-element array containing the calibrated output
+ *  of the instrument as a result of the values given in @p applied.
+ * @param tol An input argument that specifies the tolerance used in
+ *  finding the matching zero data point.
+ *
+ * @return The return to zero error.
+ */
+double return_to_zero(int n, const double *applied, const double *measured, 
+                      double tol);
+
+/** @brief Computes the repeatability of a sequence of tests.
+ *
+ * @param npts The number of data points per test.
+ * @param ntests The number of tests.
+ * @param applied An NPTS-by-NTEST matrix containing at least 2 columns
+ *  (tests) of NPTS values applied to the measurement instrument.
+ * @param measured An NPTS-by-NTEST matrix containing the corresponding
+ *  calibrated output from the instrument.
+ *
+ * @return The largest magnitude deviation from the initial test.
+ *
+ * @par Remarks
+ * Repeatability is considered as the largest magnitude deviation of 
+ * subsequent tests from the initial test.  Noting that it is very likely 
+ * that consecutive test points will vary slightly, test 2 through test N 
+ * are linearly interpolated such that their test points line up with those 
+ * from test 1.
+ */
+double repeatability(int npts, int ntests, const double *applied, 
+                     const double *measured);
+
+/** @brief Computes the crosstalk errors for a multiple degree-of-freedom
+ * data set.
+ *
+ * @param npts The number of data points in each degree of freedom.
+ * @param ndof The number of degrees of freedom.
+ * @param xerr An NPTS-by-NDOF matrix containing the measurement error
+ *  values (computed such that XERR = X MEASURED - X APPLIED).
+ * @param indices A 2*NDOF element array containing row indices defining
+ *  the rows where each degree-of-freedom was applied in the data set 
+ *  @p xerr.
+ * @param xt An NDOF-by-NDOF matrix that, on output, will contain the
+ *  crosstalk errors such that each loaded degree of freedom is represented 
+ *  by its own row, and each responding degree of freedom is represented by 
+ *  its own column.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_ARRAY_INDEX_ERROR: Occurs if any of the entries in @p indices are
+ *      outside the row bounds of @p xerr.
+ */
+void crosstalk(int npts, int ndof, const double *xerr, const int *indices,
+               double *xt, errorhandler *err);
+
+/** @brief Splits a data set into ascending and descending components.
+ *
+ * @param n The number of data points in @p x.
+ * @param x An N-element array containing the data set to split.
+ * @param na The capacity of @p ascend.
+ * @param ascend An array where the ascending points will be written.
+ *  Ensure this array is appropriately sized to accept all the ascending
+ *  points (it can be oversized).
+ * @param nd The capacity of @p descend.
+ * @param descend An array where the descending points will be written.
+ *  Ensure this array is appropriately sized to accept all the descending
+ *  points (it can be oversized).
+ * @param nascend The actual number of values written into @p ascend.
+ * @param ndescend The actual number of values written into @p descend.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_ARRAY_SIZE_ERROR: Occurs if either @p ascend or @p descend is
+ *      too small to actually accept all of the necessary data.
+ *
+ * @par Remarks
+ * The routine operates by finding the first occurrence where the data set
+ * is no longer monotonic, and then copies everything prior to that
+ * value, along with the the inflection value, into the output ascending
+ * data array.  The routine then searches for either a change in direction,
+ * or a value that matches the first value in the ascending data set within
+ * some tolerance to determine the bounds on the descending data set.  Once
+ * the bounds are determined, the descending data set is copied from the
+ * original array and placed in the output descending data array.  This
+ * then means that any remaining data in the original data set that lies
+ * after either of the aforementioned sets is ignored.
+ *
+ * @par Example
+ * @verbatim
+ * Given the following array X,
+ *  X:
+ *   0.0000000000000000
+ *   0.38905000686645508
+ *   0.77815997600555420
+ *   0.97268998622894287
+ *   1.1671400070190430
+ *   1.5559999942779541
+ *   1.9448399543762207
+ *   0.97259998321533203
+ *   -9.9999997473787516E-006
+ *
+ * This routine splits the array into the following ascending and
+ * descending arrays.
+ *
+ * ASCENDING:
+ *   0.0000000000000000
+ *   0.38905000686645508
+ *   0.77815997600555420
+ *   0.97268998622894287
+ *   1.1671400070190430
+ *   1.5559999942779541
+ *   1.9448399543762207
+ *
+ * DESCENDING:
+ *   1.9448399543762207
+ *   0.97259998321533203
+ *   -9.9999997473787516E-006
+ * @endverbatim
+ */
+void split_ascend_descend(int n, const double *x, int na, double *ascend, 
+                          int nd, double *descend, int *nascend, int *ndescend, 
+                          errorhandler *err);
 
 #ifdef __cplusplus
 }

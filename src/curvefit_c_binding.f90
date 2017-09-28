@@ -10,6 +10,7 @@ module curvefit_c_binding
     use curvefit_interp
     use curvefit_statistics
     use curvefit_regression
+    use curvefit_calibration
     use ferror, only : errors
     use ferror_c_binding, only : errorhandler, get_errorhandler
     use nonlin_types, only : iteration_behavior
@@ -1486,6 +1487,294 @@ contains
         class(cnonlin_reg_helper), intent(inout) :: this
         procedure(creg_fcn), intent(in), pointer :: fcn
         this%m_cfcn => fcn
+    end subroutine
+
+! ******************************************************************************
+! CALIBRATION ROUTINES
+! ------------------------------------------------------------------------------
+    !> @brief Computes the static error band of a data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] applied An N-element array containing the values applied to
+    !!  the measurement instrument.
+    !! @param[in] output An N-element array containing the values output by
+    !!  the instrument as a result of the values given in @p applied.
+    !! @param[in] fullscale The full scale measurement value for the instrument.
+    !!  The units must be consistent with those of @p applied.
+    !! @param[out] rst An seb_results object where the calculation results will
+    !!  be written.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p fullscale is sufficiently close
+    !!      to zero to be considered zero.  Sufficiently close in this instance
+    !!      is considered to be the square root of machine precision.
+    subroutine seb_c(n, applied, output, fullscale, rst, err) &
+            bind(C, name = "seb")
+        ! Arguments
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: applied(n), output(n)
+        real(dp), intent(in), value :: fullscale
+        type(seb_results), intent(out) :: rst
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            rst = seb(applied, output, fullscale, eptr)
+        else
+            rst = seb(applied, output, fullscale)
+        end if
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the best-fit nonlinearity of a data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] applied An N-element array containing the values applied to
+    !!  the measurement instrument.
+    !! @param[in] measured An N-element array containing the calibrated output
+    !!  of the instrument as a result of the values given in @p applied.
+    !!
+    !! @return The nonlinearity error.
+    function nonlin_c(n, applied, measured) result(rst) &
+            bind(C, name = "nonlinearity")
+        ! Arguments
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: applied(n), measured(n)
+        real(dp) :: rst
+
+        ! Process
+        rst = nonlinearity(applied, measured)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the terminal nonlinearity of a data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] applied An N-element array containing the values applied to
+    !!  the measurement instrument.
+    !! @param[in] measured An N-element array containing the calibrated output
+    !!  of the instrument as a result of the values given in @p applied.
+    !!
+    !! @return The nonlinearity error.
+    function term_nonlin_c(n, applied, measured) result(rst) &
+            bind(C, name = "terminal_nonlinearity")
+        ! Argument
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: applied(n), measured(n)
+        real(dp) :: rst
+
+        ! Process
+        rst = terminal_nonlinearity(applied, measured)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the hysteresis in an ascending/descending data set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] applied An N-element array containing the values applied to
+    !!  the measurement instrument.
+    !! @param[in] measured An N-element array containing the calibrated output
+    !!  of the instrument as a result of the values given in @p applied.
+    !!
+    !! @return The hysteresis error.
+    function hysteresis_c(n, applied, measured) result(rst) &
+            bind(C, name = "hysteresis")
+        ! Arguments
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: applied(n), measured(n)
+        real(dp) :: rst
+
+        ! Process
+        rst = hysteresis(applied, measured)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the return to zero error in an ascending/descending data
+    !! set.
+    !!
+    !! @param[in] n The number of data points.
+    !! @param[in] applied An N-element array containing the values applied to
+    !!  the measurement instrument.
+    !! @param[in] measured An N-element array containing the calibrated output
+    !!  of the instrument as a result of the values given in @p applied.
+    !! @param[in] tol An input argument that specifies the tolerance used in
+    !!  finding the matching zero data point.
+    !!
+    !! @return The return to zero error.
+    function rtz_c(n, applied, measured, tol) result(rst) &
+            bind(C, name = "return_to_zero")
+        ! Arguments
+        integer(i32), intent(in), value :: n
+        real(dp), intent(in) :: applied(n), measured(n)
+        real(dp), intent(in), value :: tol
+        real(dp) :: rst
+
+        ! Process
+        rst = return_to_zero(applied, measured, tol)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the repeatability of a sequence of tests.
+    !!
+    !! @param[in] npts The number of data points per test.
+    !! @param[in] ntests The number of tests.
+    !! @param[in] applied An NPTS-by-NTEST matrix containing at least 2 columns
+    !!  (tests) of NPTS values applied to the measurement instrument.
+    !! @param[in] measured An NPTS-by-NTEST matrix containing the corresponding
+    !!  calibrated output from the instrument.
+    !!
+    !! @return The largest magnitude deviation from the initial test.
+    !!
+    !! @par Remarks
+    !! Repeatability is considered as the largest magnitude deviation of 
+    !! subsequent tests from the initial test.  Noting that it is very likely 
+    !! that consecutive test points will vary slightly, test 2 through test N 
+    !! are linearly interpolated such that their test points line up with those 
+    !! from test 1.
+    function repeat_c(npts, ntests, applied, measured) result(rst) &
+            bind(C, name = "repeatability")
+        ! Arguments
+        integer(i32), intent(in), value :: npts, ntests
+        real(dp), intent(in) :: applied(npts, ntests), measured(npts, ntests)
+        real(dp) :: rst
+
+        ! Process
+        rst = repeatability(applied, measured)
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the crosstalk errors for a multiple degree-of-freedom
+    !! data set.
+    !!
+    !! @param[in] npts The number of data points in each degree of freedom.
+    !! @param[in] ndof The number of degrees of freedom.
+    !! @param[in] xerr An NPTS-by-NDOF matrix containing the measurement error
+    !!  values (computed such that XERR = X MEASURED - X APPLIED).
+    !! @param[in] indices A 2*NDOF element array containing row indices defining
+    !!  the rows where each degree-of-freedom was applied in the data set 
+    !!  @p xerr.
+    !! @param[out] xt An NDOF-by-NDOF matrix that, on output, will contain the
+    !!  crosstalk errors such that each loaded degree of freedom is represented 
+    !!  by its own row, and each responding degree of freedom is represented by 
+    !!  its own column.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_ARRAY_INDEX_ERROR: Occurs if any of the entries in @p indices are
+    !!      outside the row bounds of @p xerr.
+    subroutine xtalk_c(npts, ndof, xerr, indices, xt, err) &
+            bind(C, name = "crosstalk")
+        ! Arguments
+        integer(i32), intent(in), value :: npts, ndof
+        real(dp), intent(in) :: xerr(npts, ndof)
+        integer(i32), intent(in) :: indices(2*ndof)
+        real(dp), intent(out) :: xt(ndof, ndof)
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            xt = crosstalk(xerr, indices, eptr)
+        else
+            xt = crosstalk(xerr, indices)
+        end if
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    !> @brief Splits a data set into ascending and descending components.
+    !!
+    !! @param[in] n The number of data points in @p x.
+    !! @param[in] x An N-element array containing the data set to split.
+    !! @param[in] na The capacity of @p ascend.
+    !! @param[out] ascend An array where the ascending points will be written.
+    !!  Ensure this array is appropriately sized to accept all the ascending
+    !!  points (it can be oversized).
+    !! @param[in] nd The capacity of @p descend.
+    !! @param[out] descend An array where the descending points will be written.
+    !!  Ensure this array is appropriately sized to accept all the descending
+    !!  points (it can be oversized).
+    !! @param[out] nascend The actual number of values written into @p ascend.
+    !! @param[out] ndescend The actual number of values written into @p descend.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_ARRAY_SIZE_ERROR: Occurs if either @p ascend or @p descend is
+    !!      too small to actually accept all of the necessary data.
+    !!
+    !! @par Remarks
+    !! The routine operates by finding the first occurrence where the data set
+    !! is no longer monotonic, and then copies everything prior to that
+    !! value, along with the the inflection value, into the output ascending
+    !! data array.  The routine then searches for either a change in direction,
+    !! or a value that matches the first value in the ascending data set within
+    !! some tolerance to determine the bounds on the descending data set.  Once
+    !! the bounds are determined, the descending data set is copied from the
+    !! original array and placed in the output descending data array.  This
+    !! then means that any remaining data in the original data set that lies
+    !! after either of the aforementioned sets is ignored.
+    !!
+    !! @par Example
+    !! @verbatim
+    !! Given the following array X,
+    !!  X:
+    !!   0.0000000000000000
+    !!   0.38905000686645508
+    !!   0.77815997600555420
+    !!   0.97268998622894287
+    !!   1.1671400070190430
+    !!   1.5559999942779541
+    !!   1.9448399543762207
+    !!   0.97259998321533203
+    !!   -9.9999997473787516E-006
+    !!
+    !! This routine splits the array into the following ascending and
+    !! descending arrays.
+    !!
+    !! ASCENDING:
+    !!   0.0000000000000000
+    !!   0.38905000686645508
+    !!   0.77815997600555420
+    !!   0.97268998622894287
+    !!   1.1671400070190430
+    !!   1.5559999942779541
+    !!   1.9448399543762207
+    !!
+    !! DESCENDING:
+    !!   1.9448399543762207
+    !!   0.97259998321533203
+    !!   -9.9999997473787516E-006
+    !! @endverbatim
+    subroutine split_c(n, x, na, ascend, nd, descend, nascend, ndescend, err) &
+            bind(C, name = "split_ascend_descend")
+        ! Arguments
+        integer(i32), intent(in), value :: n, na, nd
+        real(dp), intent(in) :: x(n)
+        real(dp), intent(out) :: ascend(na), descend(nd)
+        integer(i32), intent(out) :: nascend, ndescend
+        type(errorhandler), intent(inout) :: err
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            call split_ascend_descend(x, ascend, descend, nascend, ndescend, &
+                eptr)
+        else
+            call split_ascend_descend(x, ascend, descend, nascend, ndescend)
+        end if
     end subroutine
 
 ! ------------------------------------------------------------------------------
