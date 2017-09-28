@@ -1,6 +1,6 @@
 ! curvefit_c_binding.f90
 
-!> @breif \b curvefit_c_binding
+!> @brief \b curvefit_c_binding
 !!
 !! @par Purpose
 !! Provides C bindings to the curvefit library.
