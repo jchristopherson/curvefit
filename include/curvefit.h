@@ -484,6 +484,7 @@ double least_squares_fit_1var(int n, const double *x, double *y,
  *
  * @param m The number of dependent variables.
  * @param n The number of independent variables.
+ * @param npts The number of data points.
  * @param x An N-by-NPTS matrix containing the P data points of the
  *  N independent variables.
  * @param y An M-by-NPTS matrix containing the P data points of the M
