@@ -136,6 +136,10 @@ if (BUILD_EXAMPLES)
   add_executable(curvefit_nlreg_example examples/curvefit_nlreg_example.f90)
   target_link_libraries(curvefit_nlreg_example curvefit)
 
+  # Calibration Example
+  add_executable(curvefit_cal_example examples/curvefit_cal_example.f90)
+  target_link_libraries(curvefit_cal_example curvefit)
+
 # --------------------
   include_directories(${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/external/nonlin/include
@@ -177,7 +181,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 set(curvefit_c_test_sources tests/curvefit_c_test.c
   ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/tests/c_test_core.c)
 add_executable(curvefit_c_test ${curvefit_c_test_sources})
-target_link_libraries(curvefit_c_test curvefit)
+target_link_libraries(curvefit_c_test curvefit m)
 add_custom_command(OUTPUT curvefit_c_tests_cmd 
   DEPENDS ${curvefit_c_test_sources}
   COMMAND curvefit_c_test)
