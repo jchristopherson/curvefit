@@ -39,6 +39,6 @@ program example
     print '(AF9.5)', "Calibration Gain: ", gain
     print '(AF6.4)', "SEB: ", s%seb
     print '(AF7.5)', "SEB Output: ", s%output
-    print '(AF6.4)', "Best Fit Nonlinearity: ", nlin
+    print '(AF7.4)', "Best Fit Nonlinearity: ", nlin
     print '(AF6.4)', "Hysteresis: ", hyst
 end program
