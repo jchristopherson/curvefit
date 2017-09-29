@@ -46,6 +46,38 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_seb_2() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        real(dp), parameter :: fullscale = 6.0e3
+        real(dp), parameter :: sebpfs_ans = 0.0055d0
+        real(dp), parameter :: tol = 1.0d-4
+
+        ! Local Variables
+        real(dp), dimension(8) :: applied, measured
+        type(seb_results) :: s
+
+        ! Initialization
+        rst = .true.
+        applied = [0.0d0, 1157.972206d0, 2366.64471d0, 3574.718125d0, &
+            4783.30376d0, 5991.492905d0, 3574.610382d0, -0.001208501d0]
+        measured = [0.0d0, 1157.719872d0, 2366.12397d0, 3574.031281d0, &
+            4782.673423d0, 5990.380077d0, 3574.473523d0, 0.273213503d0]
+
+        ! Test
+        s = seb(applied, measured, fullscale)
+        print '(AF7.5)', "SEB: ", 1.0d2 * s%seb / fullscale
+        if (abs(1.0d2 * s%seb / fullscale - sebpfs_ans) > tol) then
+            rst = .false.
+            print '(AF7.5AF7.5A)', "Test Failed: Expected an SEB of: ", &
+                sebpfs_ans, "%, but computed an SEB of: ", &
+                1.0d2 * s%seb / fullscale, "%."
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
     function test_nonlin() result(rst)
         ! Arguments
         logical :: rst

@@ -60,6 +60,9 @@ program main
     rst = test_seb()
     if (.not.rst) overall = .false.
 
+    rst = test_seb_2()
+    if (.not.rst) overall = .false.
+
     rst = test_nonlin()
     if (.not.rst) overall = .false.
 
