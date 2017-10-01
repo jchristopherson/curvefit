@@ -850,5 +850,34 @@ contains
         ! If we're here, it didn't converge
     end function
 
+! ******************************************************************************
+! BETA FUNCTIONS
+! ------------------------------------------------------------------------------
+    !
+    function inc_beta_scalar(a, b, x, err) result(beta)
+        ! Arguments
+        real(dp), intent(in) :: a, b, x
+        class(errors), intent(inout), optional, target :: err
+        real(dp) :: beta
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+        real(dp), parameter :: two = 2.0d0
+
+        ! Input Checking
+
+        ! Process
+        if (x == zero .or. x == one) then
+            beta = zero
+        else
+            beta = exp(log_gamma(a + b) - log_gamma(a) - log_gamma(b) + &
+                a * log(x) + b * log(one - x))
+        end if
+        if (x < (a + one) / (a + b + 2)) then
+        else
+        end if
+    end function
+
 ! ------------------------------------------------------------------------------
 end module
