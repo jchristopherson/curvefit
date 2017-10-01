@@ -87,6 +87,13 @@ module curvefit_statistics
     end interface
 
 ! ------------------------------------------------------------------------------
+    !> @brief Computes the incomplete beta function:
+    !! I(a,b) = 1 / B(a,b) * integrate(t**(a - 1) * (1 - t)**(b - 1), t, 0, x)
+    interface incomplete_beta
+        module procedure :: inc_beta_scalar
+        module procedure :: inc_beta_array
+    end interface
+
 
 contains
 ! ******************************************************************************
@@ -460,7 +467,50 @@ contains
         end function
     end function
 
+! ******************************************************************************
+! STUDENT'S T TEST ROUTINES
 ! ------------------------------------------------------------------------------
+    !> @brief Computes Student's T test decision for the null hypothesis that 
+    !! the data vectors come from independent samples from normal distributions
+    !! with equal means, and equal but unknown variances.
+    !!
+    !! @param[in] data1 The first data set.
+    !! @param[in] data2 The second data set.
+    !! @param[out] p
+    !! 
+    !! @return 
+    function ttest_2sets(data1, data2, p) result(t)
+        ! Arguments
+        real(dp), intent(in), dimension(:) :: data1, data2
+        real(dp), intent(out), optional :: p
+
+        ! Parameter
+        real(dp), parameter :: half = 0.5d0
+        real(dp), parameter :: one = 1.0d0
+        real(dp), parameter :: two = 2.0d0
+
+        ! Local Variables
+        integer(i32) :: n1, n2
+        real(dp) :: m1, m2, v1, v2, df, svar
+
+        ! Initialization
+        n1 = size(data1)
+        n2 = size(data2)
+
+        ! Compute the mean and variance of both data sets
+        m1 = mean(data1)
+        v1 = variance(data1)
+        m2 = mean(data2)
+        v2 = variance(data2)
+
+        ! Process
+        df = n1 + n2 - two
+        svar = ((n - 1) * v1 + (n2 - 1) * v2) / df
+        t = (m1 - m2) / sqrt(svar * (one / n1 + one / n2))
+        if (present(p)) then
+            p = incomplete_beta(half * df, half, df / (df + t**2))
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 
@@ -853,7 +903,20 @@ contains
 ! ******************************************************************************
 ! BETA FUNCTIONS
 ! ------------------------------------------------------------------------------
-    !
+    !> @brief Computes the incomplete beta function:
+    !! I(a,b) = 1 / B(a,b) * integrate(t**(a - 1) * (1 - t)**(b - 1), t, 0, x)
+    !!
+    !! @param[in] a The parameter a.
+    !! @param[in] b The parameter b.
+    !! @param[in] x The parameter x.  This parameter must lie in the interval:
+    !!  [0, 1].
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is not within its allowed 
+    !!      range.
     function inc_beta_scalar(a, b, x, err) result(beta)
         ! Arguments
         real(dp), intent(in) :: a, b, x
@@ -865,7 +928,24 @@ contains
         real(dp), parameter :: one = 1.0d0
         real(dp), parameter :: two = 2.0d0
 
+        ! Local Variables
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
         ! Input Checking
+        if (x < zero .or. x > one) then
+            call errmgr%report_error("inc_beta_scalar", &
+                "The independent variable (x) must be >= 0, but not > 1.", &
+                CF_INVALID_INPUT_ERROR)
+            return
+        end if
 
         ! Process
         if (x == zero .or. x == one) then
@@ -875,8 +955,135 @@ contains
                 a * log(x) + b * log(one - x))
         end if
         if (x < (a + one) / (a + b + 2)) then
+            beta = beta * inc_beta_cf(a, b, x) / a
         else
+            beta = one - beta * inc_beta_cf(b, a, one - x) / b
         end if
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the incomplete beta function:
+    !! I(a,b) = 1 / B(a,b) * integrate(t**(a - 1) * (1 - t)**(b - 1), t, 0, x)
+    !!
+    !! @param[in] a The parameter a.
+    !! @param[in] b The parameter b.
+    !! @param[in] x The parameter x.  This parameter must lie in the interval:
+    !!  [0, 1].
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is not within its allowed 
+    !!      range.
+    function inc_beta_array(a, b, x, err) result(beta)
+        ! Arguments
+        real(dp), intent(in) :: a, b
+        real(dp), intent(in), dimension(:) :: x
+        class(errors), intent(inout), optional, target :: err
+        real(dp), dimension(size(x)) :: beta
+
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+        real(dp), parameter :: two = 2.0d0
+
+        ! Local Variables
+        logical :: check
+        integer(i32) :: i, n
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        n = size(x)
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Checking
+        check = .true.
+        do i = 1, n
+            if (x(i) < zero .or. x(i) > one) then
+                check = .false.
+                exit
+            end if
+        end do
+        if (.not.check) then
+            call errmgr%report_error("inc_beta_array", &
+                "The independent variable (x) must be >= 0, but not > 1.", &
+                CF_INVALID_INPUT_ERROR)
+            return
+        end if
+
+        ! Process
+        do i = 1, n
+            if (x(i) == zero .or. x(i) == one) then
+                beta(i) = zero
+            else
+                beta(i) = exp(log_gamma(a + b) - log_gamma(a) - log_gamma(b) + &
+                    a * log(x(i)) + b * log(one - x(i)))
+            end if
+            if (x(i) < (a + one) / (a + b + 2)) then
+                beta(i) = beta(i) * inc_beta_cf(a, b, x(i)) / a
+            else
+                beta(i) = one - beta(i) * inc_beta_cf(b, a, one - x(i)) / b
+            end if
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Evaluates the incomplete beta function as a continued fraction.
+    !!
+    !! @param[in] a The parameter a.
+    !! @param[in] b The parameter b.
+    !! @param[in] x The independent variable.
+    !!
+    !! @return The result.
+    function inc_beta_cf(a, b, x) result(beta)
+        ! Arguments
+        real(dp), intent(in) :: a, b, x
+        real(dp) :: beta
+
+        ! Parameters
+        integer(i32), parameter :: itmax = 500
+        real(dp), parameter :: one = 1.0d0
+
+        ! Local Variables
+        integer(i32) :: i, m, m2
+        real(dp) :: eps, fpmin, aa, c, d, del, h, qab, qam, qap
+
+        ! Initialization
+        eps = epsilon(eps)
+        fpmin = tiny(fpmin) / eps
+        qab = a + b
+        qap = a + one
+        qam = a - one
+        c = one
+        d = one - qab * x / qap
+        if (abs(d) < fpmin) d = fpmin
+        d = one / d
+        h = d
+        do m = 1, itmax
+            m2 = 2 * m
+            aa = m * (b - m) * x / ((qam + m2) * (a + m2))
+            d = one + aa * d
+            if (abs(d) < fpmin) d = fpmin
+            c = one + aa / c
+            if (abs(c) < fpmin) c = fpmin
+            d = one / d
+            h = h * d * c
+            aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2))
+            d = one + aa * d
+            if (abs(d) < fpmin) d = fpmin
+            c = one + aa / c
+            if (abs(c) < fpmin) c = fpmin
+            d = one / d
+            del = d * c
+            h = h * del
+            if (abs(del - one) < eps) exit
+        end do
     end function
 
 ! ------------------------------------------------------------------------------
