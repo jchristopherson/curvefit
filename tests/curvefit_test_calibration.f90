@@ -68,7 +68,7 @@ contains
 
         ! Test
         s = seb(applied, measured, fullscale)
-        print '(AF7.5)', "SEB: ", 1.0d2 * s%seb / fullscale
+        ! print '(AF7.5)', "SEB: ", 1.0d2 * s%seb / fullscale
         if (abs(1.0d2 * s%seb / fullscale - sebpfs_ans) > tol) then
             rst = .false.
             print '(AF7.5AF7.5A)', "Test Failed: Expected an SEB of: ", &
