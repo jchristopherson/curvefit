@@ -18,8 +18,10 @@ module curvefit_statistics
     public :: standard_deviation
     public :: confidence_interval
     public :: z_value
+    public :: t_value
     public :: incomplete_gamma
     public :: incomplete_gamma_comp
+    public :: incomplete_beta
 
 
 ! ******************************************************************************
@@ -67,6 +69,13 @@ module curvefit_statistics
     !! under the standard normal distribution curve.
     interface z_value
         module procedure :: std_norm_dist_z_score
+    end interface
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes the t-value (t-score) given a percentage of the area 
+    !! under the standard normal distribution curve.
+    interface t_value
+        module procedure :: t_dist_score
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -470,7 +479,79 @@ contains
 ! ******************************************************************************
 ! STUDENT'S T TEST ROUTINES
 ! ------------------------------------------------------------------------------
-    !> @brief Computes Student's T test decision for the null hypothesis that 
+    !> @brief Computes the t-value (t-score) given a percentage of the area 
+    !! under the standard normal distribution curve.
+    !!
+    !! @param[in] alpha The percentage of the area under the curve.  This value
+    !!  must be between 0 and 1 such that: 0 < alpha < 1.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p alpha is does not satisfy:
+    !!      0 < alpha < 1.
+    !!
+    !! @return The t-socre or t-value.
+    function t_dist_score(alpha, n, err) result(t)
+        ! Supporting Modules
+        use nonlin_types, only : fcn1var, fcn1var_helper, value_pair
+        use nonlin_solve, only : brent_solver
+
+        ! Arguments
+        real(dp), intent(in) :: alpha
+        integer(i32), intent(in) :: n
+        real(dp) :: t
+        class(errors), intent(inout), optional, target :: err
+
+        ! Parameters
+        real(dp), parameter :: p5 = 0.5d0
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+        real(dp), parameter :: ten = 1.0d1
+
+        ! Local Variables
+        type(fcn1var_helper) :: obj
+        procedure(fcn1var), pointer :: fcn
+        type(brent_solver) :: solver
+        type(value_pair) :: lim
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (alpha <= zero .or. alpha >= one) then
+            call errmgr%report_error("t_dist_score", &
+                "The alpha parameter must lie between 0 and 1.", &
+                CF_INVALID_INPUT_ERROR)
+        end if
+
+        ! Compute the solution
+        fcn => tfun
+        call obj%set_fcn(fcn)
+        lim%x1 = zero
+        lim%x2 = ten
+        call solver%solve(obj, t, lim, err = errmgr)
+    contains
+        ! Compute the solution to: alpha = 1 - 1/2 * Ix(v/2, 1/2), where
+        ! Ix is the incomplete beta function, and v = # of DOF.
+        function tfun(x) result(f)
+            real(dp), intent(in) :: x
+            real(dp) :: f, v, xx
+            v = n - 1
+            xx = v / (v + x**2)
+            f = alpha - (1 - incomplete_beta(p5 * v, p5, xx))
+        end function
+    end function
+
+! ------------------------------------------------------------------------------
+    !> @brief Computes Student's t test decision for the null hypothesis that 
     !! the data vectors come from independent samples from normal distributions
     !! with equal means, and equal but unknown variances.
     !!
@@ -483,6 +564,7 @@ contains
         ! Arguments
         real(dp), intent(in), dimension(:) :: data1, data2
         real(dp), intent(out), optional :: p
+        real(dp) :: t
 
         ! Parameter
         real(dp), parameter :: half = 0.5d0
@@ -505,7 +587,7 @@ contains
 
         ! Process
         df = n1 + n2 - two
-        svar = ((n - 1) * v1 + (n2 - 1) * v2) / df
+        svar = ((n1 - 1) * v1 + (n2 - 1) * v2) / df
         t = (m1 - m2) / sqrt(svar * (one / n1 + one / n2))
         if (present(p)) then
             p = incomplete_beta(half * df, half, df / (df + t**2))
@@ -1051,7 +1133,7 @@ contains
         real(dp), parameter :: one = 1.0d0
 
         ! Local Variables
-        integer(i32) :: i, m, m2
+        integer(i32) :: m, m2
         real(dp) :: eps, fpmin, aa, c, d, del, h, qab, qam, qap
 
         ! Initialization
@@ -1084,6 +1166,7 @@ contains
             h = h * del
             if (abs(del - one) < eps) exit
         end do
+        beta = h
     end function
 
 ! ------------------------------------------------------------------------------

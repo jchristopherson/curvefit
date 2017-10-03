@@ -31,6 +31,30 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_t_value() result(rst)
+        ! Local Variables
+        logical :: rst
+        real(dp) :: c(4), t_ans(4), t
+        integer(i32) :: i, n
+
+        ! Initialization
+        rst = .true.
+        c = [0.99d0, 0.98d0, 0.95d0, 0.90d0]
+        t_ans = [2.977d0, 2.625d0, 2.145d0, 1.761d0]
+        n = 15
+
+        ! Compute each t test value
+        do i = 1, size(c)
+            t = t_value(c(i), n)
+            if (abs(t - t_ans(i)) > 1.0d-3) then
+                rst = .false.
+                print '(AF5.3AF5.3A)', "Test Failed: Expected a t-value of ", &
+                    t_ans(i), ", but computed ", t, "."
+            end if
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
     function test_mean() result(rst)
         ! Local Variables
         logical :: rst
