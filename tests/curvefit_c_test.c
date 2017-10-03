@@ -145,7 +145,7 @@ bool test_confidence_interval() {
     ans = z * standard_deviation(n, x) / sqrt((double)n);
 
     // Process
-    c = confidence_interval(n, x, alpha);
+    c = confidence_interval(n, x, alpha, false, NULL);
     if (fabs(c - ans) > tol) {
         rst = false;
         printf("Test Failed: Expected a confidence interval of %f, but computed a value of %f\n", 
