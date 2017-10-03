@@ -378,6 +378,17 @@ contains
     !! @param[in] x The data set.
     !! @param[in] alpha The confidence level.  This value must lie between
     !! zero and one such that: 0 < alpha < 1.
+    !! @param[in] use_t Set to true to use the t-distribution in the event of
+    !!  an unknown true standard deviation; else, set to true to use a normal
+    !!  distribution.  The default is false, such that a normal distribution is
+    !!  used by a default.
+    !! @param[out] err An optional errors-based object that if provided can be
+    !!  used to retrieve information relating to any errors encountered during
+    !!  execution.  If not provided, a default implementation of the errors
+    !!  class is used internally to provide error handling.  Possible errors and
+    !!  warning messages that may be encountered are as follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p alpha is does not satisfy:
+    !!      0 < alpha < 1.
     !!
     !! @return The confidence interval as the deviation from the mean.
     !!
@@ -386,21 +397,51 @@ contains
     !! as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the
     !! standard deviation.  This routine computes the z * s / sqrt(n) portion 
     !! leaving the computation of the mean to the user.
-    function conf_int(x, alpha) result(ci)
+    function conf_int(x, alpha, use_t, err) result(ci)
         ! Arguments
         real(dp), intent(in), dimension(:) :: x
         real(dp), intent(in) :: alpha
+        logical, intent(in), optional :: use_t
+        class(errors), intent(inout), optional, target :: err
         real(dp) :: ci
 
+        ! Parameters
+        real(dp), parameter :: zero = 0.0d0
+        real(dp), parameter :: one = 1.0d0
+
         ! Local Variables
+        logical :: ut
         real(dp) :: n, sigma, z
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+
+        ! Initialization
+        if (present(use_t)) then
+            ut = use_t
+        else
+            ut = .false.
+        end if
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
 
         ! Ensure: 0 < alpha < 1
+        if (alpha <= zero .or. alpha >= one) then
+            call errmgr%report_error("conf_int", &
+                "The alpha parameter must lie between 0 and 1.", &
+                CF_INVALID_INPUT_ERROR)
+        end if
 
         ! Compute the standard deviation, and z-distribution value
         sigma = standard_deviation(x)
         n = real(size(x), dp)
-        z = z_value(alpha)
+        if (ut) then
+            z = t_value(alpha, size(x), errmgr)
+        else
+            z = z_value(alpha, errmgr)
+        end if
 
         ! Compute the confidence interval - offset from the mean
         ci = z * sigma / sqrt(n)
@@ -477,7 +518,7 @@ contains
     end function
 
 ! ******************************************************************************
-! STUDENT'S T TEST ROUTINES
+! STUDENT'S T DISTRIBUTIONS ROUTINES
 ! ------------------------------------------------------------------------------
     !> @brief Computes the t-value (t-score) given a percentage of the area 
     !! under the standard normal distribution curve.
@@ -549,56 +590,6 @@ contains
             f = alpha - (1 - incomplete_beta(p5 * v, p5, xx))
         end function
     end function
-
-! ------------------------------------------------------------------------------
-    !> @brief Computes Student's t test decision for the null hypothesis that 
-    !! the data vectors come from independent samples from normal distributions
-    !! with equal means, and equal but unknown variances.
-    !!
-    !! @param[in] data1 The first data set.
-    !! @param[in] data2 The second data set.
-    !! @param[out] p
-    !! 
-    !! @return 
-    function ttest_2sets(data1, data2, p) result(t)
-        ! Arguments
-        real(dp), intent(in), dimension(:) :: data1, data2
-        real(dp), intent(out), optional :: p
-        real(dp) :: t
-
-        ! Parameter
-        real(dp), parameter :: half = 0.5d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: two = 2.0d0
-
-        ! Local Variables
-        integer(i32) :: n1, n2
-        real(dp) :: m1, m2, v1, v2, df, svar
-
-        ! Initialization
-        n1 = size(data1)
-        n2 = size(data2)
-
-        ! Compute the mean and variance of both data sets
-        m1 = mean(data1)
-        v1 = variance(data1)
-        m2 = mean(data2)
-        v2 = variance(data2)
-
-        ! Process
-        df = n1 + n2 - two
-        svar = ((n1 - 1) * v1 + (n2 - 1) * v2) / df
-        t = (m1 - m2) / sqrt(svar * (one / n1 + one / n2))
-        if (present(p)) then
-            p = incomplete_beta(half * df, half, df / (df + t**2))
-        end if
-    end function
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
 
 ! ******************************************************************************
 ! GAMMA FUNCTION ROUTINES
@@ -1023,6 +1014,7 @@ contains
 
         ! Input Checking
         if (x < zero .or. x > one) then
+            beta = zero
             call errmgr%report_error("inc_beta_scalar", &
                 "The independent variable (x) must be >= 0, but not > 1.", &
                 CF_INVALID_INPUT_ERROR)
@@ -1093,6 +1085,7 @@ contains
             end if
         end do
         if (.not.check) then
+            beta = zero
             call errmgr%report_error("inc_beta_array", &
                 "The independent variable (x) must be >= 0, but not > 1.", &
                 CF_INVALID_INPUT_ERROR)

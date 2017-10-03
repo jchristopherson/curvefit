@@ -430,6 +430,15 @@ double standard_deviation(int n, const double *x);
  * @param x An N-element array containing the data set.
  * @param alpha The confidence level.  This value must lie between
  * zero and one such that: 0 < alpha < 1.
+ * @param use_t Set to true to use the t-distribution in the event of
+ *  an unknown true standard deviation; else, set to true to use a normal
+ *  distribution.
+ * @param err The errorhandler object.  If no error handling is
+ *  desired, simply pass NULL, and errors will be dealt with by the default
+ *  internal error handler.  Possible errors that may be encountered are as
+ *  follows.
+ *  - CF_INVALID_INPUT_ERROR: Occurs if @p alpha is does not satisfy:
+ *      0 < alpha < 1.
  *
  * @return The confidence interval as the deviation from the mean.
  *
@@ -439,7 +448,8 @@ double standard_deviation(int n, const double *x);
  * standard deviation.  This routine computes the z * s / sqrt(n) portion 
  * leaving the computation of the mean to the user.
  */
-double confidence_interval(int n, const double *x, double alpha);
+double confidence_interval(int n, const double *x, double alpha, bool use_t, 
+                           errorhandler *err);
 
 /** @brief Applies a moving average to smooth a data set.
  *

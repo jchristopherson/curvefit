@@ -825,6 +825,15 @@ contains
     !! @param[in] x An N-element array containing the data set.
     !! @param[in] alpha The confidence level.  This value must lie between
     !! zero and one such that: 0 < alpha < 1.
+    !! @param[in] use_t Set to true to use the t-distribution in the event of
+    !!  an unknown true standard deviation; else, set to true to use a normal
+    !!  distribution.
+    !! @param[in,out] err The errorhandler object.  If no error handling is
+    !!  desired, simply pass NULL, and errors will be dealt with by the default
+    !!  internal error handler.  Possible errors that may be encountered are as
+    !!  follows.
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p alpha is does not satisfy:
+    !!      0 < alpha < 1.
     !!
     !! @return The confidence interval as the deviation from the mean.
     !!
@@ -833,13 +842,26 @@ contains
     !! as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the
     !! standard deviation.  This routine computes the z * s / sqrt(n) portion 
     !! leaving the computation of the mean to the user.
-    function conf_int_c(n, x, alpha) result(c) &
+    function conf_int_c(n, x, alpha, use_t, err) result(c) &
             bind(C, name = "confidence_interval")
+        ! Arguments
         integer(i32), intent(in), value :: n
         real(dp), intent(in) :: x(n)
         real(dp), intent(in), value :: alpha
+        logical(c_bool), intent(in), value :: use_t
+        type(errorhandler), intent(inout) :: err
         real(dp) :: c
-        c = confidence_interval(x, alpha)
+
+        ! Local Variables
+        type(errors), pointer :: eptr
+
+        ! Process
+        call get_errorhandler(err, eptr)
+        if (associated(eptr)) then
+            c = confidence_interval(x, alpha, logical(use_t), eptr)
+        else
+            c = confidence_interval(x, alpha, logical(use_t))
+        end if
     end function
 
 ! ******************************************************************************
