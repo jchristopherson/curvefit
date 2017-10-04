@@ -894,7 +894,7 @@ contains
         case (SPLINE_QUADRATIC_OVER_INTERVAL)
             b(1) = zero
             a3(1) = one
-            a4(1) = one
+            a4(1) = -one
         case (SPLINE_KNOWN_FIRST_DERIVATIVE)
             b(1) = (this%m_y(2) - this%m_y(1)) / &
                 (this%m_x(2) - this%m_x(1)) - ybcbeg
