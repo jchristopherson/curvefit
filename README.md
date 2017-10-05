@@ -203,11 +203,11 @@ For visualization purposes, here is an error plot from the data in the above exa
 ## Building CURVEFIT
 This library can be built using CMake.  For instructions on using CMake see [Running CMake](https://cmake.org/runningcmake/).
 
+## Documentation
+Documentation can be found [here](doc/refman.pdf)
+
 ## External Libraries
 This library relies upon 3 other libraries.
 - [NONLIN](https://github.com/jchristopherson/nonlin)
 - [LINALG](https://github.com/jchristopherson/linalg)
 - [FERROR](https://github.com/jchristopherson/ferror)
-
-## TO DO
-- C API
