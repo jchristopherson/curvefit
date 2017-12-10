@@ -6,7 +6,7 @@
 !! CURVEFIT is a library for fitting functions to sets of data.
 !!
 !! @author Jason Christopherson
-!! @version 1.0.0
+!! @version 1.1.0
 
 !> @brief \b curvefit_core
 !!
