@@ -1,6 +1,9 @@
 # curvefit
 A library for fitting functions to sets of data.
 
+## Status
+![Build Status](https://travis-ci.org/jchristopherson/curvefit.svg?branch=master)
+
 ## Example 1
 This example illustrates the use of cubic spline interpolation using both natural and forced boundary conditions.  Notice, the forced boundary conditions are arbitrarily chosen to illustrate their use.
 ```fortran
