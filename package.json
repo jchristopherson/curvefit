@@ -1,0 +1,6 @@
+{
+    "name": "curvefit-jchristopherson"
+    "description": "A library for fitting functions to sets of data.",
+    "author": "Jason Christopherson",
+    "version": "1.1.0"
+}
