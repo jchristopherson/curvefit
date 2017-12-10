@@ -1,0 +1,3 @@
+[submodule "src/external/nonlin"]
+	path = src/external/nonlin
+	url = https://github.com/jchristopherson/nonlin.git
