@@ -57,14 +57,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   # gfortran
-  # Options: https://gcc.gnu.org/onlinedocs/gfortran/Option-Summary.html
-  if (WIN32 AND NOT BUILD_SHARED_LIBS)
-    # For some reason higher than -O1 results in a segmentation fault on
-    # Windows 7 and on Windows 10 (64-bit versions)
-    set(CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O1")
-  else()
-    set(CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3")
-  endif()
+  set(CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3")
   set (CMAKE_Fortran_FLAGS_DEBUG   "-fno-f2c -O0 -g -Wall -Wno-c-binding-type")
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   # ifort (untested)
@@ -78,49 +71,26 @@ else (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -Wall")
 endif (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
-# Specify source files
-set(sources src/curvefit_core.f90 src/curvefit_interp.f90
-  src/curvefit_statistics.f90 src/curvefit_regression.f90
-  src/curvefit_c_binding.f90 src/curvefit_calibration.f90)
-
 # Define necessary CMake variables, and define the dependency.
-if (BUILD_SHARED_LIBS)
-  set(ExternalProjectCMakeArgs
-      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
-      -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-      -CMAKE_Fortran_MODULE_DIRECTORY=${CMAKE_Fortran_MODULE_DIRECTORY}
-      -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/external
-      -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
-      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
-  add_subdirectory(external/nonlin)
-else()
-  # Building a static library, simply add source code to this library
-  file(GLOB_RECURSE nonlin_sources external/nonlin/src/*.f90)
-  file(GLOB_RECURSE linalg_sources external/nonlin/external/linalg/src/*.f90
-    external/nonlin/external/linalg/src/QRUPDATE/*.f
-    external/nonlin/external/linalg/LAPACK/BLAS/src/*.f
-    external/nonlin/external/linalg/LAPACK/src/*.f)
-  file(GLOB_RECURSE ferror_sources external/nonlin/external/linalg/ferror/src/*.f90)
-  list(APPEND sources ${nonlin_sources})
-  list(APPEND sources ${linalg_sources})
-  list(APPEND sources ${ferror_sources})
-endif()
+set(ExternalProjectCMakeArgs
+  -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  -DCMAKE_Fortran_MODULE_DIRECTORY=${CMAKE_Fortran_MODULE_DIRECTORY}
+  -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/external
+  -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
+  -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
 
-# If BUILD_SHARED_LIBS is defined, then a shared library (DLL) will be built;
-# else, a static library will be built.
-add_library(curvefit ${sources})
-if (BUILD_SHARED_LIBS)
-  target_link_libraries(curvefit nonlin linalg ferror)
-endif ()
+# Locate the source directory
+add_subdirectory(src)
 
 # ------------------------------------------------------------------------------
 # EXAMPLES
 # ------------------------------------------------------------------------------
-option(BUILD_EXAMPLES "Build examples?" OFF)
-if (BUILD_EXAMPLES)
+option(BUILD_CURVEFIT_EXAMPLES "Build CURVEFIT examples?" OFF)
+if (BUILD_CURVEFIT_EXAMPLES)
   # Inform the user we're building the examples
   message(STATUS "Building CURVEFIT examples.")
 
@@ -142,9 +112,9 @@ if (BUILD_EXAMPLES)
 
 # --------------------
   include_directories(${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/external/nonlin/include
-    ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/include
-    ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/ferror/include)
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/include
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/include
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/src/external/ferror/include)
 
   # Linear Interpolation Example
   add_executable(curvefit_c_interp_example examples/curvefit_c_interp_example.c)
@@ -162,27 +132,33 @@ endif()
 # ------------------------------------------------------------------------------
 # TESTS
 # ------------------------------------------------------------------------------
-set(curvefit_test_sources tests/curvefit_test.f90 
-  tests/curvefit_test_interp.f90 tests/curvefit_test_statistics.f90
-  external/nonlin/external/linalg/tests/test_core.f90
-  tests/curvefit_test_regression.f90 tests/curvefit_test_calibration.f90)
-add_executable(curvefit_test ${curvefit_test_sources})
-target_link_libraries(curvefit_test curvefit)
-add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
-  COMMAND curvefit_test)
-add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
+option(BUILD_CURVEFIT_TESTS "Build CURVEFIT tests?" ON)
+if (BUILD_CURVEFIT_TESTS)
+  set(curvefit_test_sources tests/curvefit_test.f90 
+    tests/curvefit_test_interp.f90 tests/curvefit_test_statistics.f90
+    src/external/nonlin/src/external/linalg/tests/test_core.f90
+    tests/curvefit_test_regression.f90 tests/curvefit_test_calibration.f90)
+  add_executable(curvefit_test ${curvefit_test_sources})
+  target_link_libraries(curvefit_test curvefit)
+  add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
+    COMMAND curvefit_test)
+  add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
+endif()
 
 # C Test
-include_directories(${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/external/nonlin/include
-  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/include
-  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/ferror/include
-  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/tests)
-set(curvefit_c_test_sources tests/curvefit_c_test.c
-  ${PROJECT_SOURCE_DIR}/external/nonlin/external/linalg/tests/c_test_core.c)
-add_executable(curvefit_c_test ${curvefit_c_test_sources})
-target_link_libraries(curvefit_c_test curvefit m)
-add_custom_command(OUTPUT curvefit_c_tests_cmd 
-  DEPENDS ${curvefit_c_test_sources}
-  COMMAND curvefit_c_test)
-add_custom_target(run_curvefit_c_tests ALL DEPENDS curvefit_c_tests_cmd)
+option(BUILD_CURVEFIT_C_TESTS "Build CURVEFIT C API tests?" ON)
+if (BUILD_CURVEFIT_C_TESTS)
+  include_directories(${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/include
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/include
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/src/external/ferror/include
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/tests)
+  set(curvefit_c_test_sources tests/curvefit_c_test.c
+    ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/tests/c_test_core.c)
+  add_executable(curvefit_c_test ${curvefit_c_test_sources})
+  target_link_libraries(curvefit_c_test curvefit m)
+  add_custom_command(OUTPUT curvefit_c_tests_cmd 
+    DEPENDS ${curvefit_c_test_sources}
+    COMMAND curvefit_c_test)
+  add_custom_target(run_curvefit_c_tests ALL DEPENDS curvefit_c_tests_cmd)
+endif()
