@@ -40,7 +40,7 @@ latex/
 
 
 # CMake Stuff
-*.json
+.cmaketools.json
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
@@ -50,5 +50,5 @@ cmake_install.cmake
 install_manifest.txt
 CTestTestfile.cmake
 
-# Misc Files
-*.txt
+# Misc Stuff
+c_cpp_properties.json
