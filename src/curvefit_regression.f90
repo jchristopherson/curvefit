@@ -6,6 +6,7 @@
 !! To provide routines for perforing regression operations, and other data
 !! smoothing operations on sets of numerical data.
 module curvefit_regression
+    use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core
     use linalg_sorting, only : sort
     use ferror, only : errors
@@ -46,17 +47,17 @@ module curvefit_regression
     type lowess_smoothing
         private
         !> N-element array of x data points - sorted into ascending order.
-        real(dp), allocatable, dimension(:) :: m_x
+        real(real64), allocatable, dimension(:) :: m_x
         !> N-element array of y data points.
-        real(dp), allocatable, dimension(:) :: m_y
+        real(real64), allocatable, dimension(:) :: m_y
         !> N-element array containing the robustness weights for each data
         !! point.
-        real(dp), allocatable, dimension(:) :: m_weights
+        real(real64), allocatable, dimension(:) :: m_weights
         !> N-element array containing the residuals (Y - YS)
-        real(dp), allocatable, dimension(:) :: m_residuals
+        real(real64), allocatable, dimension(:) :: m_residuals
         !> Scaling parameter used to define the nature of the linear
         !! interpolations used by the algorithm.
-        real(dp) :: m_delta
+        real(real64) :: m_delta
         !> Tracks whether or not ls_init has been called
         logical :: m_init = .false.
     contains
@@ -81,11 +82,11 @@ module curvefit_regression
         !> A pointer to the routine containing the function of interest.
         procedure(reg_fcn), pointer, nopass :: m_rfcn => null()
         !> The x data points.
-        real(dp), allocatable, dimension(:) :: m_x
+        real(real64), allocatable, dimension(:) :: m_x
         !> The y data points.
-        real(dp), allocatable, dimension(:) :: m_y
+        real(real64), allocatable, dimension(:) :: m_y
         !> The number of coefficients in the function of interest
-        integer(i32) :: m_ncoeff = 0
+        integer(int32) :: m_ncoeff = 0
         !> Tracks whether or not nr_init has been called
         logical :: m_init = .false.
         !> The Levenberg-Marquardt solver
@@ -162,18 +163,18 @@ contains
     !!      available.
     subroutine moving_average_1(x, npts, err)
         ! Arguments
-        real(dp), intent(inout), dimension(:) :: x
-        integer(i32), intent(in) :: npts
+        real(real64), intent(inout), dimension(:) :: x
+        integer(int32), intent(in) :: npts
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: i, n, flag
-        real(dp), allocatable, dimension(:) :: buffer
+        integer(int32) :: i, n, flag
+        real(real64), allocatable, dimension(:) :: buffer
 
         ! Initialization
         n = size(x)
@@ -248,23 +249,23 @@ contains
     !! William Cleveland.
     subroutine lowest(x, y, xs, ys, nleft, nright, w, userw, rw, ok)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x, y, rw ! N ELEMENT
-        real(dp), intent(in) :: xs
-        real(dp), intent(out) :: ys
-        integer(i32), intent(in) :: nleft, nright
-        real(dp), intent(out), dimension(:) :: w ! N ELEMENT
+        real(real64), intent(in), dimension(:) :: x, y, rw ! N ELEMENT
+        real(real64), intent(in) :: xs
+        real(real64), intent(out) :: ys
+        integer(int32), intent(in) :: nleft, nright
+        real(real64), intent(out), dimension(:) :: w ! N ELEMENT
         logical, intent(in) :: userw
         logical, intent(out) :: ok
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: p001 = 1.0d-3
-        real(dp), parameter :: p999 = 0.999d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: p001 = 1.0d-3
+        real(real64), parameter :: p999 = 0.999d0
 
         ! Local Variables
-        integer(i32) :: j, n, nrt
-        real(dp) :: range, h, h9, h1, a, b, c, r
+        integer(int32) :: j, n, nrt
+        real(real64) :: range, h, h9, h1, a, b, c, r
 
         ! Initialization
         n = size(x)
@@ -360,23 +361,23 @@ contains
     !! William Cleveland.
     subroutine lowess(x, y, f, nsteps, delta, ys, rw, res)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x, y
-        real(dp), intent(in) :: f
-        integer(i32), intent(in) :: nsteps
-        real(dp), intent(in) :: delta
-        real(dp), intent(out), dimension(:) :: ys, rw, res
+        real(real64), intent(in), dimension(:) :: x, y
+        real(real64), intent(in) :: f
+        integer(int32), intent(in) :: nsteps
+        real(real64), intent(in) :: delta
+        real(real64), intent(out), dimension(:) :: ys, rw, res
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: three = 3.0d0
-        real(dp), parameter :: p001 = 1.0d-3
-        real(dp), parameter :: p999 = 0.999d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: three = 3.0d0
+        real(real64), parameter :: p001 = 1.0d-3
+        real(real64), parameter :: p999 = 0.999d0
 
         ! Local Variables
         logical :: ok
-        integer(i32) :: iter, i, j, n, nleft, nright, ns, last, m1, m2
-        real(dp) :: d1, d2, denom, alpha, cut, eps, cmad, c1, c9, r
+        integer(int32) :: iter, i, j, n, nleft, nright, ns, last, m1, m2
+        real(real64) :: d1, d2, denom, alpha, cut, eps, cmad, c1, c9, r
 
         ! Initialization
         n = size(x)
@@ -476,16 +477,16 @@ contains
     subroutine ls_init(this, x, y, srt, err)
         ! Arguments
         class(lowess_smoothing), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
+        real(real64), intent(in), dimension(:) :: x, y
         logical, intent(in), optional :: srt
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, n, flag
-        integer(i32), allocatable, dimension(:) :: indices
+        integer(int32) :: i, n, flag
+        integer(int32), allocatable, dimension(:) :: indices
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         logical :: sortData
@@ -568,12 +569,12 @@ contains
     function ls_smooth(this, f, err) result(ys)
         ! Arguments
         class(lowess_smoothing), intent(inout) :: this
-        real(dp), intent(in) :: f
+        real(real64), intent(in) :: f
         class(errors), intent(inout), optional, target :: err
-        real(dp), allocatable, dimension(:) :: ys
+        real(real64), allocatable, dimension(:) :: ys
 
         ! Local Variables
-        integer(i32) :: n, flag
+        integer(int32) :: n, flag
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -611,7 +612,7 @@ contains
     !! @return The number of data points.
     pure function ls_get_num_pts(this) result(n)
         class(lowess_smoothing), intent(in) :: this
-        integer(i32) :: n
+        integer(int32) :: n
         if (this%m_init) then
             n = size(this%m_x)
         else
@@ -628,8 +629,8 @@ contains
     !! @return The x component of the requested data point.
     pure function ls_get_x(this, ind) result(x)
         class(lowess_smoothing), intent(in) :: this
-        integer(i32), intent(in) :: ind
-        real(dp) :: x
+        integer(int32), intent(in) :: ind
+        real(real64) :: x
         if (this%m_init) then
             x = this%m_x(ind)
         else
@@ -646,8 +647,8 @@ contains
     !! @return The y component of the requested data point.
     pure function ls_get_y(this, ind) result(y)
         class(lowess_smoothing), intent(in) :: this
-        integer(i32), intent(in) :: ind
-        real(dp) :: y
+        integer(int32), intent(in) :: ind
+        real(real64) :: y
         if (this%m_init) then
             y = this%m_y(ind)
         else
@@ -664,10 +665,10 @@ contains
     subroutine ls_get_residual(this, x)
         ! Arguments
         class(lowess_smoothing), intent(in) :: this
-        real(dp), intent(out), dimension(:) :: x
+        real(real64), intent(out), dimension(:) :: x
 
         ! Local Variables
-        integer(i32) :: n
+        integer(int32) :: n
 
         ! Process
         n = min(size(x), this%get_count())
@@ -701,15 +702,15 @@ contains
     subroutine nr_init(this, x, y, fcn, ncoeff, err)
         ! Arguments
         class(nonlinear_regression), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
+        real(real64), intent(in), dimension(:) :: x, y
         procedure(reg_fcn), pointer, intent(in) :: fcn
-        integer(i32), intent(in) :: ncoeff
+        integer(int32), intent(in) :: ncoeff
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: i, n, flag
+        integer(int32) :: i, n, flag
 
         ! Initialization
         this%m_init = .false.
@@ -765,11 +766,11 @@ contains
     subroutine nr_fcn(this, x, f)
         ! Arguments
         class(nonlinear_regression), intent(in) :: this
-        real(dp), intent(in), dimension(:) :: x
-        real(dp), intent(out), dimension(:) :: f
+        real(real64), intent(in), dimension(:) :: x
+        real(real64), intent(out), dimension(:) :: f
 
         ! Local Variables
-        integer(i32) :: i, n
+        integer(int32) :: i, n
 
         ! Compute the value of the function at each value of m_x
         n = size(this%m_x)
@@ -799,7 +800,7 @@ contains
     !! @return The number of equations.
     pure function nr_get_eqn_count(this) result(n)
         class(nonlinear_regression), intent(in) :: this
-        integer(i32) :: n
+        integer(int32) :: n
         if (allocated(this%m_x)) then
             n = size(this%m_x)
         else
@@ -815,7 +816,7 @@ contains
     !! @return The number of variables.
     pure function nr_get_var_count(this) result(n)
         class(nonlinear_regression), intent(in) :: this
-        integer(i32) :: n
+        integer(int32) :: n
         n = this%m_ncoeff
     end function
 
@@ -850,17 +851,17 @@ contains
     subroutine nr_solve(this, c, res, ib, err)
         ! Arguments
         class(nonlinear_regression), intent(inout) :: this
-        real(dp), intent(inout), dimension(:) :: c
-        real(dp), intent(out), dimension(:), target, optional :: res
+        real(real64), intent(inout), dimension(:) :: c
+        real(real64), intent(out), dimension(:), target, optional :: res
         type(iteration_behavior), intent(out), optional :: ib
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: n, flag
-        real(dp), allocatable, target, dimension(:) :: f
-        real(dp), pointer, dimension(:) :: fptr
+        integer(int32) :: n, flag
+        real(real64), allocatable, target, dimension(:) :: f
+        real(real64), pointer, dimension(:) :: fptr
 
         ! Initialization
         if (present(err)) then
@@ -900,7 +901,7 @@ contains
     !! @return The maximum number of function evaluations.
     pure function nr_get_max_eval(this) result(n)
         class(nonlinear_regression), intent(in) :: this
-        integer(i32) :: n
+        integer(int32) :: n
         n = this%m_solver%get_max_fcn_evals()
     end function
 
@@ -912,7 +913,7 @@ contains
     !! @param[in] n The maximum number of function evaluations.
     subroutine nr_set_max_eval(this, n)
         class(nonlinear_regression), intent(inout) :: this
-        integer(i32), intent(in) :: n
+        integer(int32), intent(in) :: n
         call this%m_solver%set_max_fcn_evals(n)
     end subroutine
 
@@ -923,7 +924,7 @@ contains
     !! @return The tolerance value.
     pure function nr_get_fcn_tol(this) result(x)
         class(nonlinear_regression), intent(in) :: this
-        real(dp) :: x
+        real(real64) :: x
         x = this%m_solver%get_fcn_tolerance()
     end function
 
@@ -934,7 +935,7 @@ contains
     !! @param[in] x The tolerance value.
     subroutine nr_set_fcn_tol(this, x)
         class(nonlinear_regression), intent(inout) :: this
-        real(dp), intent(in) :: x
+        real(real64), intent(in) :: x
         call this%m_solver%set_fcn_tolerance(x)
     end subroutine
 
@@ -945,7 +946,7 @@ contains
     !! @return The tolerance value.
     pure function nr_get_var_tol(this) result(x)
         class(nonlinear_regression), intent(in) :: this
-        real(dp) :: x
+        real(real64) :: x
         x = this%m_solver%get_var_tolerance()
     end function
 
@@ -956,7 +957,7 @@ contains
     !! @param[in] x The tolerance value.
     subroutine nr_set_var_tol(this, x)
         class(nonlinear_regression), intent(inout) :: this
-        real(dp), intent(in) :: x
+        real(real64), intent(in) :: x
         call this%m_solver%set_var_tolerance(x)
     end subroutine
 
@@ -967,7 +968,7 @@ contains
     !! @return The tolerance value.
     pure function nr_get_grad_tol(this) result(x)
         class(nonlinear_regression), intent(in) :: this
-        real(dp) :: x
+        real(real64) :: x
         x = this%m_solver%get_gradient_tolerance()
     end function
 
@@ -978,7 +979,7 @@ contains
     !! @return The tolerance value.
     subroutine nr_set_grad_tol(this, x)
         class(nonlinear_regression), intent(inout) :: this
-        real(dp), intent(in) :: x
+        real(real64), intent(in) :: x
         call this%m_solver%set_gradient_tolerance(x)
     end subroutine
 
@@ -1014,7 +1015,7 @@ contains
     !! @return The number of data points.
     pure function nr_get_num_pts(this) result(n)
         class(nonlinear_regression), intent(in) :: this
-        integer(i32) :: n
+        integer(int32) :: n
         if (this%m_init) then
             n = size(this%m_x)
         else
@@ -1031,8 +1032,8 @@ contains
     !! @return The x component of the requested data point.
     pure function nr_get_x(this, ind) result(x)
         class(nonlinear_regression), intent(in) :: this
-        integer(i32), intent(in) :: ind
-        real(dp) :: x
+        integer(int32), intent(in) :: ind
+        real(real64) :: x
         if (this%m_init) then
             x = this%m_x(ind)
         else
@@ -1049,8 +1050,8 @@ contains
     !! @return The y component of the requested data point.
     pure function nr_get_y(this, ind) result(y)
         class(nonlinear_regression), intent(in) :: this
-        integer(i32), intent(in) :: ind
-        real(dp) :: y
+        integer(int32), intent(in) :: ind
+        real(real64) :: y
         if (this%m_init) then
             y = this%m_y(ind)
         else
@@ -1079,18 +1080,18 @@ contains
     !! @return The scalar coefficient A.
     function linear_least_squares_1var(x, y, err) result(a)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x
-        real(dp), intent(inout), dimension(:) :: y
+        real(real64), intent(in), dimension(:) :: x
+        real(real64), intent(inout), dimension(:) :: y
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: a
+        real(real64) :: a
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: n
+        integer(int32) :: n
         type(polynomial) :: poly
 
         ! Initialization
@@ -1161,22 +1162,21 @@ contains
     !! @endverbatim
     function linear_least_squares_nvar(x, y, thrsh, err) result(a)
         ! Arguments
-        real(dp), intent(inout), dimension(:,:) :: x
-        real(dp), intent(in), dimension(:,:) :: y
-        real(dp), intent(in), optional :: thrsh
+        real(real64), intent(inout), dimension(:,:) :: x
+        real(real64), intent(in), dimension(:,:) :: y
+        real(real64), intent(in), optional :: thrsh
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(y,1), size(x,1)) :: a
+        real(real64), dimension(size(y,1), size(x,1)) :: a
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: m, n, p, flag
-        real(dp), allocatable, dimension(:,:) :: b, yinv
-        ! real(dp), allocatable, dimension(:,:) :: xinv
+        integer(int32) :: m, n, p, flag
+        real(real64), allocatable, dimension(:,:) :: b, yinv
 
         ! Initialization
         m = size(x, 1)

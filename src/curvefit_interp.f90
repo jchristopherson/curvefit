@@ -5,6 +5,7 @@
 !! @par Purpose
 !! To provide interpolation routines for X-Y data sets.
 module curvefit_interp
+    use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core
     use ferror, only : errors
     implicit none
@@ -25,16 +26,16 @@ module curvefit_interp
     !! consideration (beginning or ending interval).  This is equivalent to
     !! allowing a "natural" boundary condition at either the initial or final
     !! point.
-    integer(i32), parameter :: SPLINE_QUADRATIC_OVER_INTERVAL = 1000
-    !> Indicates a known first derivative at either the beginning or ending 
+    integer(int32), parameter :: SPLINE_QUADRATIC_OVER_INTERVAL = 1000
+    !> Indicates a known first derivative at either the beginning or ending
     !! point.
-    integer(i32), parameter :: SPLINE_KNOWN_FIRST_DERIVATIVE = 1001
-    !> Indicates a known second derivative at either the beginning or ending 
+    integer(int32), parameter :: SPLINE_KNOWN_FIRST_DERIVATIVE = 1001
+    !> Indicates a known second derivative at either the beginning or ending
     !! point.
-    integer(i32), parameter :: SPLINE_KNOWN_SECOND_DERIVATIVE = 1002
-    !> Indicates a continuous third derivative at either the beginning or ending 
+    integer(int32), parameter :: SPLINE_KNOWN_SECOND_DERIVATIVE = 1002
+    !> Indicates a continuous third derivative at either the beginning or ending
     !! point.
-    integer(i32), parameter :: SPLINE_CONTINUOUS_THIRD_DERIVATIVE = 1003
+    integer(int32), parameter :: SPLINE_CONTINUOUS_THIRD_DERIVATIVE = 1003
 
 ! ******************************************************************************
 ! TYPES
@@ -43,23 +44,23 @@ module curvefit_interp
     !! type data sets.
     !!
     !! @par Notes
-    !! This interpolation object is conceptually based upon the interpolation 
+    !! This interpolation object is conceptually based upon the interpolation
     !! scheme utilized by the Numerical Recipes in C++ text.
     type, abstract :: interp_manager
     private
-        integer(i32) :: m_order
-        integer(i32) :: m_savedIndex
-        integer(i32) :: m_indexCheck
+        integer(int32) :: m_order
+        integer(int32) :: m_savedIndex
+        integer(int32) :: m_indexCheck
         logical :: m_correlated
-        real(dp), allocatable, dimension(:) :: m_x
-        real(dp), allocatable, dimension(:) :: m_y
+        real(real64), allocatable, dimension(:) :: m_x
+        real(real64), allocatable, dimension(:) :: m_y
     contains
         !> @brief Initializes the interp_manager instance.
         procedure, public :: initialize => im_init
-        !> @brief Attempts to locate the index in the array providing a lower 
+        !> @brief Attempts to locate the index in the array providing a lower
         !! bounds to the specified interpolation point.
         procedure, non_overridable, public :: locate => im_locate
-        !> @brief Attempts to locate the index in the array providing a lower 
+        !> @brief Attempts to locate the index in the array providing a lower
         !! bounds to the specified interpolation point.
         procedure, non_overridable, public :: hunt => im_hunt
         !> @brief Interpolates to obtain the function value at the specified
@@ -88,13 +89,13 @@ module curvefit_interp
     end type
 
 ! ------------------------------------------------------------------------------
-    !> @brief Extends the interp_manager class allowing for polynomial 
+    !> @brief Extends the interp_manager class allowing for polynomial
     !! interpolation of a data set.
     type, extends(interp_manager) :: polynomial_interp
     private
-        real(dp), allocatable, dimension(:) :: m_c
-        real(dp), allocatable, dimension(:) :: m_d
-        real(dp) :: m_dy
+        real(real64), allocatable, dimension(:) :: m_c
+        real(real64), allocatable, dimension(:) :: m_d
+        real(real64) :: m_dy
     contains
         !> @brief Initializes the polynomial_interp instance.
         procedure, public :: initialize => pi_init
@@ -103,29 +104,29 @@ module curvefit_interp
     end type
 
 ! ------------------------------------------------------------------------------
-    !> @brief Extends the interp_manager class allowing for cubic spline 
+    !> @brief Extends the interp_manager class allowing for cubic spline
     !! interpolation of a data set.
     type, extends(interp_manager) :: spline_interp
     private
-        real(dp), allocatable, dimension(:) :: m_ypp
+        real(real64), allocatable, dimension(:) :: m_ypp
     contains
         !> @brief Performs the actual interpolation.
         procedure :: raw_interp => si_raw_interp
-        !> @brief Computes the second derivative terms for the cubic-spline 
+        !> @brief Computes the second derivative terms for the cubic-spline
         !! model.
         procedure :: compute_diff2 => si_second_deriv
         !> @brief Initializes the spline_interp instance.
         procedure, public :: initialize => si_init_1
-        !> @brief Initializes the spline_interp instance while allowing 
+        !> @brief Initializes the spline_interp instance while allowing
         !! definition of boundary conditions.
         procedure, public :: initialize_spline => si_init_2
-        !> @brief Interpolates to obtain the first derivative value at the 
+        !> @brief Interpolates to obtain the first derivative value at the
         !! specified independent variable.
         generic, public :: first_derivative => si_diff1, si_diff1_array
-        !> @brief Interpolates to obtain the second derivative value at the 
+        !> @brief Interpolates to obtain the second derivative value at the
         !! specified independent variable.
         generic, public :: second_derivative => si_diff2, si_diff2_array
-        
+
         procedure :: si_diff1
         procedure :: si_diff1_array
         procedure :: si_diff2
@@ -149,9 +150,9 @@ interface
         use curvefit_core, only : dp, i32
         import interp_manager
         class(interp_manager), intent(inout) :: this
-        integer(i32), intent(in) :: jlo
-        real(dp), intent(in) :: pt
-        real(dp) :: yy
+        integer(int32), intent(in) :: jlo
+        real(real64), intent(in) :: pt
+        real(real64) :: yy
     end function
 end interface
 
@@ -168,7 +169,7 @@ contains
     !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] order The order of the interpolating polynomial.  Notice, this
-    !!  parameter is optional; however, if not specified, a default of 1 is 
+    !!  parameter is optional; however, if not specified, a default of 1 is
     !!  used.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -176,19 +177,19 @@ contains
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
     !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
-    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically
     !!      increasing or decreasing.
     subroutine im_init(this, x, y, order, err)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
-        integer(i32), intent(in), optional :: order
+        real(real64), intent(in), dimension(:) :: x, y
+        integer(int32), intent(in), optional :: order
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
-        integer(i32) :: i, n, flag
+        integer(int32) :: i, n, flag
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         character(len = 256) :: errmsg
@@ -261,12 +262,12 @@ contains
     function im_locate(this, pt, err) result(j)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in) :: pt
+        real(real64), intent(in) :: pt
         class(errors), intent(inout), optional, target :: err
         integer :: j
 
         ! Local Variables
-        integer(i32) :: n, m, jhi, jmid, jlo
+        integer(int32) :: n, m, jhi, jmid, jlo
         logical :: ascnd
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
@@ -336,12 +337,12 @@ contains
     function im_hunt(this, pt, err) result(j)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in) :: pt
+        real(real64), intent(in) :: pt
         class(errors), intent(inout), optional, target :: err
-        integer(i32) :: j
+        integer(int32) :: j
 
         ! Local Variables
-        integer(i32) :: jlo, jmid, jhi, inc, n, m
+        integer(int32) :: jlo, jmid, jhi, inc, n, m
         logical :: ascnd
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
@@ -444,12 +445,12 @@ contains
     function im_perform(this, pt, err) result(yy)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in) :: pt
+        real(real64), intent(in) :: pt
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: yy
+        real(real64) :: yy
 
         ! Local Variables
-        integer(i32) :: jlo
+        integer(int32) :: jlo
 
         ! Process
         if (this%m_correlated) then
@@ -465,7 +466,7 @@ contains
     !!  independent variables.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] pts An M-element array containing the independent variable 
+    !! @param[in] pts An M-element array containing the independent variable
     !!  values to interpolate.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -478,12 +479,12 @@ contains
     function im_perform_array(this, pts, err) result(yy)
         ! Arguments
         class(interp_manager), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: pts
+        real(real64), intent(in), dimension(:) :: pts
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(pts)) :: yy
+        real(real64), dimension(size(pts)) :: yy
 
         ! Local Variables
-        integer(i32) :: i, jlo
+        integer(int32) :: i, jlo
 
         ! Process
         do i = 1, size(pts)
@@ -500,11 +501,11 @@ contains
     !> @brief Gets the number of stored data points.
     !!
     !! @param[in] this The interp_manager object.
-    !! 
+    !!
     !! @return The number of data points.
     pure function im_get_num_pts(this) result(n)
         class(interp_manager), intent(in) :: this
-        integer(i32) :: n
+        integer(int32) :: n
         n = 0
         if (allocated(this%m_x) .and. allocated(this%m_y)) n = size(this%m_x)
     end function
@@ -518,8 +519,8 @@ contains
     !! @return The x component of the requested data point.
     pure function im_get_x(this, ind) result(x)
         class(interp_manager), intent(in) :: this
-        integer(i32), intent(in) :: ind
-        real(dp) :: x
+        integer(int32), intent(in) :: ind
+        real(real64) :: x
         x = 0.0d0
         if (allocated(this%m_x)) x = this%m_x(ind)
     end function
@@ -533,8 +534,8 @@ contains
     !! @return The y component of the requested data point.
     pure function im_get_y(this, ind) result(y)
         class(interp_manager), intent(in) :: this
-        integer(i32), intent(in) :: ind
-        real(dp) :: y
+        integer(int32), intent(in) :: ind
+        real(real64) :: y
         y = 0.0d0
         if (allocated(this%m_y)) y = this%m_y(ind)
     end function
@@ -553,9 +554,9 @@ contains
     function li_raw_interp(this, jlo, pt) result(yy)
         ! Arguments
         class(linear_interp), intent(inout) :: this
-        integer(i32), intent(in) :: jlo
-        real(dp), intent(in) :: pt
-        real(dp) :: yy
+        integer(int32), intent(in) :: jlo
+        real(real64), intent(in) :: pt
+        real(real64) :: yy
 
         ! Process
         if (this%m_x(jlo) == this%m_x(jlo+1)) then
@@ -578,7 +579,7 @@ contains
     !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
     !! @param[in] order The order of the interpolating polynomial.  Notice, this
-    !!  parameter is optional; however, if not specified, a default of 1 is 
+    !!  parameter is optional; however, if not specified, a default of 1 is
     !!  used.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -586,20 +587,20 @@ contains
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
     !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
     !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
-    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically
     !!      increasing or decreasing.
     subroutine pi_init(this, x, y, order, err)
         ! Arguments
         class(polynomial_interp), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
-        integer(i32), intent(in), optional :: order
+        real(real64), intent(in), dimension(:) :: x, y
+        integer(int32), intent(in), optional :: order
         class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
-        integer(i32) :: m, flag, odr
+        integer(int32) :: m, flag, odr
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -648,13 +649,13 @@ contains
     function pi_raw_interp(this, jlo, pt) result(yy)
         ! Arguments
         class(polynomial_interp), intent(inout) :: this
-        integer(i32), intent(in) :: jlo
-        real(dp), intent(in) :: pt
-        real(dp) :: yy
+        integer(int32), intent(in) :: jlo
+        real(real64), intent(in) :: pt
+        real(real64) :: yy
 
         ! Local Variables
-        integer(i32) :: i, ind, m, ns, mm, jl
-        real(dp) :: den, dif, dift, ho, hp, w
+        integer(int32) :: i, ind, m, ns, mm, jl
+        real(real64) :: den, dif, dift, ho, hp, w
 
         ! Initialization
         mm = this%m_order + 1
@@ -730,13 +731,13 @@ contains
     !! - [Spline Library](http://people.sc.fsu.edu/~jburkardt/f77_src/spline/spline.html)
     subroutine penta_solve(a1, a2, a3, a4, a5, b, x)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: a1, a5
-        real(dp), intent(inout), dimension(:) :: a2, a3, a4, b
-        real(dp), intent(out), dimension(:) :: x
+        real(real64), intent(in), dimension(:) :: a1, a5
+        real(real64), intent(inout), dimension(:) :: a2, a3, a4, b
+        real(real64), intent(out), dimension(:) :: x
 
         ! Local Variables
-        integer(i32) :: i, n
-        real(dp) :: xmult
+        integer(int32) :: i, n
+        real(real64) :: xmult
 
         ! Initialization
         n = size(a1)
@@ -773,18 +774,18 @@ contains
     function si_raw_interp(this, jlo, pt) result(yy)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        integer(i32), intent(in) :: jlo
-        real(dp), intent(in) :: pt
-        real(dp) :: yy
+        integer(int32), intent(in) :: jlo
+        real(real64), intent(in) :: pt
+        real(real64) :: yy
 
         ! Parameters
-        real(dp), parameter :: half = 0.5d0
-        real(dp), parameter :: three = 3.0d0
-        real(dp), parameter :: six = 6.0d0
+        real(real64), parameter :: half = 0.5d0
+        real(real64), parameter :: three = 3.0d0
+        real(real64), parameter :: six = 6.0d0
 
         ! Local Variables
-        integer(i32) :: right
-        real(dp) :: dt, h
+        integer(int32) :: right
+        real(real64) :: dt, h
 
         ! Initialization
         right = jlo + 1
@@ -831,7 +832,7 @@ contains
     !!  execution.  If not provided, a default implementation of the errors
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
     !!
     !! @par Remarks
@@ -841,21 +842,21 @@ contains
     subroutine si_second_deriv(this, ibcbeg, ybcbeg, ibcend, ybcend, err)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        integer(i32), intent(in) :: ibcbeg, ibcend
-        real(dp), intent(in) :: ybcbeg, ybcend
+        integer(int32), intent(in) :: ibcbeg, ibcend
+        real(real64), intent(in) :: ybcbeg, ybcend
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: three = 3.0d0
-        real(dp), parameter :: six = 6.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: three = 3.0d0
+        real(real64), parameter :: six = 6.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: i, n, flag
-        real(dp), allocatable, dimension(:) :: a1, a2, a3, a4, a5, b
+        integer(int32) :: i, n, flag
+        real(real64), allocatable, dimension(:) :: a1, a2, a3, a4, a5, b
 
         ! Initialization
         if (present(err)) then
@@ -973,7 +974,7 @@ contains
     !!  The data in this array must be either monotonically increasing or
     !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
-    !! @param[in] order The order of the interpolating polynomial.  This 
+    !! @param[in] order The order of the interpolating polynomial.  This
     !!  parameter is ignored as the spline is a cubic approximation.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -981,24 +982,24 @@ contains
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
     !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
-    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically
     !!      increasing or decreasing.
     subroutine si_init_1(this, x, y, order, err)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
-        integer(i32), intent(in), optional :: order
+        real(real64), intent(in), dimension(:) :: x, y
+        integer(int32), intent(in), optional :: order
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: dummy
+        integer(int32) :: dummy
 
         ! Initialization
         if (present(err)) then
@@ -1024,9 +1025,9 @@ contains
     !!  The data in this array must be either monotonically increasing or
     !!  decreasing.
     !! @param[in] y An N-element array containing the dependent variable data.
-    !! @param[in] ibcbeg An optional input that defines the nature of the 
-    !!  boundary condition at the beginning of the spline.  If no parameter, or 
-    !!  an invalid parameter, is specified, the default natural condition 
+    !! @param[in] ibcbeg An optional input that defines the nature of the
+    !!  boundary condition at the beginning of the spline.  If no parameter, or
+    !!  an invalid parameter, is specified, the default natural condition
     !!  (SPLINE_QUADRATIC_OVER_INTERVAL) is used.
     !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
     !!      initial interval.  No value is required for @p ybcbeg.
@@ -1039,9 +1040,9 @@ contains
     !! @param[in] ybcbeg If needed, the value of the initial point boundary
     !!  condition.  If needed, but not supplied, a default value of zero will
     !!  be used.
-    !! @param[in] ibcend An optional input that defines the nature of the 
-    !!  boundary condition at the end of the spline.  If no parameter, or an 
-    !!  invalid parameter, is specified, the default natural condition 
+    !! @param[in] ibcend An optional input that defines the nature of the
+    !!  boundary condition at the end of the spline.  If no parameter, or an
+    !!  invalid parameter, is specified, the default natural condition
     !!  (SPLINE_QUADRATIC_OVER_INTERVAL) is used.
     !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
     !!      final interval.  No value is required for @p ybcend.
@@ -1061,25 +1062,25 @@ contains
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
     !!  - CF_ARRAY_SIZE_ERROR: Occurs if @p x and @p y are not the same size.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
     !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
-    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically
     !!      increasing or decreasing.
     subroutine si_init_2(this, x, y, ibcbeg, ybcbeg, ibcend, ybcend, err)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: x, y
-        integer(i32), intent(in), optional :: ibcbeg, ibcend
-        real(dp), intent(in), optional :: ybcbeg, ybcend
+        real(real64), intent(in), dimension(:) :: x, y
+        integer(int32), intent(in), optional :: ibcbeg, ibcend
+        real(real64), intent(in), optional :: ybcbeg, ybcend
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: ibeg, iend
-        real(dp) :: ybeg, yend
+        integer(int32) :: ibeg, iend
+        real(real64) :: ybeg, yend
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -1134,18 +1135,18 @@ contains
     function si_diff1(this, pt, err) result(yy)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        real(dp), intent(in) :: pt
+        real(real64), intent(in) :: pt
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: yy
+        real(real64) :: yy
 
         ! Parameters
-        real(dp), parameter :: half = 0.5d0
-        real(dp), parameter :: three = 3.0d0
-        real(dp), parameter :: six = 6.0d0
+        real(real64), parameter :: half = 0.5d0
+        real(real64), parameter :: three = 3.0d0
+        real(real64), parameter :: six = 6.0d0
 
         ! Local Variables
-        integer(i32) :: jlo,right
-        real(dp) :: dt, h
+        integer(int32) :: jlo,right
+        real(real64) :: dt, h
 
         ! Process
         if (this%m_correlated) then
@@ -1167,7 +1168,7 @@ contains
     !! independent variables.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] pts An M-element array containing the independent variable 
+    !! @param[in] pts An M-element array containing the independent variable
     !!  values to interpolate.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -1180,18 +1181,18 @@ contains
     function si_diff1_array(this, pts, err) result(yy)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: pts
+        real(real64), intent(in), dimension(:) :: pts
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(pts)) :: yy
+        real(real64), dimension(size(pts)) :: yy
 
         ! Parameters
-        real(dp), parameter :: half = 0.5d0
-        real(dp), parameter :: three = 3.0d0
-        real(dp), parameter :: six = 6.0d0
+        real(real64), parameter :: half = 0.5d0
+        real(real64), parameter :: three = 3.0d0
+        real(real64), parameter :: six = 6.0d0
 
         ! Local Variables
-        integer(i32) :: i, jlo,right
-        real(dp) :: dt, h
+        integer(int32) :: i, jlo,right
+        real(real64) :: dt, h
 
         ! Process
         do i = 1, size(pts)
@@ -1211,7 +1212,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Interpolates to obtain the second derivative value at the 
+    !> @brief Interpolates to obtain the second derivative value at the
     !! specified independent variable.
     !!
     !! @param[in,out] this The interp_manager instance.
@@ -1227,13 +1228,13 @@ contains
     function si_diff2(this, pt, err) result(yy)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        real(dp), intent(in) :: pt
+        real(real64), intent(in) :: pt
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: yy
+        real(real64) :: yy
 
         ! Local Variables
-        integer(i32) :: jlo,right
-        real(dp) :: dt, h
+        integer(int32) :: jlo,right
+        real(real64) :: dt, h
 
         ! Process
         if (this%m_correlated) then
@@ -1248,11 +1249,11 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Interpolates to obtain the second derivative value at the 
+    !> @brief Interpolates to obtain the second derivative value at the
     !! specified independent variables.
     !!
     !! @param[in,out] this The interp_manager instance.
-    !! @param[in] pts An M-element array containing the independent variable 
+    !! @param[in] pts An M-element array containing the independent variable
     !!  values to interpolate.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -1265,13 +1266,13 @@ contains
     function si_diff2_array(this, pts, err) result(yy)
         ! Arguments
         class(spline_interp), intent(inout) :: this
-        real(dp), intent(in), dimension(:) :: pts
+        real(real64), intent(in), dimension(:) :: pts
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(pts)) :: yy
+        real(real64), dimension(size(pts)) :: yy
 
         ! Local Variables
-        integer(i32) :: i, jlo,right
-        real(dp) :: dt, h
+        integer(int32) :: i, jlo,right
+        real(real64) :: dt, h
 
         ! Process
         do i = 1, size(pts)

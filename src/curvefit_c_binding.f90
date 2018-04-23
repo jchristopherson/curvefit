@@ -6,6 +6,7 @@
 !! Provides C bindings to the curvefit library.
 module curvefit_c_binding
     use, intrinsic :: iso_c_binding
+    use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core
     use curvefit_interp
     use curvefit_statistics
@@ -31,10 +32,10 @@ module curvefit_c_binding
         !! @result The value of the function at @p x.
         function creg_fcn(x, n, c) result(f)
             use curvefit_core, only : dp, i32
-            real(dp), intent(in), value :: x
-            integer(i32), intent(in), value :: n
-            real(dp), intent(in) :: c(n)
-            real(dp) :: f
+            real(real64), intent(in), value :: x
+            integer(int32), intent(in), value :: n
+            real(real64), intent(in) :: c(n)
+            real(real64) :: f
         end function
     end interface
 
@@ -46,7 +47,7 @@ module curvefit_c_binding
         !> @brief A pointer to the linear_interp object.
         type(c_ptr) :: ptr
         !> @brief The size of the linear_interp object, in bytes.
-        integer(i32) :: n
+        integer(int32) :: n
     end type
 
 ! ------------------------------------------------------------------------------
@@ -55,7 +56,7 @@ module curvefit_c_binding
         !> @brief A pointer to the polynomial_interp object.
         type(c_ptr) :: ptr
         !> @brief The size of the polynomial_interp object, in bytes.
-        integer(i32) :: n
+        integer(int32) :: n
     end type
 
 ! ------------------------------------------------------------------------------
@@ -64,7 +65,7 @@ module curvefit_c_binding
         !> @brief A pointer to the spline_interp object.
         type(c_ptr) :: ptr
         !> @brief The size of the spline_interp object, in bytes.
-        integer(i32) :: n
+        integer(int32) :: n
     end type
 
 ! ------------------------------------------------------------------------------
@@ -73,7 +74,7 @@ module curvefit_c_binding
         !> @brief A pointer to the lowess_smoothing object.
         type(c_ptr) :: ptr
         !> @brief The size of the lowess_smoothing object, in bytes.
-        integer(i32) :: n
+        integer(int32) :: n
     end type
 
 ! ------------------------------------------------------------------------------
@@ -82,7 +83,7 @@ module curvefit_c_binding
         !> @brief A pointer to the nonlinear_regression object.
         type(c_ptr) :: ptr
         !> @brief The size of the nonlinear_regression object, in bytes.
-        integer(i32) :: n
+        integer(int32) :: n
     end type
 
 ! ------------------------------------------------------------------------------
@@ -119,8 +120,8 @@ contains
     !! @return Returns true if @p x is monotonic; else, false.
     pure function is_monotonic_c(n, x) result(rst) &
             bind(C, name = "is_monotonic")
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
         logical(c_bool) :: rst
         rst = is_monotonic(x)
     end function
@@ -164,16 +165,16 @@ contains
     !!  desired, simply pass NULL, and errors will be dealt with by the default
     !!  internal error handler.  Possible errors that may be encountered are as
     !!  follows.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
-    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically
     !!      increasing or decreasing.
     subroutine lininterp_init_c(obj, n, x, y, err) &
             bind(C, name = "alloc_linear_interp")
         ! Arguments
         type(c_linear_interp), intent(out) :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n), y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n), y(n)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
@@ -224,9 +225,9 @@ contains
             bind(C, name = "linear_interpolate")
         ! Arguments
         type(c_linear_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(out) :: y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(out) :: y(n)
 
         ! Local Variables
         type(linear_interp), pointer :: li
@@ -247,7 +248,7 @@ contains
             bind(C, name = "linear_interp_get_point_count")
         ! Arguments
         type(c_linear_interp), intent(in), target :: obj
-        integer(i32) :: n
+        integer(int32) :: n
 
         ! Local Variables
         type(linear_interp), pointer :: li
@@ -264,24 +265,24 @@ contains
     !!
     !! @param[in] obj The c_linear_interp object.
     !! @param[in] n The size of the buffer arrays.
-    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !! @param[out] x An N-element array where the x-coordinate data will be
     !!  written.
-    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !! @param[out] y An N-element array where the y-coordinate data will be
     !!  written.
     !!
     !! @par Remarks
-    !! If @p n is different than the actual number of points that exist, the 
+    !! If @p n is different than the actual number of points that exist, the
     !! lesser of the two values will be utilized.  The interpolation object
     !! can be queried to determine the quantity of stored points.
     subroutine lininterp_get_pts_c(obj, n, x, y) &
             bind(C, name = "linear_interp_get_points")
         ! Arguments
         type(c_linear_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(out) :: x(n), y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(out) :: x(n), y(n)
 
         ! Local Variables
-        integer(i32) :: i, npts
+        integer(int32) :: i, npts
         type(linear_interp), pointer :: li
 
         ! Process
@@ -334,17 +335,17 @@ contains
     !!  desired, simply pass NULL, and errors will be dealt with by the default
     !!  internal error handler.  Possible errors that may be encountered are as
     !!  follows.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
-    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically
     !!      increasing or decreasing.
     !!  - CF_INVALID_INPUT_ERROR: Occurs if @p order is less than 1.
     subroutine polyinterp_init_c(obj, n, x, y, order, err) &
             bind(C, name = "alloc_polynomial_interp")
         ! Arguments
         type(c_polynomial_interp), intent(out) :: obj
-        integer(i32), intent(in), value :: n, order
-        real(dp), intent(in) :: x(n), y(n)
+        integer(int32), intent(in), value :: n, order
+        real(real64), intent(in) :: x(n), y(n)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
@@ -382,7 +383,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    !> @brief Performs a polynomial interpolation to determine the points @p y 
+    !> @brief Performs a polynomial interpolation to determine the points @p y
     !! that for the requested indendent variable values in @p x.
     !!
     !! @param[in] obj The c_polynomial_interp object.
@@ -395,9 +396,9 @@ contains
             bind(C, name = "polynomial_interpolate")
         ! Arguments
         type(c_polynomial_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(out) :: y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(out) :: y(n)
 
         ! Local Variables
         type(polynomial_interp), pointer :: interp
@@ -418,7 +419,7 @@ contains
             bind(C, name = "polynomial_interp_get_point_count")
         ! Arguments
         type(c_polynomial_interp), intent(in), target :: obj
-        integer(i32) :: n
+        integer(int32) :: n
 
         ! Local Variables
         type(polynomial_interp), pointer :: interp
@@ -435,24 +436,24 @@ contains
     !!
     !! @param[in] obj The c_polynomial_interp object.
     !! @param[in] n The size of the buffer arrays.
-    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !! @param[out] x An N-element array where the x-coordinate data will be
     !!  written.
-    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !! @param[out] y An N-element array where the y-coordinate data will be
     !!  written.
     !!
     !! @par Remarks
-    !! If @p n is different than the actual number of points that exist, the 
+    !! If @p n is different than the actual number of points that exist, the
     !! lesser of the two values will be utilized.  The interpolation object
     !! can be queried to determine the quantity of stored points.
     subroutine polyinterp_get_pts_c(obj, n, x, y) &
             bind(C, name = "polynomial_interp_get_points")
         ! Arguments
         type(c_polynomial_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(out) :: x(n), y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(out) :: x(n), y(n)
 
         ! Local Variables
-        integer(i32) :: i, npts
+        integer(int32) :: i, npts
         type(polynomial_interp), pointer :: interp
 
         ! Process
@@ -500,7 +501,7 @@ contains
     !!  point.  This array must be monotonic (ascending or descending only).
     !! @param[in] y An N-element array containing the y-components of each data
     !!  point.
-    !! @param[in] ibcbeg An input that defines the nature of the 
+    !! @param[in] ibcbeg An input that defines the nature of the
     !!  boundary condition at the beginning of the spline.  If an invalid
     !!  parameter is used, the code defaults to SPLINE_QUADRATIC_OVER_INTERVAL.
     !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
@@ -513,7 +514,7 @@ contains
     !!      at x(2).  No value is required for @p ybcbeg.
     !! @param[in] ybcbeg If needed, the value of the initial point boundary
     !!  condition.  If not needed, this parameter is ignored.
-    !! @param[in] ibcend An input that defines the nature of the 
+    !! @param[in] ibcend An input that defines the nature of the
     !!  boundary condition at the end of the spline.  If an invalid
     !!  parameter is used, the code defaults to SPLINE_QUADRATIC_OVER_INTERVAL.
     !!  - SPLINE_QUADRATIC_OVER_INTERVAL: The spline is quadratic over its
@@ -530,17 +531,17 @@ contains
     !!  desired, simply pass NULL, and errors will be dealt with by the default
     !!  internal error handler.  Possible errors that may be encountered are as
     !!  follows.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
-    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically 
+    !!  - CF_NONMONOTONIC_ARRAY_ERROR: Occurs if @p x is not monotonically
     !!      increasing or decreasing.
     subroutine splineinterp_init_c(obj, n, x, y, ibcbeg, ybcbeg, ibcend, &
             ybcend, err) bind(C, name = "alloc_spline_interp")
         ! Arguments
         type(c_spline_interp), intent(out) :: obj
-        integer(i32), intent(in), value :: n, ibcbeg, ibcend
-        real(dp), intent(in), value :: ybcbeg, ybcend
-        real(dp), intent(in) :: x(n), y(n)
+        integer(int32), intent(in), value :: n, ibcbeg, ibcend
+        real(real64), intent(in), value :: ybcbeg, ybcend
+        real(real64), intent(in) :: x(n), y(n)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
@@ -580,7 +581,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    !> @brief Performs a spline interpolation to determine the points @p y 
+    !> @brief Performs a spline interpolation to determine the points @p y
     !! that for the requested indendent variable values in @p x.
     !!
     !! @param[in] obj The c_spline_interp object.
@@ -593,9 +594,9 @@ contains
             bind(C, name = "spline_interpolate")
         ! Arguments
         type(c_spline_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(out) :: y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(out) :: y(n)
 
         ! Local Variables
         type(spline_interp), pointer :: interp
@@ -616,7 +617,7 @@ contains
             bind(C, name = "spline_interp_get_point_count")
         ! Arguments
         type(c_spline_interp), intent(in), target :: obj
-        integer(i32) :: n
+        integer(int32) :: n
 
         ! Local Variables
         type(spline_interp), pointer :: interp
@@ -633,24 +634,24 @@ contains
     !!
     !! @param[in] obj The c_spline_interp object.
     !! @param[in] n The size of the buffer arrays.
-    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !! @param[out] x An N-element array where the x-coordinate data will be
     !!  written.
-    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !! @param[out] y An N-element array where the y-coordinate data will be
     !!  written.
     !!
     !! @par Remarks
-    !! If @p n is different than the actual number of points that exist, the 
+    !! If @p n is different than the actual number of points that exist, the
     !! lesser of the two values will be utilized.  The interpolation object
     !! can be queried to determine the quantity of stored points.
     subroutine splineinterp_get_pts_c(obj, n, x, y) &
             bind(C, name = "spline_interp_get_points")
         ! Arguments
         type(c_spline_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(out) :: x(n), y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(out) :: x(n), y(n)
 
         ! Local Variables
-        integer(i32) :: i, npts
+        integer(int32) :: i, npts
         type(spline_interp), pointer :: interp
 
         ! Process
@@ -676,9 +677,9 @@ contains
             bind(C, name = "spline_interp_diff1")
         ! Arguments
         type(c_spline_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(out) :: y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(out) :: y(n)
 
         ! Local Variables
         type(spline_interp), pointer :: interp
@@ -702,9 +703,9 @@ contains
             bind(C, name = "spline_interp_diff2")
         ! Arguments
         type(c_spline_interp), intent(in), target :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(out) :: y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(out) :: y(n)
 
         ! Local Variables
         type(spline_interp), pointer :: interp
@@ -725,9 +726,9 @@ contains
     !!
     !! @return The mean of @p x.
     pure function mean_c(n, x) result(z) bind(C, name = "mean")
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp) :: z
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64) :: z
         z = mean(x)
     end function
 
@@ -744,10 +745,10 @@ contains
     !!
     !! @return The median of @p x.
     function median_c(n, x, srt) result(z) bind(C, name = "median")
-        integer(i32), intent(in), value :: n
-        real(dp), intent(inout) :: x(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(inout) :: x(n)
         logical(c_bool), intent(in), value :: srt
-        real(dp) :: z
+        real(real64) :: z
         z = median(x, logical(srt))
     end function
 
@@ -761,12 +762,12 @@ contains
     !!
     !! @par Remarks
     !! To avoid overflow-type issues, Welford's algorithm is employed.  A simple
-    !! illustration of this algorithm can be found 
+    !! illustration of this algorithm can be found
     !! [here](https://www.johndcook.com/blog/standard_deviation/).
     pure function variance_c(n, x) result(v) bind(C, name = "variance")
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp) :: v
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64) :: v
         v = variance(x)
     end function
 
@@ -782,13 +783,13 @@ contains
     !!  desired, simply pass NULL, and errors will be dealt with by the default
     !!  internal error handler.  Possible errors that may be encountered are as
     !!  follows.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
     subroutine covariance_c(m, n, x, c, err) bind(C, name = "covariance")
         ! Arguments
-        integer(i32), intent(in), value :: m, n
-        real(dp), intent(in) :: x(m,n)
-        real(dp), intent(out) :: c(n,n)
+        integer(int32), intent(in), value :: m, n
+        real(real64), intent(in) :: x(m,n)
+        real(real64), intent(out) :: c(n,n)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
@@ -811,14 +812,14 @@ contains
     !!
     !! @return The standard deviation of @p x.
     pure function stdev_c(n, x) result(s) bind(C, name = "standard_deviation")
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp) :: s
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64) :: s
         s = standard_deviation(x)
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the confidence interval based upon a standard normal 
+    !> @brief Computes the confidence interval based upon a standard normal
     !! distribution.
     !!
     !! @param[in] n The number of data points.
@@ -840,17 +841,17 @@ contains
     !! @par Remarks
     !! The confidence interval, assuming a standard normal distribution, is
     !! as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the
-    !! standard deviation.  This routine computes the z * s / sqrt(n) portion 
+    !! standard deviation.  This routine computes the z * s / sqrt(n) portion
     !! leaving the computation of the mean to the user.
     function conf_int_c(n, x, alpha, use_t, err) result(c) &
             bind(C, name = "confidence_interval")
         ! Arguments
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(in), value :: alpha
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(in), value :: alpha
         logical(c_bool), intent(in), value :: use_t
         type(errorhandler), intent(inout) :: err
-        real(dp) :: c
+        real(real64) :: c
 
         ! Local Variables
         type(errors), pointer :: eptr
@@ -885,8 +886,8 @@ contains
     subroutine moving_average_c(n, x, npts, err) &
             bind(C, name = "moving_average")
         ! Arguments
-        integer(i32), intent(in), value :: n, npts
-        real(dp), intent(inout) :: x(n)
+        integer(int32), intent(in), value :: n, npts
+        real(real64), intent(inout) :: x(n)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
@@ -921,11 +922,11 @@ contains
     function linlsq_1var_c(n, x, y, err) result(a) &
             bind(C, name = "least_squares_fit_1var")
         ! Arguments
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(inout) :: y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(inout) :: y(n)
         type(errorhandler), intent(inout) :: err
-        real(dp) :: a
+        real(real64) :: a
 
         ! Local Variables
         type(errors), pointer :: eptr
@@ -974,10 +975,10 @@ contains
     subroutine linlsq_nvar_c(m, n, npts, x, y, a, err) &
             bind(C, name = "least_squares_fit_nvar")
         ! Arguments
-        integer(i32), intent(in), value :: m, n, npts
-        real(dp), intent(inout) :: x(n,npts)
-        real(dp), intent(in) :: y(m,npts)
-        real(dp), intent(out) :: a(m,n)
+        integer(int32), intent(in), value :: m, n, npts
+        real(real64), intent(inout) :: x(n,npts)
+        real(real64), intent(in) :: y(m,npts)
+        real(real64), intent(out) :: a(m,n)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
@@ -995,7 +996,7 @@ contains
 ! ******************************************************************************
 ! LOWESS SMOOTHING ROUTINES
 ! ------------------------------------------------------------------------------
-    !> @brief Retrieves the lowess_smoothing object from the C compatible 
+    !> @brief Retrieves the lowess_smoothing object from the C compatible
     !! c_lowess_smoothing data structure.
     !!
     !! @param[in] obj The C compatible c_lowess_smoothing object.
@@ -1023,9 +1024,9 @@ contains
     !!
     !! @param[out] obj The c_lowess_smoothing object.
     !! @param[in] n The number of data points.
-    !! @param[in] x An N-element array containing the x-coordinate data.  
-    !!  Ideally, the data set should be monotonically increasing; however, if 
-    !!  it is not, it may be sorted by the routine, dependent upon the value 
+    !! @param[in] x An N-element array containing the x-coordinate data.
+    !!  Ideally, the data set should be monotonically increasing; however, if
+    !!  it is not, it may be sorted by the routine, dependent upon the value
     !!  of @p srt.
     !! @param[in] y An N-element array containing the y-coordinate data.
     !! @param[in] srt A logical flag determining if @p x should be sorted.
@@ -1040,8 +1041,8 @@ contains
             bind(C, name = "alloc_lowess")
         ! Arguments
         type(c_lowess_smoothing), intent(out) :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: x(n), y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: x(n), y(n)
         logical(c_bool), intent(in), value :: srt
         type(errorhandler), intent(inout) :: err
 
@@ -1084,7 +1085,7 @@ contains
     !!
     !! @param[in,out] obj The c_lowess_smoothing object.
     !! @param[in] f Specifies the amount of smoothing.  More specifically, this
-    !! value is the fraction of points used to compute each value.  As this 
+    !! value is the fraction of points used to compute each value.  As this
     !! value increases, the output becomes smoother.  Choosing a value in the
     !! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
     !! starting point, in the absence of better information, is a value of 0.5.
@@ -1099,21 +1100,21 @@ contains
     !!  internal error handler.  Possible errors that may be encountered are as
     !!  follows.
     !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has been defined.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
     subroutine lowess_smooth_c(obj, f, n, y, err) &
             bind(C, name = "lowess_smooth")
         ! Arguments
         type(c_lowess_smoothing), intent(inout) :: obj
-        real(dp), intent(in), value :: f
-        integer(i32), intent(in), value :: n
-        real(dp), intent(out) :: y(n)
+        real(real64), intent(in), value :: f
+        integer(int32), intent(in), value :: n
+        real(real64), intent(out) :: y(n)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
         type(errors), pointer :: eptr
         type(lowess_smoothing), pointer :: ptr
-        integer(i32) :: npts
+        integer(int32) :: npts
 
         ! Process
         call get_errorhandler(err, eptr)
@@ -1137,7 +1138,7 @@ contains
             bind(C, name = "lowess_get_point_count")
         ! Arguments
         type(c_lowess_smoothing), intent(in) :: obj
-        integer(i32) :: n
+        integer(int32) :: n
 
         ! Local Variables
         type(lowess_smoothing), pointer :: ptr
@@ -1155,24 +1156,24 @@ contains
     !!
     !! @param[in] obj The c_lowess_smoothing object.
     !! @param[in] n The size of the buffer arrays.
-    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !! @param[out] x An N-element array where the x-coordinate data will be
     !!  written.
-    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !! @param[out] y An N-element array where the y-coordinate data will be
     !!  written.
     !!
     !! @par Remarks
-    !! If @p n is different than the actual number of points that exist, the 
+    !! If @p n is different than the actual number of points that exist, the
     !! lesser of the two values will be utilized.  The lowess_smoothing object
     !! can be queried to determine the quantity of stored points.
     subroutine lowess_get_pts_c(obj, n, x, y) &
             bind(C, name = "lowess_get_points")
         ! Arguments
         type(c_lowess_smoothing), intent(in) :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(out) :: x(n), y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(out) :: x(n), y(n)
 
         ! Local Variables
-        integer(i32) :: i, npts
+        integer(int32) :: i, npts
         type(lowess_smoothing), pointer :: ptr
 
         ! Process
@@ -1190,17 +1191,17 @@ contains
     !!
     !! @param[in] this The c_lowess_smoothing object.
     !! @param[in] n The number of elements available in the buffer array @p x.
-    !! @param[out] x An N-element array where the residual data should be 
+    !! @param[out] x An N-element array where the residual data should be
     !!  written.
     subroutine lowess_get_residual_c(obj, n, x) &
             bind(C, name = "lowess_get_residuals")
         ! Arguments
         type(c_lowess_smoothing), intent(in) :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(out) :: x(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(out) :: x(n)
 
         ! Local Variables
-        type(lowess_smoothing), pointer :: ptr 
+        type(lowess_smoothing), pointer :: ptr
 
         ! Process
         call get_lowess_smoothing(obj, ptr)
@@ -1259,8 +1260,8 @@ contains
             bind(C, name = "alloc_nonlinear_regression")
         ! Arguments
         type(c_nonlinear_regression), intent(out) :: obj
-        integer(i32), intent(in), value :: n, ncoeff
-        real(dp), intent(in) :: x(n), y(n)
+        integer(int32), intent(in), value :: n, ncoeff
+        real(real64), intent(in) :: x(n), y(n)
         type(c_funptr), intent(in), value :: fcn
         type(errorhandler), intent(inout) :: err
 
@@ -1311,7 +1312,7 @@ contains
     !! @param[in] n The number of coefficients to determine.
     !! @param[in,out] c On input, an array containing initial estimates of the
     !!  coefficients.  On output, the comptued coefficient values.
-    !! @param[out] ib An output parameter that allows the caller to obtain 
+    !! @param[out] ib An output parameter that allows the caller to obtain
     !!  iteration performance statistics.
     !! @param[in,out] err The errorhandler object.  If no error handling is
     !!  desired, simply pass NULL, and errors will be dealt with by the default
@@ -1332,8 +1333,8 @@ contains
             bind(C, name = "nonlinreg_solve")
         ! Arguments
         type(c_nonlinear_regression), intent(inout) :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(inout) :: c(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(inout) :: c(n)
         type(iteration_behavior), intent(out) :: ib
         type(errorhandler), intent(inout) :: err
 
@@ -1362,7 +1363,7 @@ contains
             bind(C, name = "nonlinreg_get_point_count")
         ! Arguments
         type(c_nonlinear_regression), intent(in) :: obj
-        integer(i32) :: n
+        integer(int32) :: n
 
         ! Local Variables
         type(cnonlin_reg_helper), pointer :: cptr
@@ -1375,29 +1376,29 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Gets a copy of the data points stored by the 
+    !> @brief Gets a copy of the data points stored by the
     !! c_nonlinear_regression object.
     !!
     !! @param[in] obj The c_nonlinear_regression object.
     !! @param[in] n The size of the buffer arrays.
-    !! @param[out] x An N-element array where the x-coordinate data will be 
+    !! @param[out] x An N-element array where the x-coordinate data will be
     !!  written.
-    !! @param[out] y An N-element array where the y-coordinate data will be 
+    !! @param[out] y An N-element array where the y-coordinate data will be
     !!  written.
     !!
     !! @par Remarks
-    !! If @p n is different than the actual number of points that exist, the 
+    !! If @p n is different than the actual number of points that exist, the
     !! lesser of the two values will be utilized.  The c_nonlinear_regression
     !! object can be queried to determine the quantity of stored points.
     subroutine nlr_get_pts_c(obj, n, x, y) &
             bind(C, name = "nonlinreg_get_points")
         ! Arguments
         type(c_nonlinear_regression), intent(in) :: obj
-        integer(i32), intent(in), value :: n
-        real(dp), intent(out) :: x(n), y(n)
+        integer(int32), intent(in), value :: n
+        real(real64), intent(out) :: x(n), y(n)
 
         ! Local Variables
-        integer(i32) :: i, npts
+        integer(int32) :: i, npts
         type(cnonlin_reg_helper), pointer :: ptr
 
         ! Process
@@ -1439,7 +1440,7 @@ contains
     !> @brief Sets  the nonlinear regression solver solution control parameters.
     !!
     !! @param[in,out] obj The c_nonlinear_regression object.
-    !! @param[in] cntrl The solver_control object that contains the current 
+    !! @param[in] cntrl The solver_control object that contains the current
     !!  solver control parameters.
     subroutine nlr_set_solver_params_c(obj, cntrl) &
             bind(C, name = "nonlinreg_set_solver_params")
@@ -1473,11 +1474,11 @@ contains
     subroutine crh_fcn(this, x, f)
         ! Arguments
         class(cnonlin_reg_helper), intent(in) :: this
-        real(dp), intent(in), dimension(:) :: x
-        real(dp), intent(out), dimension(:) :: f
+        real(real64), intent(in), dimension(:) :: x
+        real(real64), intent(out), dimension(:) :: f
 
         ! Local Variables
-        integer(i32) :: i, n, ncoeff
+        integer(int32) :: i, n, ncoeff
 
         ! Compute the value of the function at each value of x (get_x)
         n = this%get_equation_count()
@@ -1535,9 +1536,9 @@ contains
     subroutine seb_c(n, applied, output, fullscale, rst, err) &
             bind(C, name = "seb")
         ! Arguments
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: applied(n), output(n)
-        real(dp), intent(in), value :: fullscale
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: applied(n), output(n)
+        real(real64), intent(in), value :: fullscale
         type(seb_results), intent(out) :: rst
         type(errorhandler), intent(inout) :: err
 
@@ -1566,9 +1567,9 @@ contains
     function nonlin_c(n, applied, measured) result(rst) &
             bind(C, name = "nonlinearity")
         ! Arguments
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: applied(n), measured(n)
-        real(dp) :: rst
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: applied(n), measured(n)
+        real(real64) :: rst
 
         ! Process
         rst = nonlinearity(applied, measured)
@@ -1587,9 +1588,9 @@ contains
     function term_nonlin_c(n, applied, measured) result(rst) &
             bind(C, name = "terminal_nonlinearity")
         ! Argument
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: applied(n), measured(n)
-        real(dp) :: rst
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: applied(n), measured(n)
+        real(real64) :: rst
 
         ! Process
         rst = terminal_nonlinearity(applied, measured)
@@ -1608,9 +1609,9 @@ contains
     function hysteresis_c(n, applied, measured) result(rst) &
             bind(C, name = "hysteresis")
         ! Arguments
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: applied(n), measured(n)
-        real(dp) :: rst
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: applied(n), measured(n)
+        real(real64) :: rst
 
         ! Process
         rst = hysteresis(applied, measured)
@@ -1632,10 +1633,10 @@ contains
     function rtz_c(n, applied, measured, tol) result(rst) &
             bind(C, name = "return_to_zero")
         ! Arguments
-        integer(i32), intent(in), value :: n
-        real(dp), intent(in) :: applied(n), measured(n)
-        real(dp), intent(in), value :: tol
-        real(dp) :: rst
+        integer(int32), intent(in), value :: n
+        real(real64), intent(in) :: applied(n), measured(n)
+        real(real64), intent(in), value :: tol
+        real(real64) :: rst
 
         ! Process
         rst = return_to_zero(applied, measured, tol)
@@ -1654,17 +1655,17 @@ contains
     !! @return The largest magnitude deviation from the initial test.
     !!
     !! @par Remarks
-    !! Repeatability is considered as the largest magnitude deviation of 
-    !! subsequent tests from the initial test.  Noting that it is very likely 
-    !! that consecutive test points will vary slightly, test 2 through test N 
-    !! are linearly interpolated such that their test points line up with those 
+    !! Repeatability is considered as the largest magnitude deviation of
+    !! subsequent tests from the initial test.  Noting that it is very likely
+    !! that consecutive test points will vary slightly, test 2 through test N
+    !! are linearly interpolated such that their test points line up with those
     !! from test 1.
     function repeat_c(npts, ntests, applied, measured) result(rst) &
             bind(C, name = "repeatability")
         ! Arguments
-        integer(i32), intent(in), value :: npts, ntests
-        real(dp), intent(in) :: applied(npts, ntests), measured(npts, ntests)
-        real(dp) :: rst
+        integer(int32), intent(in), value :: npts, ntests
+        real(real64), intent(in) :: applied(npts, ntests), measured(npts, ntests)
+        real(real64) :: rst
 
         ! Process
         rst = repeatability(applied, measured)
@@ -1679,11 +1680,11 @@ contains
     !! @param[in] xerr An NPTS-by-NDOF matrix containing the measurement error
     !!  values (computed such that XERR = X MEASURED - X APPLIED).
     !! @param[in] indices A 2*NDOF element array containing row indices defining
-    !!  the rows where each degree-of-freedom was applied in the data set 
+    !!  the rows where each degree-of-freedom was applied in the data set
     !!  @p xerr.
     !! @param[out] xt An NDOF-by-NDOF matrix that, on output, will contain the
-    !!  crosstalk errors such that each loaded degree of freedom is represented 
-    !!  by its own row, and each responding degree of freedom is represented by 
+    !!  crosstalk errors such that each loaded degree of freedom is represented
+    !!  by its own row, and each responding degree of freedom is represented by
     !!  its own column.
     !! @param[in,out] err The errorhandler object.  If no error handling is
     !!  desired, simply pass NULL, and errors will be dealt with by the default
@@ -1694,10 +1695,10 @@ contains
     subroutine xtalk_c(npts, ndof, xerr, indices, xt, err) &
             bind(C, name = "crosstalk")
         ! Arguments
-        integer(i32), intent(in), value :: npts, ndof
-        real(dp), intent(in) :: xerr(npts, ndof)
-        integer(i32), intent(in) :: indices(2*ndof)
-        real(dp), intent(out) :: xt(ndof, ndof)
+        integer(int32), intent(in), value :: npts, ndof
+        real(real64), intent(in) :: xerr(npts, ndof)
+        integer(int32), intent(in) :: indices(2*ndof)
+        real(real64), intent(out) :: xt(ndof, ndof)
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables
@@ -1780,10 +1781,10 @@ contains
     subroutine split_c(n, x, na, ascend, nd, descend, nascend, ndescend, err) &
             bind(C, name = "split_ascend_descend")
         ! Arguments
-        integer(i32), intent(in), value :: n, na, nd
-        real(dp), intent(in) :: x(n)
-        real(dp), intent(out) :: ascend(na), descend(nd)
-        integer(i32), intent(out) :: nascend, ndescend
+        integer(int32), intent(in), value :: n, na, nd
+        real(real64), intent(in) :: x(n)
+        real(real64), intent(out) :: ascend(na), descend(nd)
+        integer(int32), intent(out) :: nascend, ndescend
         type(errorhandler), intent(inout) :: err
 
         ! Local Variables

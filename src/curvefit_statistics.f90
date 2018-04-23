@@ -3,9 +3,10 @@
 !> @brief \b curvefit_statistics
 !!
 !! @par Purpose
-!! To provide a set of statistical routines for exploring curve fits of sets 
+!! To provide a set of statistical routines for exploring curve fits of sets
 !! of numeric data.
 module curvefit_statistics
+    use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core
     use ferror, only : errors
     use linalg_sorting, only : sort
@@ -58,28 +59,28 @@ module curvefit_statistics
     end interface
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the confidence interval based upon a standard normal 
+    !> @brief Computes the confidence interval based upon a standard normal
     !! distribution.
     interface confidence_interval
         module procedure :: conf_int
     end interface
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the z-value (z-score) given a percentage of the area 
+    !> @brief Computes the z-value (z-score) given a percentage of the area
     !! under the standard normal distribution curve.
     interface z_value
         module procedure :: std_norm_dist_z_score
     end interface
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the t-value (t-score) given a percentage of the area 
+    !> @brief Computes the t-value (t-score) given a percentage of the area
     !! under the standard normal distribution curve.
     interface t_value
         module procedure :: t_dist_score
     end interface
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the incomplete gamma function: 
+    !> @brief Computes the incomplete gamma function:
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
     interface incomplete_gamma
         module procedure :: incomplete_gamma_scalar
@@ -87,8 +88,8 @@ module curvefit_statistics
     end interface
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the complement of the incomplete gamma function: 
-    !! Q(a,x) = 1 - P(a,x), where 
+    !> @brief Computes the complement of the incomplete gamma function:
+    !! Q(a,x) = 1 - P(a,x), where
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
     interface incomplete_gamma_comp
         module procedure :: incomplete_gamma_comp_scalar
@@ -115,14 +116,14 @@ contains
     !! @return The mean of @p x.
     pure function mean_dbl(x) result(z)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x
-        real(dp) :: z
+        real(real64), intent(in), dimension(:) :: x
+        real(real64) :: z
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, n
+        integer(int32) :: i, n
 
         ! Process
         n = size(x)
@@ -144,23 +145,23 @@ contains
     !!  may be sorted by the routine, dependent upon the value of @p srt.  On
     !!  output, the array contents are unchanged; however, they may be sorted
     !!  into ascending order (dependent upon the value of @p srt).
-    !! @param[in] srt An optional flag determining if @p x should be sorted. 
+    !! @param[in] srt An optional flag determining if @p x should be sorted.
     !!  The default is to sort (true).
     !!
     !! @return The median of @p x.
     function median_dbl(x, srt) result(z)
         ! Arguments
-        real(dp), intent(inout), dimension(:) :: x
+        real(real64), intent(inout), dimension(:) :: x
         logical, intent(in), optional :: srt
-        real(dp) :: z
+        real(real64) :: z
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: half = 0.5d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: half = 0.5d0
 
         ! Local Variables
         logical :: sortData
-        integer(i32) :: n, iflag, nmid, nmidp1
+        integer(int32) :: n, iflag, nmid, nmidp1
 
         ! Initialization
         n = size(x)
@@ -196,20 +197,20 @@ contains
     !!
     !! @par Remarks
     !! To avoid overflow-type issues, Welford's algorithm is employed.  A simple
-    !! illustration of this algorithm can be found 
+    !! illustration of this algorithm can be found
     !! [here](https://www.johndcook.com/blog/standard_deviation/).
     pure function variance_dbl(x) result(v)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x
-        real(dp) :: v
+        real(real64), intent(in), dimension(:) :: x
+        real(real64) :: v
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
-        integer(i32) :: i, n
-        real(dp) :: oldMean, newMean
+        integer(int32) :: i, n
+        real(real64) :: oldMean, newMean
 
         ! Process
         n = size(x)
@@ -242,17 +243,17 @@ contains
     !! @return The 2-by-2 covariance matrix.
     function covariance_2sets(x, y, err) result(c)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x, y
+        real(real64), intent(in), dimension(:) :: x, y
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(2,2) :: c
+        real(real64), dimension(2,2) :: c
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
-        integer(i32) :: i, n
-        real(dp) :: oldMeanX, newMeanX, oldMeanY, newMeanY
+        integer(int32) :: i, n
+        real(real64) :: oldMeanX, newMeanX, oldMeanY, newMeanY
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -300,23 +301,23 @@ contains
     !!  execution.  If not provided, a default implementation of the errors
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
     !!
     !! @return The N-by-N covariance matrix.
     function covariance_mtx(x, err) result(c)
         ! Arguments
-        real(dp), intent(in), dimension(:,:) :: x
+        real(real64), intent(in), dimension(:,:) :: x
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(x, 2), size(x, 2)) :: c
+        real(real64), dimension(size(x, 2), size(x, 2)) :: c
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
-        integer(i32) :: i, k, m, n, flag
-        real(dp), allocatable, dimension(:) :: oldMeans, newMeans
+        integer(int32) :: i, k, m, n, flag
+        real(real64), allocatable, dimension(:) :: oldMeans, newMeans
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -364,15 +365,15 @@ contains
     !! @return The standard deviation of @p x.
     pure function stdev_dbl(x) result(s)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x
-        real(dp) :: s
+        real(real64), intent(in), dimension(:) :: x
+        real(real64) :: s
 
         ! Process
         s = sqrt(variance(x))
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the confidence interval based upon a standard normal 
+    !> @brief Computes the confidence interval based upon a standard normal
     !! distribution.
     !!
     !! @param[in] x The data set.
@@ -395,23 +396,23 @@ contains
     !! @par Remarks
     !! The confidence interval, assuming a standard normal distribution, is
     !! as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the
-    !! standard deviation.  This routine computes the z * s / sqrt(n) portion 
+    !! standard deviation.  This routine computes the z * s / sqrt(n) portion
     !! leaving the computation of the mean to the user.
     function conf_int(x, alpha, use_t, err) result(ci)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x
-        real(dp), intent(in) :: alpha
+        real(real64), intent(in), dimension(:) :: x
+        real(real64), intent(in) :: alpha
         logical, intent(in), optional :: use_t
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: ci
+        real(real64) :: ci
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
         logical :: ut
-        real(dp) :: n, sigma, z
+        real(real64) :: n, sigma, z
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -448,7 +449,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the z-value (z-score) given a percentage of the area 
+    !> @brief Computes the z-value (z-score) given a percentage of the area
     !! under the standard normal distribution curve.
     !!
     !! @param[in] alpha The percentage of the area under the curve.  This value
@@ -461,7 +462,7 @@ contains
     !!  - CF_INVALID_INPUT_ERROR: Occurs if @p alpha is does not satisfy:
     !!      0 < alpha < 1.
     !!
-    !! @return The z-score or z-value by solving for z where: 
+    !! @return The z-score or z-value by solving for z where:
     !!  alpha = ERF(z / sqrt(2)), where ERF is the error function.
     function std_norm_dist_z_score(alpha, err) result(z)
         ! Supporting Modules
@@ -469,15 +470,15 @@ contains
         use nonlin_solve, only : brent_solver
 
         ! Arguments
-        real(dp), intent(in) :: alpha
-        real(dp) :: z
+        real(real64), intent(in) :: alpha
+        real(real64) :: z
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: two = 2.0d0
-        real(dp), parameter :: ten = 1.0d1
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: two = 2.0d0
+        real(real64), parameter :: ten = 1.0d1
 
         ! Local Variables
         type(fcn1var_helper) :: obj
@@ -511,8 +512,8 @@ contains
     contains
         ! Compute the solution to: alpha = erf(z / sqrt(2)) for z
         function zfun(x) result(f)
-            real(dp), intent(in) :: x
-            real(dp) :: f
+            real(real64), intent(in) :: x
+            real(real64) :: f
             f = alpha - erf(x / sqrt(two))
         end function
     end function
@@ -520,7 +521,7 @@ contains
 ! ******************************************************************************
 ! STUDENT'S T DISTRIBUTIONS ROUTINES
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the t-value (t-score) given a percentage of the area 
+    !> @brief Computes the t-value (t-score) given a percentage of the area
     !! under the standard normal distribution curve.
     !!
     !! @param[in] alpha The percentage of the area under the curve.  This value
@@ -540,16 +541,16 @@ contains
         use nonlin_solve, only : brent_solver
 
         ! Arguments
-        real(dp), intent(in) :: alpha
-        integer(i32), intent(in) :: n
-        real(dp) :: t
+        real(real64), intent(in) :: alpha
+        integer(int32), intent(in) :: n
+        real(real64) :: t
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: p5 = 0.5d0
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: ten = 1.0d1
+        real(real64), parameter :: p5 = 0.5d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: ten = 1.0d1
 
         ! Local Variables
         type(fcn1var_helper) :: obj
@@ -583,8 +584,8 @@ contains
         ! Compute the solution to: alpha = 1 - 1/2 * Ix(v/2, 1/2), where
         ! Ix is the incomplete beta function, and v = # of DOF.
         function tfun(x) result(f)
-            real(dp), intent(in) :: x
-            real(dp) :: f, v, xx
+            real(real64), intent(in) :: x
+            real(real64) :: f, v, xx
             v = n - 1
             xx = v / (v + x**2)
             f = alpha - (1 - incomplete_beta(p5 * v, p5, xx))
@@ -594,7 +595,7 @@ contains
 ! ******************************************************************************
 ! GAMMA FUNCTION ROUTINES
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the incomplete gamma function: 
+    !> @brief Computes the incomplete gamma function:
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
     !!
     !! @param[in] a The coefficient.  This parameter must be positive-valued.
@@ -615,13 +616,13 @@ contains
     !! found in section 6.2 of the text (routine: gammp).
     function incomplete_gamma_scalar(a, x, err) result(g)
         ! Arguments
-        real(dp), intent(in) :: a, x
+        real(real64), intent(in) :: a, x
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: g
+        real(real64) :: g
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
@@ -656,7 +657,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the incomplete gamma function: 
+    !> @brief Computes the incomplete gamma function:
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
     !!
     !! @param[in] a The coefficient.  This parameter must be positive-valued.
@@ -677,20 +678,20 @@ contains
     !! found in section 6.2 of the text (routine: gammp).
     function incomplete_gamma_array(a, x, err) result(g)
         ! Arguments
-        real(dp), intent(in) :: a
-        real(dp), intent(in), dimension(:) :: x
+        real(real64), intent(in) :: a
+        real(real64), intent(in), dimension(:) :: x
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(x)) :: g
+        real(real64), dimension(size(x)) :: g
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
         logical :: check
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: i, n
+        integer(int32) :: i, n
 
         ! Initialization
         if (present(err)) then
@@ -731,8 +732,8 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the complement of the incomplete gamma function: 
-    !! Q(a,x) = 1 - P(a,x), where 
+    !> @brief Computes the complement of the incomplete gamma function:
+    !! Q(a,x) = 1 - P(a,x), where
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
     !!
     !! @param[in] a The coefficient.  This parameter must be positive-valued.
@@ -753,13 +754,13 @@ contains
     !! found in section 6.2 of the text (routine: gammq).
     function incomplete_gamma_comp_scalar(a, x, err) result(g)
         ! Arguments
-        real(dp), intent(in) :: a, x
+        real(real64), intent(in) :: a, x
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: g
+        real(real64) :: g
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
@@ -794,8 +795,8 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the complement of the incomplete gamma function: 
-    !! Q(a,x) = 1 - P(a,x), where 
+    !> @brief Computes the complement of the incomplete gamma function:
+    !! Q(a,x) = 1 - P(a,x), where
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x).
     !!
     !! @param[in] a The coefficient.  This parameter must be positive-valued.
@@ -816,19 +817,19 @@ contains
     !! found in section 6.2 of the text (routine: gammq).
     function incomplete_gamma_comp_array(a, x, err) result(g)
         ! Arguments
-        real(dp), intent(in) :: a
-        real(dp), intent(in), dimension(:) :: x
+        real(real64), intent(in) :: a
+        real(real64), intent(in), dimension(:) :: x
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(x)) :: g
+        real(real64), dimension(size(x)) :: g
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(i32) :: i, n
+        integer(int32) :: i, n
         logical :: check
 
         ! Initialization
@@ -870,7 +871,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the incomplete gamma function: 
+    !> @brief Computes the incomplete gamma function:
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x)
     !! is computed by its series representation.
     !!
@@ -884,17 +885,17 @@ contains
     !! found in section 6.2 of the text (routine: gser).
     pure function inc_gamma_series(a, x) result(g)
         ! Arguments
-        real(dp), intent(in) :: a, x
-        real(dp) :: g
+        real(real64), intent(in) :: a, x
+        real(real64) :: g
 
         ! Parameters
-        integer(i32), parameter :: itmax = 500
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
+        integer(int32), parameter :: itmax = 500
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
-        integer(i32) :: n
-        real(dp) :: ap, del, sm, gln, eps
+        integer(int32) :: n
+        real(real64) :: ap, del, sm, gln, eps
 
         ! Initialization
         eps = epsilon(eps)
@@ -917,8 +918,8 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes the incomplete gamma function: 
-    !! Q(a,x) = 1 - P(a,x), where 
+    !> @brief Computes the incomplete gamma function:
+    !! Q(a,x) = 1 - P(a,x), where
     !! P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1), t, 0, x)
     !! is computed by Lentz's continued fraction approach.
     !!
@@ -932,18 +933,18 @@ contains
     !! found in section 6.2 of the text (routine: gcf).
     pure function inc_gamma_cf(a, x) result(g)
         ! Arguments
-        real(dp), intent(in) :: a, x
-        real(dp) :: g
+        real(real64), intent(in) :: a, x
+        real(real64) :: g
 
         ! Parameters
-        integer(i32), parameter :: itmax = 500
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: two = 2.0d0
+        integer(int32), parameter :: itmax = 500
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: two = 2.0d0
 
         ! Local Variables
-        integer(i32) :: i
-        real(dp) :: an, b, c, d, del, h, gln, eps, fpmin
+        integer(int32) :: i
+        real(real64) :: an, b, c, d, del, h, gln, eps, fpmin
 
         ! Initialization
         eps = epsilon(eps)
@@ -988,18 +989,18 @@ contains
     !!  execution.  If not provided, a default implementation of the errors
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
-    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is not within its allowed 
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is not within its allowed
     !!      range.
     function inc_beta_scalar(a, b, x, err) result(beta)
         ! Arguments
-        real(dp), intent(in) :: a, b, x
+        real(real64), intent(in) :: a, b, x
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: beta
+        real(real64) :: beta
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: two = 2.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: two = 2.0d0
 
         ! Local Variables
         class(errors), pointer :: errmgr
@@ -1048,23 +1049,23 @@ contains
     !!  execution.  If not provided, a default implementation of the errors
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
-    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is not within its allowed 
+    !!  - CF_INVALID_INPUT_ERROR: Occurs if @p x is not within its allowed
     !!      range.
     function inc_beta_array(a, b, x, err) result(beta)
         ! Arguments
-        real(dp), intent(in) :: a, b
-        real(dp), intent(in), dimension(:) :: x
+        real(real64), intent(in) :: a, b
+        real(real64), intent(in), dimension(:) :: x
         class(errors), intent(inout), optional, target :: err
-        real(dp), dimension(size(x)) :: beta
+        real(real64), dimension(size(x)) :: beta
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: one = 1.0d0
-        real(dp), parameter :: two = 2.0d0
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: one = 1.0d0
+        real(real64), parameter :: two = 2.0d0
 
         ! Local Variables
         logical :: check
-        integer(i32) :: i, n
+        integer(int32) :: i, n
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -1118,16 +1119,16 @@ contains
     !! @return The result.
     function inc_beta_cf(a, b, x) result(beta)
         ! Arguments
-        real(dp), intent(in) :: a, b, x
-        real(dp) :: beta
+        real(real64), intent(in) :: a, b, x
+        real(real64) :: beta
 
         ! Parameters
-        integer(i32), parameter :: itmax = 500
-        real(dp), parameter :: one = 1.0d0
+        integer(int32), parameter :: itmax = 500
+        real(real64), parameter :: one = 1.0d0
 
         ! Local Variables
-        integer(i32) :: m, m2
-        real(dp) :: eps, fpmin, aa, c, d, del, h, qab, qam, qap
+        integer(int32) :: m, m2
+        real(real64) :: eps, fpmin, aa, c, d, del, h, qab, qam, qap
 
         ! Initialization
         eps = epsilon(eps)
