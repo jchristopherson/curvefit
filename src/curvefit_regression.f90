@@ -41,7 +41,7 @@ module curvefit_regression
 ! ******************************************************************************
 ! TYPES
 ! ------------------------------------------------------------------------------
-    !> @brief Defines a type for computing a smoothing of an X-Y data set using 
+    !> @brief Defines a type for computing a smoothing of an X-Y data set using
     !! a robust locally weighted scatterplot smoothing (LOWESS) algorithm.
     type lowess_smoothing
         private
@@ -49,12 +49,12 @@ module curvefit_regression
         real(dp), allocatable, dimension(:) :: m_x
         !> N-element array of y data points.
         real(dp), allocatable, dimension(:) :: m_y
-        !> N-element array containing the robustness weights for each data 
+        !> N-element array containing the robustness weights for each data
         !! point.
         real(dp), allocatable, dimension(:) :: m_weights
         !> N-element array containing the residuals (Y - YS)
         real(dp), allocatable, dimension(:) :: m_residuals
-        !> Scaling parameter used to define the nature of the linear 
+        !> Scaling parameter used to define the nature of the linear
         !! interpolations used by the algorithm.
         real(dp) :: m_delta
         !> Tracks whether or not ls_init has been called
@@ -103,7 +103,7 @@ module curvefit_regression
         procedure, public :: get_equation_count => nr_get_eqn_count
         !> @brief Gets the number of variables (coefficients).
         procedure, public :: get_variable_count => nr_get_var_count
-        !> @brief Computes the solution to the nonlinear regression problem 
+        !> @brief Computes the solution to the nonlinear regression problem
         !! using the Levenberg-Marquardt method.
         procedure, public :: solve => nr_solve
         !> @brief Gets the maximum number of function evaluations allowed during
@@ -216,19 +216,19 @@ contains
 ! ******************************************************************************
 ! LOCAL REGRESSION - LOWESS
 ! ------------------------------------------------------------------------------
-    !> @brief A support routine for the LOWESS library used to compute the 
+    !> @brief A support routine for the LOWESS library used to compute the
     !! smoothing of a desired value from a data set.
     !!
     !! @param[in] x An N-element containing the independent variable values of
     !!  the data set.  This array must be in a monotonically increasing order.
     !! @param[in] y  An N-element array of the dependent variables corresponding
     !!  to @p x.
-    !! @param[in] xs The value of the independent variable at which the 
+    !! @param[in] xs The value of the independent variable at which the
     !!  smoothing is computed.
     !! @param[out] ys The fitted value.
-    !! @param[in] nleft The index of the first point which should be considered 
+    !! @param[in] nleft The index of the first point which should be considered
     !!  in computing the fit.
-    !! @param[in] nright The index of the last point which should be considered 
+    !! @param[in] nright The index of the last point which should be considered
     !!  in computing the fit.
     !! @param[out] w An N-element array that, on output, contains the weights
     !!  for @p y in the expression for @p ys.
@@ -241,7 +241,7 @@ contains
     !! @par Remarks
     !! This routines is an implementation of the LOWEST routine from the LOWESS
     !! library.  A link to this library, along with a basic description of the
-    !! algorithm is available 
+    !! algorithm is available
     !! [here](https://en.wikipedia.org/wiki/Local_regression).  For a detailed
     !! understanding of the algorithm, see the [paper]
     !! (http://www.aliquote.org/cours/2012_biomed/biblio/Cleveland1979.pdf) by
@@ -322,7 +322,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    !> @brief Computes a smoothing of an X-Y data set using a robust locally 
+    !> @brief Computes a smoothing of an X-Y data set using a robust locally
     !! weighted scatterplot smoothing (LOWESS) algorithm.  Fitted values are
     !! computed at each of the supplied x values.
     !!
@@ -331,21 +331,21 @@ contains
     !! @param[in] y  An N-element array of the dependent variables corresponding
     !!  to @p x.
     !! @param[in] f Specifies the amount of smoothing.  More specifically, this
-    !! value is the fraction of points used to compute each value.  As this 
+    !! value is the fraction of points used to compute each value.  As this
     !! value increases, the output becomes smoother.  Choosing a value in the
     !! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
     !! starting point, in the absence of better information, is a value of 0.5.
     !! @param[in] nsteps The number of iterations in the robust fit.  If set to
     !!  zero, a nonrobust fit is returned.  Seeting this parameter equal to 2
     !!  should serve most purposes.
-    !! @param[in] delta A nonnegative parameter which may be used to save 
+    !! @param[in] delta A nonnegative parameter which may be used to save
     !!  computations.  If N is less than 100, set delta equal to 0.0.  If N is
-    !!  larger than 100, set delta = range(x) / k, where k determines the 
-    !!  interpolation window used by the linear weighted regression 
+    !!  larger than 100, set delta = range(x) / k, where k determines the
+    !!  interpolation window used by the linear weighted regression
     !!  computations.
     !! @param[out] ys An N-element array that, on output, contains the fitted
     !!  values.
-    !! @param[out] rw  An N-element array that, on output, contains the 
+    !! @param[out] rw  An N-element array that, on output, contains the
     !!  robustness weights given to each data point.
     !! @param[out] rs An N-element array that, on output, contains the residual
     !!  @p y - @p ys.
@@ -353,7 +353,7 @@ contains
     !! @par Remarks
     !! This routines is an implementation of the LOWESS routine from the LOWESS
     !! library.  A link to this library, along with a basic description of the
-    !! algorithm is available 
+    !! algorithm is available
     !! [here](https://en.wikipedia.org/wiki/Local_regression).  For a detailed
     !! understanding of the algorithm, see the [paper]
     !! (http://www.aliquote.org/cours/2012_biomed/biblio/Cleveland1979.pdf) by
@@ -459,11 +459,11 @@ contains
     !! @param[in] x An N-element containing the independent variable values of
     !!  the data set.  This array must be in a monotonically increasing order.
     !!  The routine is capable of sorting the array into ascending order,
-    !!  dependent upon the value of @p srt.  If sorting is performed, this 
+    !!  dependent upon the value of @p srt.  If sorting is performed, this
     !!  routine will also shuffle @p y to match.
     !! @param[in] y  An N-element array of the dependent variables corresponding
     !!  to @p x.
-    !! @param[in] srt An optional flag determining if @p x should be sorted. 
+    !! @param[in] srt An optional flag determining if @p x should be sorted.
     !!  The default is to sort (true).
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -551,7 +551,7 @@ contains
     !!
     !! @param[in,out] this The lowess_smoothing object.
     !! @param[in] f Specifies the amount of smoothing.  More specifically, this
-    !! value is the fraction of points used to compute each value.  As this 
+    !! value is the fraction of points used to compute each value.  As this
     !! value increases, the output becomes smoother.  Choosing a value in the
     !! range of 0.2 to 0.8 usually results in a good fit.  As such, a reasonable
     !! starting point, in the absence of better information, is a value of 0.5.
@@ -561,7 +561,7 @@ contains
     !!  class is used internally to provide error handling.  Possible errors and
     !!  warning messages that may be encountered are as follows.
     !!  - CF_NO_DATA_DEFINED_ERROR: Occurs if no data has been defined.
-    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory 
+    !!  - CF_OUT_OF_MEMORY_ERROR: Occurs if there is insufficient memory
     !!      available.
     !!
     !! @return The smoothed data points.
@@ -607,7 +607,7 @@ contains
     !> @brief Gets the number of stored data points.
     !!
     !! @param[in] this The lowess_smoothing object.
-    !! 
+    !!
     !! @return The number of data points.
     pure function ls_get_num_pts(this) result(n)
         class(lowess_smoothing), intent(in) :: this
@@ -659,7 +659,7 @@ contains
     !> @brief Gets the residuals from each data point.
     !!
     !! @param[in] this The lowess_smoothing object.
-    !! @param[out] x An N-element array where the residual data should be 
+    !! @param[out] x An N-element array where the residual data should be
     !!  written.
     subroutine ls_get_residual(this, x)
         ! Arguments
@@ -1010,7 +1010,7 @@ contains
     !> @brief Gets the number of stored data points.
     !!
     !! @param[in] this The nonlinear_regression object.
-    !! 
+    !!
     !! @return The number of data points.
     pure function nr_get_num_pts(this) result(n)
         class(nonlinear_regression), intent(in) :: this
@@ -1136,16 +1136,29 @@ contains
     !! @return An N-by-M matrix relating Y to X such that: Y = A * X.
     !!
     !! @par Remarks
-    !! The algorithm attempts to compute the coefficient matrix A as follows.
-    !! Y * X**T = A * X * X**T
-    !! Y * X**T * INV(X * X**T) = A
-    !! This does require that X * X**T does not result in a singular matrix.  To
-    !! handle the situation where X * X**T is singular, the Moore-Penrose
-    !! pseudo-inverse, computed by means of singular value decomposition, is
-    !! utilized to still arrive at a solution that, at minimum, has a minimum
-    !! Euclidean norm of its residual.
-    !! Let: PINV(X) = X**T * INV(X * X**T),
-    !! Then: A = Y * PINV(X)
+    !! The algorithm to compute the coefficient matrix A is as follows.
+    !! @verbatim
+    !! First, multiply through by the pseudo-inverse of A (pinv(A))
+    !! pinv(A) * Y = pinv(A) * A * X
+    !!
+    !! Next, post multiply by the pseudo-inverse of Y
+    !! pinv(A) * Y * pinv(Y) = pinv(A) * A * X * pinv(Y)
+    !!
+    !! Note, Y * pinv(Y) = I
+    !! Also, let D = pinv(A) * A, and let B = X * pinv(Y)
+    !!
+    !! Then,
+    !! pinv(A) = D * B
+    !!
+    !! Solving for A
+    !! A = pinv(D * B) = pinv(D) * pinv(B)
+    !!
+    !! Remembering that D = pinv(A) * A
+    !! A = pinv(pinv(A) * A) * pinv(B) = A * pinv(A) * pinv(B)
+    !!
+    !! Noting A * pinv(A) = I
+    !! A = pinv(B)
+    !! @endverbatim
     function linear_least_squares_nvar(x, y, thrsh, err) result(a)
         ! Arguments
         real(dp), intent(inout), dimension(:,:) :: x
@@ -1162,7 +1175,8 @@ contains
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         integer(i32) :: m, n, p, flag
-        real(dp), allocatable, dimension(:,:) :: xinv
+        real(dp), allocatable, dimension(:,:) :: b, yinv
+        ! real(dp), allocatable, dimension(:,:) :: xinv
 
         ! Initialization
         m = size(x, 1)
@@ -1184,19 +1198,42 @@ contains
         end if
 
         ! Local Memory Allocation
-        allocate(xinv(p, m), stat = flag)
+        allocate(yinv(p, n), stat = flag)
+        if (flag == 0) allocate(b(m, n), stat = flag)
+
         if (flag /= 0) then
             call errmgr%report_error("linear_least_squares_nvar", &
                 "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
             return
         end if
 
-        ! Compute the pseudo-inverse of X
-        call mtx_pinverse(x, xinv, tol = thrsh, err = errmgr)
+        ! Compute the pseudo-inverse of Y
+        call mtx_pinverse(y, yinv, tol = thrsh, err = errmgr)
         if (errmgr%has_error_occurred()) return
 
-        ! Compute A = Y * pinv(X)
-        call mtx_mult(.false., .false., one, y, xinv, zero, a)
+        ! Compute B = X * pinv(Y)
+        call mtx_mult(.false., .false., one, x, yinv, zero, b)
+
+        ! Compute A = pinv(B)
+        call mtx_pinverse(b, a, tol = thrsh, err = errmgr)
+
+        ! ----------------------------------------------------------------------
+        ! Previous code, replaced with the above code by JAC on 23-April, 2018
+        ! ! Local Memory Allocation
+        ! allocate(xinv(p, m), stat = flag)
+        ! if (flag /= 0) then
+        !     call errmgr%report_error("linear_least_squares_nvar", &
+        !         "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+        !     return
+        ! end if
+        !
+        ! ! Compute the pseudo-inverse of X
+        ! call mtx_pinverse(x, xinv, tol = thrsh, err = errmgr)
+        ! if (errmgr%has_error_occurred()) return
+        !
+        ! ! Compute A = Y * pinv(X)
+        ! call mtx_mult(.false., .false., one, y, xinv, zero, a)
+        ! ----------------------------------------------------------------------
     end function
 
 ! ------------------------------------------------------------------------------
