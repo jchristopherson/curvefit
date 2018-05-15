@@ -133,46 +133,15 @@ add_subdirectory(src)
 # ------------------------------------------------------------------------------
 # EXAMPLES
 # ------------------------------------------------------------------------------
-# option(BUILD_CURVEFIT_EXAMPLES "Build CURVEFIT examples?" OFF)
-# if (BUILD_CURVEFIT_EXAMPLES)
-#   # Inform the user we're building the examples
-#   message(STATUS "Building CURVEFIT examples.")
-#
-#   # Interpolation Example
-#   add_executable(curvefit_interp_example examples/curvefit_interp_example.f90)
-#   target_link_libraries(curvefit_interp_example curvefit)
-#
-#   # LOWESS Example
-#   add_executable(curvefit_lowess_example examples/curvefit_lowess_example.f90)
-#   target_link_libraries(curvefit_lowess_example curvefit)
-#
-#   # Nonlinear Regression Example
-#   add_executable(curvefit_nlreg_example examples/curvefit_nlreg_example.f90)
-#   target_link_libraries(curvefit_nlreg_example curvefit)
-#
-#   # Calibration Example
-#   add_executable(curvefit_cal_example examples/curvefit_cal_example.f90)
-#   target_link_libraries(curvefit_cal_example curvefit)
-#
-# # --------------------
-#   include_directories(${PROJECT_SOURCE_DIR}/include
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/include
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/include
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/src/external/ferror/include)
-#
-#   # Linear Interpolation Example
-#   add_executable(curvefit_c_interp_example examples/curvefit_c_interp_example.c)
-#   target_link_libraries(curvefit_c_interp_example curvefit)
-#
-#   # LOWESS Example
-#   add_executable(curvefit_c_lowess_example examples/curvefit_c_lowess_example.c)
-#   target_link_libraries(curvefit_c_lowess_example curvefit m)
-#
-#   # Nonlinear Regression Example
-#   add_executable(curvefit_c_nlreg_example examples/curvefit_c_nlreg_example.c)
-#   target_link_libraries(curvefit_c_nlreg_example curvefit)
-# endif()
-#
+option(BUILD_CURVEFIT_EXAMPLES "Build CURVEFIT examples?" OFF)
+if (BUILD_CURVEFIT_EXAMPLES)
+  # Inform the user we're building the examples
+  message(STATUS "Building CURVEFIT examples.")
+
+  # Build the examples
+  add_subdirectory(examples)
+endif()
+
 # # ------------------------------------------------------------------------------
 # # TESTS
 # # ------------------------------------------------------------------------------

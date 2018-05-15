@@ -1,6 +1,7 @@
 ! curvefit_nlreg_example.f90
 
 program example
+    use iso_fortran_env
     use curvefit_core
     use curvefit_regression
     implicit none
@@ -8,8 +9,8 @@ program example
     ! Local Variables
     type(nonlinear_regression) :: solver
     procedure(reg_fcn), pointer :: fcn
-    real(dp) :: xp(21), yp(21), cp(4), yf(21)
-    integer(i32) :: i, id
+    real(real64) :: xp(21), yp(21), cp(4), yf(21)
+    integer(int32) :: i, id
 
     ! Define the data to fit (21 data points)
     xp = [0.0d0, 0.1d0, 0.2d0, 0.3d0, 0.4d0, 0.5d0, 0.6d0, 0.7d0, 0.8d0, &
@@ -21,7 +22,7 @@ program example
         3.412756702d0, 4.406137221d0, 4.567156645d0, 4.999550779d0, &
         5.652854194d0, 6.784320119d0, 8.307936836d0, 8.395126494d0, &
         10.30252404d0]
-    
+
     ! Define an initial estimate of the coefficients
     cp = 1.0d0 ! Set all coefficients to an initial guess of 1
 
@@ -50,9 +51,9 @@ program example
 contains
     ! The function to fit
     function nrfun(x, c) result(f)
-        real(dp), intent(in) :: x
-        real(dp), intent(in), dimension(:) :: c
-        real(dp) :: f
+        real(real64), intent(in) :: x
+        real(real64), intent(in), dimension(:) :: c
+        real(real64) :: f
         f = c(1) * x**3 + c(2) * x**2 + c(3) * x + c(4)
     end function
 end program

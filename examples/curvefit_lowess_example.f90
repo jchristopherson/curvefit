@@ -1,18 +1,19 @@
 ! curvefit_lowess_example.f90
 
 program example
-    use curvefit_core
+    use iso_fortran_env
     use curvefit_regression
+    use curvefit_core
     implicit none
 
     ! Parameters
-    integer(i32), parameter :: n = 100
-    real(dp), parameter :: maxX = 1.0d0
-    real(dp), parameter :: minX = 0.0d0
+    integer(int32), parameter :: n = 100
+    real(real64), parameter :: maxX = 1.0d0
+    real(real64), parameter :: minX = 0.0d0
 
     ! Local Variables
-    integer(i32) :: i, id
-    real(dp) :: x(n), y(n), yr(n), ys(n), ys2(n), dx, cnl(5), ynl(n)
+    integer(int32) :: i, id
+    real(real64) :: x(n), y(n), yr(n), ys(n), ys2(n), dx, cnl(5), ynl(n)
     type(lowess_smoothing) :: fit
     type(nonlinear_regression) :: solver
     procedure(reg_fcn), pointer :: fcn
@@ -61,9 +62,9 @@ program example
 
 contains
     function nrfun(xp, c) result(fn)
-        real(dp), intent(in) :: xp
-        real(dp), intent(in), dimension(:) :: c
-        real(dp) :: fn
+        real(real64), intent(in) :: xp
+        real(real64), intent(in), dimension(:) :: c
+        real(real64) :: fn
         fn = c(1) * sin(c(2) * xp) + c(3) * cos(c(4) * xp) * exp(c(5) * xp)
     end function
 
