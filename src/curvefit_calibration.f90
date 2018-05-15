@@ -44,7 +44,7 @@ module curvefit_calibration
 ! ------------------------------------------------------------------------------
     interface
         function IDAMAX(n, dx, incx)
-            use curvefit_core, only : dp, i32
+            use iso_fortran_env
             integer(int32), intent(in) :: n, incx
             real(real64), intent(in) :: dx(n)
         end function

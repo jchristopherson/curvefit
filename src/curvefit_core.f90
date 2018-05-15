@@ -14,9 +14,7 @@
 !! To provide core types and routines for the CURVEFIT library.
 module curvefit_core
     use, intrinsic :: iso_fortran_env, only : int32, real64
-    use nonlin_types, only : NL_ARRAY_SIZE_ERROR, NL_OUT_OF_MEMORY_ERROR, &
-        NL_INVALID_INPUT_ERROR, NL_INVALID_OPERATION_ERROR, &
-        NL_CONVERGENCE_ERROR, NL_TOLERANCE_TOO_SMALL_ERROR
+    use nonlin_constants
     implicit none
     private
     public :: CF_ARRAY_SIZE_ERROR

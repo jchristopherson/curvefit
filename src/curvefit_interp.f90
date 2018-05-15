@@ -147,7 +147,7 @@ interface
     !!
     !! @return The interpolated value.
     function interp_xy(this, jlo, pt) result(yy)
-        use curvefit_core, only : dp, i32
+        use iso_fortran_env
         import interp_manager
         class(interp_manager), intent(inout) :: this
         integer(int32), intent(in) :: jlo

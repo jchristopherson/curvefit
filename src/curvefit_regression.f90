@@ -8,13 +8,11 @@
 module curvefit_regression
     use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core
-    use linalg_sorting, only : sort
     use ferror, only : errors
-    use nonlin_types, only : vecfcn_helper, iteration_behavior
+    use nonlin_core, only : vecfcn_helper, iteration_behavior
     use nonlin_least_squares, only : least_squares_solver
     use curvefit_statistics, only : mean
-    use linalg_solve, only : mtx_pinverse
-    use linalg_core, only : mtx_mult
+    use linalg_core
     use nonlin_polynomials
     implicit none
     private
@@ -381,7 +379,7 @@ contains
 
         ! Initialization
         n = size(x)
-        ns = max(min(int(f * real(n, dp), i32), n), 2)
+        ns = max(min(int(f * real(n, real64), int32), n), 2)
         eps = epsilon(eps)
 
         ! Quick Return
@@ -1117,10 +1115,11 @@ contains
     !> @brief Employs a least squares fit to determine the coefficient A in the
     !! linear system: Y = A * X.
     !!
-    !! @param[in,out] x An M-by-P matrix containing the P data points of the
+    !! @param[in] x An M-by-P matrix containing the P data points of the
     !!  M independent variables.
-    !! @param[in] y An N-by-P matrix containing the P data points of the N
-    !!  dependent variables.
+    !! @param[in,out] y An N-by-P matrix containing the P data points of the N
+    !!  dependent variables.  The contents of this matrix are overwritten on
+    !!  output.
     !! @param[in] thrsh An optional threshold value that defines a lower cutoff
     !!  for singular values.  Any singular values falling below this value will
     !!  have their reciprocal replaced with zero.
@@ -1162,8 +1161,8 @@ contains
     !! @endverbatim
     function linear_least_squares_nvar(x, y, thrsh, err) result(a)
         ! Arguments
-        real(real64), intent(inout), dimension(:,:) :: x
-        real(real64), intent(in), dimension(:,:) :: y
+        real(real64), intent(in), dimension(:,:) :: x
+        real(real64), intent(inout), dimension(:,:) :: y
         real(real64), intent(in), optional :: thrsh
         class(errors), intent(inout), optional, target :: err
         real(real64), dimension(size(y,1), size(x,1)) :: a

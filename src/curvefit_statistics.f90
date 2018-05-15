@@ -9,7 +9,7 @@ module curvefit_statistics
     use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core
     use ferror, only : errors
-    use linalg_sorting, only : sort
+    use linalg_core
     implicit none
     private
     public :: mean
@@ -437,7 +437,7 @@ contains
 
         ! Compute the standard deviation, and z-distribution value
         sigma = standard_deviation(x)
-        n = real(size(x), dp)
+        n = real(size(x), real64)
         if (ut) then
             z = t_value(alpha, size(x), errmgr)
         else
@@ -466,7 +466,7 @@ contains
     !!  alpha = ERF(z / sqrt(2)), where ERF is the error function.
     function std_norm_dist_z_score(alpha, err) result(z)
         ! Supporting Modules
-        use nonlin_types, only : fcn1var, fcn1var_helper, value_pair
+        use nonlin_core, only : fcn1var, fcn1var_helper, value_pair
         use nonlin_solve, only : brent_solver
 
         ! Arguments
@@ -537,7 +537,7 @@ contains
     !! @return The t-socre or t-value.
     function t_dist_score(alpha, n, err) result(t)
         ! Supporting Modules
-        use nonlin_types, only : fcn1var, fcn1var_helper, value_pair
+        use nonlin_core, only : fcn1var, fcn1var_helper, value_pair
         use nonlin_solve, only : brent_solver
 
         ! Arguments
