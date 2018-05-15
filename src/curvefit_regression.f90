@@ -1064,9 +1064,8 @@ contains
     !! linear system: Y = A * X.
     !!
     !! @param[in] x An N-element array containing the independent variable data.
-    !! @param[in,out] y An N-element array containing the dependent variable
-    !!  data corresponding to @p x.  On output, the contents of this array are
-    !!  overwritten as it is used for storage purposes by the algorithm.
+    !! @param[in] y An N-element array containing the dependent variable
+    !!  data corresponding to @p x.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
     !!  execution.  If not provided, a default implementation of the errors
@@ -1078,8 +1077,7 @@ contains
     !! @return The scalar coefficient A.
     function linear_least_squares_1var(x, y, err) result(a)
         ! Arguments
-        real(real64), intent(in), dimension(:) :: x
-        real(real64), intent(inout), dimension(:) :: y
+        real(real64), intent(in), dimension(:) :: x, y
         class(errors), intent(inout), optional, target :: err
         real(real64) :: a
 
@@ -1089,8 +1087,9 @@ contains
         ! Local Variables
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        integer(int32) :: n
+        integer(int32) :: n, flag
         type(polynomial) :: poly
+        real(real64), allocatable, dimension(:) :: ycopy
 
         ! Initialization
         a = zero
@@ -1103,10 +1102,22 @@ contains
 
         ! Input Check
         if (size(y) /= n) then
+          call errmgr%report_error("linear_least_squares_1var", &
+              "Incompatible array dimensions.", CF_ARRAY_SIZE_ERROR)
+          return
+        end if
+
+        ! Local Memory Allocation
+        allocate(ycopy(n), stat = flag)
+        if (flag /= 0) then
+          call errmgr%report_error("linear_least_squares_1var", &
+              "Insufficient memory available.", CF_OUT_OF_MEMORY_ERROR)
+          return
         end if
 
         ! Process
-        call poly%fit_thru_zero(x, y, 1, err = errmgr)
+        ycopy = y
+        call poly%fit_thru_zero(x, ycopy, 1, err = errmgr)
         if (errmgr%has_error_occurred()) return
         a = poly%get(2)
     end function
@@ -1117,9 +1128,8 @@ contains
     !!
     !! @param[in] x An M-by-P matrix containing the P data points of the
     !!  M independent variables.
-    !! @param[in,out] y An N-by-P matrix containing the P data points of the N
-    !!  dependent variables.  The contents of this matrix are overwritten on
-    !!  output.
+    !! @param[in] y An N-by-P matrix containing the P data points of the N
+    !!  dependent variables.
     !! @param[in] thrsh An optional threshold value that defines a lower cutoff
     !!  for singular values.  Any singular values falling below this value will
     !!  have their reciprocal replaced with zero.
@@ -1161,8 +1171,7 @@ contains
     !! @endverbatim
     function linear_least_squares_nvar(x, y, thrsh, err) result(a)
         ! Arguments
-        real(real64), intent(in), dimension(:,:) :: x
-        real(real64), intent(inout), dimension(:,:) :: y
+        real(real64), intent(in), dimension(:,:) :: x, y
         real(real64), intent(in), optional :: thrsh
         class(errors), intent(inout), optional, target :: err
         real(real64), dimension(size(y,1), size(x,1)) :: a
@@ -1175,7 +1184,7 @@ contains
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         integer(int32) :: m, n, p, flag
-        real(real64), allocatable, dimension(:,:) :: b, yinv
+        real(real64), allocatable, dimension(:,:) :: b, yinv, ycopy
 
         ! Initialization
         m = size(x, 1)
@@ -1197,7 +1206,8 @@ contains
         end if
 
         ! Local Memory Allocation
-        allocate(yinv(p, n), stat = flag)
+        allocate(ycopy(n, p), stat = flag)
+        if (flag == 0) allocate(yinv(p, n), stat = flag)
         if (flag == 0) allocate(b(m, n), stat = flag)
 
         if (flag /= 0) then
@@ -1207,7 +1217,8 @@ contains
         end if
 
         ! Compute the pseudo-inverse of Y
-        call mtx_pinverse(y, yinv, tol = thrsh, err = errmgr)
+        ycopy = y ! Need a copy of Y as mtx_pinverse modifies the matrix
+        call mtx_pinverse(ycopy, yinv, tol = thrsh, err = errmgr)
         if (errmgr%has_error_occurred()) return
 
         ! Compute B = X * pinv(Y)
