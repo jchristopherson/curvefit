@@ -1,6 +1,3 @@
 [submodule "src/external/nonlin"]
 	path = src/external/nonlin
 	url = https://github.com/jchristopherson/nonlin.git
-[submodule "src/external/linalg"]
-	path = src/external/linalg
-	url = https://github.com/jchristopherson/linalg.git
