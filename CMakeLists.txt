@@ -24,6 +24,11 @@ find_package(ferror 1.3.0)
 find_package(linalg 1.5.0)
 find_package(nonlin 1.3.0)
 
+# Define dependency directories
+set(NONLIN_DIRECTORY src/external/nonlin)
+set(LINALG_DIRECTORY ${NONLIN_DIRECTORY}/src/external/linalg)
+set(FERROR_DIRECTORY ${LINALG_DIRECTORY}/src/external/ferror)
+
 # If FERROR is not installed on the system, build the default implementation
 if (${ferror_FOUND})
     message(STATUS "An acceptable version of FERROR (v" ${ferror_VERSION} ") was found, and will be utilized.")
@@ -36,13 +41,6 @@ if (${linalg_FOUND})
     message(STATUS "An acceptable version of LINALG (v" ${linalg_VERSION} ") was found, and will be utilized.")
     set(LINALG_LIBRARIES linalg)
     get_target_property(linalg_LibLocation linalg LOCATION)
-else()
-    message(STATUS "LINALG not found.  The default implementation will be used.")
-    add_subdirectory(src/external/nonlin/src/external/linalg)
-    set(linalg_INCLUDE_DIRS src/external/nonlin/src/external/linalg/include)
-    set(LINALG_LIBRARIES linalg)
-    set(linalg_LibLocation ${linalg_BINARY_DIR})
-    include_directories(src/external/nonlin/src/external/linalg/src/external/ferror/include)
 endif()
 
 # If NONLIN is not installed on the system, build the default implementation
@@ -52,12 +50,12 @@ if (${nonlin_FOUND})
     get_target_property(nonlin_LibLocation nonlin LOCATION)
 else()
     message(STATUS "NONLIN not found.  The default implementation will be used.")
-    add_subdirectory(src/external/nonlin)
-    set(nonlin_INCLUDE_DIRS src/external/nonlin/include)
+    add_subdirectory(${NONLIN_DIRECTORY})
+    set(nonlin_INCLUDE_DIRS ${NONLIN_DIRECTORY}/include)
     set(NONLIN_LIBRARIES nonlin)
     set(nonlin_LibLocation ${nonlin_BINARY_DIR})
-    include_directories(src/external/src/external/linalg/include)
-    include_directories(src/external/src/external/linalg/src/external/ferror/include)
+    include_directories(${LINALG_DIRECTORY}/include)
+    include_directories(${FERROR_DIRECTORY}/include)
 endif()
 
 # Include the dependency module files
@@ -142,36 +140,14 @@ if (BUILD_CURVEFIT_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
-# # ------------------------------------------------------------------------------
-# # TESTS
-# # ------------------------------------------------------------------------------
-# option(BUILD_CURVEFIT_TESTS "Build CURVEFIT tests?" ON)
-# if (BUILD_CURVEFIT_TESTS)
-#   set(curvefit_test_sources tests/curvefit_test.f90
-#     tests/curvefit_test_interp.f90 tests/curvefit_test_statistics.f90
-#     src/external/nonlin/src/external/linalg/tests/test_core.f90
-#     tests/curvefit_test_regression.f90 tests/curvefit_test_calibration.f90)
-#   add_executable(curvefit_test ${curvefit_test_sources})
-#   target_link_libraries(curvefit_test curvefit)
-#   add_custom_command(OUTPUT curvefit_tests DEPENDS ${curvefit_test_sources}
-#     COMMAND curvefit_test)
-#   add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
-# endif()
-#
-# # C Test
-# option(BUILD_CURVEFIT_C_TESTS "Build CURVEFIT C API tests?" ON)
-# if (BUILD_CURVEFIT_C_TESTS)
-#   include_directories(${PROJECT_SOURCE_DIR}/include
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/include
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/include
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/src/external/ferror/include
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/tests)
-#   set(curvefit_c_test_sources tests/curvefit_c_test.c
-#     ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/tests/c_test_core.c)
-#   add_executable(curvefit_c_test ${curvefit_c_test_sources})
-#   target_link_libraries(curvefit_c_test curvefit m)
-#   add_custom_command(OUTPUT curvefit_c_tests_cmd
-#     DEPENDS ${curvefit_c_test_sources}
-#     COMMAND curvefit_c_test)
-#   add_custom_target(run_curvefit_c_tests ALL DEPENDS curvefit_c_tests_cmd)
-# endif()
+# ------------------------------------------------------------------------------
+# TESTS
+# ------------------------------------------------------------------------------
+option(BUILD_CURVEFIT_TESTS "Build CURVEFIT tests?" OFF)
+if (BUILD_CURVEFIT_TESTS)
+    # Inform the user we're building the tests
+    message(STATUS "Building CURVEFIT tests.")
+
+    # Build the tests
+    add_subdirectory(tests)
+endif()
