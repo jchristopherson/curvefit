@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['seb_5f1',['seb_1',['../interfacecurvefit__calibration_1_1seb.html#a61a35077448e0fd376a8f6e078f8812a',1,'curvefit_calibration::seb::seb_1()'],['../namespacecurvefit__calibration.html#a65e7eb0c62988aeea58c9d3af3033640',1,'curvefit_calibration::seb_1()']]],
+  ['second_5fderivative',['second_derivative',['../structcurvefit__interp_1_1spline__interp.html#aba652ce901ed162e4e319f80f0193517',1,'curvefit_interp::spline_interp']]],
+  ['set_5ffcn_5ftolerance',['set_fcn_tolerance',['../structcurvefit__regression_1_1nonlinear__regression.html#ae18d84d77331eb1d2a21f9b73d304a36',1,'curvefit_regression::nonlinear_regression']]],
+  ['set_5fgradient_5ftolerance',['set_gradient_tolerance',['../structcurvefit__regression_1_1nonlinear__regression.html#a05f87bf66bdd799d4502ac1987bbe53b',1,'curvefit_regression::nonlinear_regression']]],
+  ['set_5fmax_5ffcn_5fevals',['set_max_fcn_evals',['../structcurvefit__regression_1_1nonlinear__regression.html#a47c3a23c7ffd8ef1b1e2e3f0c8856cd5',1,'curvefit_regression::nonlinear_regression']]],
+  ['set_5fprint_5fstatus',['set_print_status',['../structcurvefit__regression_1_1nonlinear__regression.html#a334659815a298391b5f2fc9c7452eb4f',1,'curvefit_regression::nonlinear_regression']]],
+  ['set_5fvar_5ftolerance',['set_var_tolerance',['../structcurvefit__regression_1_1nonlinear__regression.html#acc9d6b5a022f74984782f5b7c66969fc',1,'curvefit_regression::nonlinear_regression']]],
+  ['si_5fdiff1',['si_diff1',['../namespacecurvefit__interp.html#abc2a0a8c0f64fd3f16163de441cadbf6',1,'curvefit_interp']]],
+  ['si_5fdiff1_5farray',['si_diff1_array',['../namespacecurvefit__interp.html#a00d35656643d6444b2c8dbc872b8aeca',1,'curvefit_interp']]],
+  ['si_5fdiff2',['si_diff2',['../namespacecurvefit__interp.html#af7e5f0160e34ac235e78916ceb2678a9',1,'curvefit_interp']]],
+  ['si_5fdiff2_5farray',['si_diff2_array',['../namespacecurvefit__interp.html#afbefc1369278ce05addf6757ec8fbd5e',1,'curvefit_interp']]],
+  ['si_5finit_5f1',['si_init_1',['../namespacecurvefit__interp.html#ae82264f6f39fa428c4f07670ede68836',1,'curvefit_interp']]],
+  ['si_5finit_5f2',['si_init_2',['../namespacecurvefit__interp.html#a43bcd3d0869ba52a4c6bdf33d2bbe4df',1,'curvefit_interp']]],
+  ['si_5fraw_5finterp',['si_raw_interp',['../namespacecurvefit__interp.html#ac4d762f719fb525c88d02531af02f155',1,'curvefit_interp']]],
+  ['si_5fsecond_5fderiv',['si_second_deriv',['../namespacecurvefit__interp.html#a299d24abdddcfc054b1d236f493cb194',1,'curvefit_interp']]],
+  ['smooth',['smooth',['../structcurvefit__regression_1_1lowess__smoothing.html#a766833a30922648aa4be233cc56d626d',1,'curvefit_regression::lowess_smoothing']]],
+  ['solve',['solve',['../structcurvefit__regression_1_1nonlinear__regression.html#a7d35d21e32e0291c1f61112c7f7db001',1,'curvefit_regression::nonlinear_regression']]],
+  ['split_5fascend_5fdescend_5f1',['split_ascend_descend_1',['../interfacecurvefit__calibration_1_1split__ascend__descend.html#afdce8382f30254fdcb7abb9d19f1be24',1,'curvefit_calibration::split_ascend_descend::split_ascend_descend_1()'],['../namespacecurvefit__calibration.html#a96d9ae5bec2e448c515a54dae6766c20',1,'curvefit_calibration::split_ascend_descend_1()']]],
+  ['std_5fnorm_5fdist_5fz_5fscore',['std_norm_dist_z_score',['../interfacecurvefit__statistics_1_1z__value.html#a5fae20877ed7f1babe028f1aa375dee6',1,'curvefit_statistics::z_value::std_norm_dist_z_score()'],['../namespacecurvefit__statistics.html#a773d2b83b5f84c34cdf99f1d5dbcf5fb',1,'curvefit_statistics::std_norm_dist_z_score()']]],
+  ['stdev_5fdbl',['stdev_dbl',['../interfacecurvefit__statistics_1_1standard__deviation.html#a1cb5a256a256b433a41f1f33ee7418d6',1,'curvefit_statistics::standard_deviation::stdev_dbl()'],['../namespacecurvefit__statistics.html#ab7408c6b143d8e92ed900a18c1923791',1,'curvefit_statistics::stdev_dbl()']]]
+];

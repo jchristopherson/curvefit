@@ -3,7 +3,7 @@ set(curvefit_test_sources
     curvefit_test.f90
     curvefit_test_interp.f90
     curvefit_test_statistics.f90
-    ${PROJECT_SOURCE_DIR}/src/external/nonlin/src/external/linalg/tests/test_core.f90
+    ${LINALG_DIRECTORY}/tests/test_core.f90
     curvefit_test_regression.f90
     curvefit_test_calibration.f90
 )

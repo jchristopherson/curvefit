@@ -1,0 +1,8 @@
+digraph "curvefit_interp::spline_interp"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node2 [label="curvefit_interp::spline\l_interp",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node3 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="curvefit_interp::interp\l_manager",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structcurvefit__interp_1_1interp__manager.html",tooltip="Describes an abstract base class allowing for interpolation of X-Y type data sets. "];
+}

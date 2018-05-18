@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node0 [label="curvefit_regression\l::moving_average",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$interfacecurvefit__regression_1_1moving__average.html",tooltip="Applies a moving average to smooth a data set. "];
+}

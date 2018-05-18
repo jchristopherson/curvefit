@@ -1,0 +1,28 @@
+var structcurvefit__regression_1_1nonlinear__regression =
+[
+    [ "fcn", "structcurvefit__regression_1_1nonlinear__regression.html#a28148e752706f6a2e350bf6ad609b99f", null ],
+    [ "get_count", "structcurvefit__regression_1_1nonlinear__regression.html#a6784dbea3fce8ad0da5fefd57b99b9ec", null ],
+    [ "get_equation_count", "structcurvefit__regression_1_1nonlinear__regression.html#a565df78731eb82efff1825d05e4899ae", null ],
+    [ "get_fcn_tolerance", "structcurvefit__regression_1_1nonlinear__regression.html#ac72927e95b532f39f49bbf332b6de4d7", null ],
+    [ "get_gradient_tolerance", "structcurvefit__regression_1_1nonlinear__regression.html#a1df485178594304fbd33b5ffdd161e96", null ],
+    [ "get_max_fcn_evals", "structcurvefit__regression_1_1nonlinear__regression.html#a0e7ce5e6c409f3d2b5caddc35724492c", null ],
+    [ "get_print_status", "structcurvefit__regression_1_1nonlinear__regression.html#a8e8269cc93021cd89279dfd72c2447aa", null ],
+    [ "get_var_tolerance", "structcurvefit__regression_1_1nonlinear__regression.html#af4b112b760feea2738f93d1a5f3d83b6", null ],
+    [ "get_variable_count", "structcurvefit__regression_1_1nonlinear__regression.html#a1604c5c90e63a1803e8344da99c23aaa", null ],
+    [ "get_x", "structcurvefit__regression_1_1nonlinear__regression.html#ac8eb20f3ce57bc8fe059dcbd97b3a621", null ],
+    [ "get_y", "structcurvefit__regression_1_1nonlinear__regression.html#a0f263a9047c949d1cafbdd767fde6864", null ],
+    [ "initialize", "structcurvefit__regression_1_1nonlinear__regression.html#a23ab9e4094ae5ac280cfab6fc8935462", null ],
+    [ "is_fcn_defined", "structcurvefit__regression_1_1nonlinear__regression.html#a0ef1f008e840ec922c546dd8e029a714", null ],
+    [ "set_fcn_tolerance", "structcurvefit__regression_1_1nonlinear__regression.html#ae18d84d77331eb1d2a21f9b73d304a36", null ],
+    [ "set_gradient_tolerance", "structcurvefit__regression_1_1nonlinear__regression.html#a05f87bf66bdd799d4502ac1987bbe53b", null ],
+    [ "set_max_fcn_evals", "structcurvefit__regression_1_1nonlinear__regression.html#a47c3a23c7ffd8ef1b1e2e3f0c8856cd5", null ],
+    [ "set_print_status", "structcurvefit__regression_1_1nonlinear__regression.html#a334659815a298391b5f2fc9c7452eb4f", null ],
+    [ "set_var_tolerance", "structcurvefit__regression_1_1nonlinear__regression.html#acc9d6b5a022f74984782f5b7c66969fc", null ],
+    [ "solve", "structcurvefit__regression_1_1nonlinear__regression.html#a7d35d21e32e0291c1f61112c7f7db001", null ],
+    [ "m_init", "structcurvefit__regression_1_1nonlinear__regression.html#ae2c43b5fc5b1600305a431f17ae72b7a", null ],
+    [ "m_ncoeff", "structcurvefit__regression_1_1nonlinear__regression.html#a8c049fe19f0feb968edc6b9ddc906169", null ],
+    [ "m_rfcn", "structcurvefit__regression_1_1nonlinear__regression.html#a400b0e0cd7eb3b5785caa8d52e1515e0", null ],
+    [ "m_solver", "structcurvefit__regression_1_1nonlinear__regression.html#a7b6a5afc076021a4999a521ada988329", null ],
+    [ "m_x", "structcurvefit__regression_1_1nonlinear__regression.html#aa59641e3edb4c04bd6c2644b8e9cda51", null ],
+    [ "m_y", "structcurvefit__regression_1_1nonlinear__regression.html#a34398a081c69864a35cebd4fbbcb8f3e", null ]
+];

@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node0 [label="curvefit_statistics\l::incomplete_gamma",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$interfacecurvefit__statistics_1_1incomplete__gamma.html",tooltip="Computes the incomplete gamma function: P(a,x) = 1 / gamma(a) * integrate(exp(-t) * t**(a - 1)..."];
+}

@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node0 [label="curvefit_regression\l::linear_least_squares",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$interfacecurvefit__regression_1_1linear__least__squares.html",tooltip="Employs a least squares fit to determine the coefficient A in the linear system: Y = A * X..."];
+}
