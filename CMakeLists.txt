@@ -25,7 +25,7 @@ find_package(linalg 1.5.0)
 find_package(nonlin 1.3.0)
 
 # Define dependency directories
-set(NONLIN_DIRECTORY src/external/nonlin)
+set(NONLIN_DIRECTORY ${PROJECT_SOURCE_DIR}/src/external/nonlin)
 set(LINALG_DIRECTORY ${NONLIN_DIRECTORY}/src/external/linalg)
 set(FERROR_DIRECTORY ${LINALG_DIRECTORY}/src/external/ferror)
 
