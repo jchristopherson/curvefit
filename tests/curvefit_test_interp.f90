@@ -2,6 +2,7 @@
 
 ! Tests the interpolation routines.
 module curvefit_test_interp
+    use iso_fortran_env
     use curvefit_core
     use curvefit_interp
     implicit none
@@ -9,14 +10,14 @@ contains
 ! ------------------------------------------------------------------------------
     function test_linear_interp() result(rst)
         ! Parameters
-        integer(i32), parameter :: n = 9
-        integer(i32), parameter :: m = 1000
+        integer(int32), parameter :: n = 9
+        integer(int32), parameter :: m = 1000
 
         ! Local Variables
         logical :: rst
         type(linear_interp) :: interp
-        real(dp) :: dx, x(n), y(n), xi(m), yi(m)
-        integer(i32) :: i, id
+        real(real64) :: dx, x(n), y(n), xi(m), yi(m)
+        integer(int32) :: i, id
 
         ! Initialization
         rst = .true.
@@ -32,7 +33,7 @@ contains
         ! Interpolate
         call interp%initialize(x, y)
         yi = interp%interpolate(xi)
-        
+
         ! Write the results to a text file so we can plot them
         open(newunit = id, file = "linear_interp.txt", action = "write", &
             status = "replace")
@@ -59,14 +60,14 @@ contains
 ! ------------------------------------------------------------------------------
     function test_poly_interp() result(rst)
         ! Parameters
-        integer(i32), parameter :: n = 9
-        integer(i32), parameter :: m = 1000
+        integer(int32), parameter :: n = 9
+        integer(int32), parameter :: m = 1000
 
         ! Local Variables
         logical :: rst
         type(polynomial_interp) :: interp
-        real(dp) :: dx, x(n), y(n), xi(m), yi(m)
-        integer(i32) :: i, id
+        real(real64) :: dx, x(n), y(n), xi(m), yi(m)
+        integer(int32) :: i, id
 
         ! Initialization
         rst = .true.
@@ -82,7 +83,7 @@ contains
         ! Interpolate
         call interp%initialize(x, y, 2)
         yi = interp%interpolate(xi)
-        
+
         ! Write the results to a text file so we can plot them
         open(newunit = id, file = "poly_interp.txt", action = "write", &
             status = "replace")
@@ -109,14 +110,14 @@ contains
 ! ------------------------------------------------------------------------------
     function test_spline_interp() result(rst)
         ! Parameters
-        integer(i32), parameter :: n = 9
-        integer(i32), parameter :: m = 100
+        integer(int32), parameter :: n = 9
+        integer(int32), parameter :: m = 100
 
         ! Local Variables
         logical :: rst
         type(spline_interp) :: interp
-        real(dp) :: dx, x(n), y(n), xi(m), yi(m)
-        integer(i32) :: i, id
+        real(real64) :: dx, x(n), y(n), xi(m), yi(m)
+        integer(int32) :: i, id
 
         ! Initialization
         rst = .true.
@@ -132,7 +133,7 @@ contains
         ! Interpolate
         call interp%initialize(x, y)
         yi = interp%interpolate(xi)
-        
+
         ! Write the results to a text file so we can plot them
         open(newunit = id, file = "spline_interp.txt", action = "write", &
             status = "replace")

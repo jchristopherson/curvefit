@@ -1,6 +1,7 @@
 ! curvefit_test_statistics.f90
 
 module curvefit_test_statistics
+    use iso_fortran_env
     use curvefit_core
     use curvefit_statistics
     use test_core
@@ -10,8 +11,8 @@ contains
     function test_z_value() result(rst)
         ! Local Variables
         logical :: rst
-        real(dp) :: c(4), z_ans(4), z
-        integer(i32) :: i
+        real(real64) :: c(4), z_ans(4), z
+        integer(int32) :: i
 
         ! Initialization
         rst = .true.
@@ -34,8 +35,8 @@ contains
     function test_t_value() result(rst)
         ! Local Variables
         logical :: rst
-        real(dp) :: c(4), t_ans(4), t
-        integer(i32) :: i, n
+        real(real64) :: c(4), t_ans(4), t
+        integer(int32) :: i, n
 
         ! Initialization
         rst = .true.
@@ -58,11 +59,11 @@ contains
     function test_mean() result(rst)
         ! Local Variables
         logical :: rst
-        real(dp) :: x(5), mu
+        real(real64) :: x(5), mu
 
         ! Parameters
-        real(dp), parameter :: ans = 10.0d0
-        real(dp), parameter :: tol = 1.0d-8
+        real(real64), parameter :: ans = 10.0d0
+        real(real64), parameter :: tol = 1.0d-8
 
         ! Initialization
         rst = .true.
@@ -71,7 +72,7 @@ contains
         ! Compute the mean
         mu = mean(x)
         if (abs(mu - ans) > tol) then
-            rst = .false. 
+            rst = .false.
             print '(AF5.3AF5.3A)', "Test Failed: Expected a mean value of ", &
                 ans, ", but computed a value of ", mu, "."
         end if
@@ -81,11 +82,11 @@ contains
     function test_var() result(rst)
         ! Local Variables
         logical :: rst
-        real(dp) :: x(5), v
+        real(real64) :: x(5), v
 
         ! Parameters
-        real(dp), parameter :: ans = 5.0d0
-        real(dp), parameter :: tol = 1.0d-8
+        real(real64), parameter :: ans = 5.0d0
+        real(real64), parameter :: tol = 1.0d-8
 
         ! Initialization
         rst = .true.
@@ -103,19 +104,19 @@ contains
 ! ------------------------------------------------------------------------------
     function test_confidence_interval() result(rst)
         ! Parameters
-        integer(i32), parameter :: n = 1000
-        real(dp), parameter :: alpha = 0.95d0
-        real(dp), parameter :: z = 1.96d0   ! 95% confidence
-        real(dp), parameter :: tol = 1.0d-3 ! Do to precision of Z
+        integer(int32), parameter :: n = 1000
+        real(real64), parameter :: alpha = 0.95d0
+        real(real64), parameter :: z = 1.96d0   ! 95% confidence
+        real(real64), parameter :: tol = 1.0d-3 ! Do to precision of Z
 
         ! Local Variables
         logical :: rst
-        real(dp) :: x(n), c, ans
+        real(real64) :: x(n), c, ans
 
         ! Initialization
         rst = .true.
         call random_number(x)
-        ans = z * standard_deviation(x) / sqrt(real(size(x), dp))
+        ans = z * standard_deviation(x) / sqrt(real(size(x), real64))
 
         ! Compute the confidence interval
         c = confidence_interval(x, alpha)
@@ -133,14 +134,14 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: n = 1000
-        real(dp), parameter :: maxX = 10.0d0
-        real(dp), parameter :: a1 = 0.5d0
-        real(dp), parameter :: a2 = 5.0d0
+        integer(int32), parameter :: n = 1000
+        real(real64), parameter :: maxX = 10.0d0
+        real(real64), parameter :: a1 = 0.5d0
+        real(real64), parameter :: a2 = 5.0d0
 
         ! Local Variables
-        integer(i32) :: i, id
-        real(dp) :: x(n), y1(n), y2(n)
+        integer(int32) :: i, id
+        real(real64) :: x(n), y1(n), y2(n)
 
         ! Initialization
         rst = .true.
@@ -164,14 +165,14 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: n = 1000
-        real(dp), parameter :: maxX = 10.0d0
-        real(dp), parameter :: a1 = 0.5d0
-        real(dp), parameter :: a2 = 5.0d0
+        integer(int32), parameter :: n = 1000
+        real(real64), parameter :: maxX = 10.0d0
+        real(real64), parameter :: a1 = 0.5d0
+        real(real64), parameter :: a2 = 5.0d0
 
         ! Local Variables
-        integer(i32) :: i, id
-        real(dp) :: x(n), y1(n), y2(n)
+        integer(int32) :: i, id
+        real(real64) :: x(n), y1(n), y2(n)
 
         ! Initialization
         rst = .true.
@@ -195,12 +196,12 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: n = 5
-        real(dp), parameter :: tol = 1.0d-8
+        integer(int32), parameter :: n = 5
+        real(real64), parameter :: tol = 1.0d-8
 
         ! Local Variables
-        integer(i32) :: i
-        real(dp) :: x(n), y(n), ans(2,2), c(2,2), c2(2,2), z(n,2)
+        integer(int32) :: i
+        real(real64) :: x(n), y(n), ans(2,2), c(2,2), c2(2,2), z(n,2)
 
         ! Initialization
         rst = .true.
@@ -247,13 +248,13 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: m = 3
-        integer(i32), parameter :: n = 4
-        real(dp), parameter :: tol = 1.0d-8
+        integer(int32), parameter :: m = 3
+        integer(int32), parameter :: n = 4
+        real(real64), parameter :: tol = 1.0d-8
 
         ! Local Variables
-        integer(i32) :: i
-        real(dp) :: ans(n,n), c(n,n), x(m,n)
+        integer(int32) :: i
+        real(real64) :: ans(n,n), c(n,n), x(m,n)
 
         ! Initialization
         rst = .true.
@@ -287,12 +288,12 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: n = 7
-        real(dp), parameter :: tol = 1.0d-8
-        real(dp), parameter :: ans = 1.0d0
+        integer(int32), parameter :: n = 7
+        real(real64), parameter :: tol = 1.0d-8
+        real(real64), parameter :: ans = 1.0d0
 
         ! Local Variables
-        real(dp) :: m, x(n)
+        real(real64) :: m, x(n)
 
         ! Initialization
         rst = .true.

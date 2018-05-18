@@ -64,7 +64,7 @@ configure_file(
     COPYONLY
 )
 
-set(ConfigPackageLocation lib/cmake/curvefit)
+set(ConfigPackageLocation curvefit/lib/cmake/curvefit)
 install(
     EXPORT curvefitTargets
     FILE curvefitTargets.cmake
