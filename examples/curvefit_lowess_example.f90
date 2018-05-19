@@ -4,19 +4,23 @@ program example
     use iso_fortran_env
     use curvefit_regression
     use curvefit_core
+    use fplot_core
     implicit none
 
     ! Parameters
     integer(int32), parameter :: n = 100
     real(real64), parameter :: maxX = 1.0d0
     real(real64), parameter :: minX = 0.0d0
+    type(color), parameter :: orange = color(255, 102, 0)
 
     ! Local Variables
-    integer(int32) :: i, id
+    integer(int32) :: i
     real(real64) :: x(n), y(n), yr(n), ys(n), ys2(n), dx, cnl(5), ynl(n)
     type(lowess_smoothing) :: fit
     type(nonlinear_regression) :: solver
     procedure(reg_fcn), pointer :: fcn
+    type(plot_2d) :: plt
+    type(plot_data_2d) :: d1, d2, d3, d4, d5
 
     ! Initialization
     dx = (maxX - minX) / (n - 1.0d0)
@@ -51,14 +55,49 @@ program example
     print '(AF12.10)', "c3: ", cnl(4)
     print '(AF13.10)', "c4: ", cnl(5)
 
-    ! Write the results to a text file
-    open(newunit = id, file = "lowess.txt", action = "write", &
-        status = "replace")
-    do i = 1, n
-        write(id, '(F14.10AF14.10AF14.10AF14.10AF14.10AF14.10)') x(i), ",", &
-            y(i), ",", yr(i), ",", ys(i), ",", ys2(i), ",", ynl(i)
-    end do
-    close(id)
+    ! Plot the data
+    call plt%initialize()
+    call plt%set_font_size(14)
+
+    call d1%set_name("Original Signal")
+    call d1%set_line_color(CLR_BLUE)
+    call d1%set_line_width(2.0)
+    call d1%define_data(x, y)
+
+    call d2%set_name("Raw Data")
+    call d2%set_line_color(CLR_BLACK)
+    call d2%set_draw_line(.false.)
+    call d2%set_draw_markers(.true.)
+    call d2%set_marker_style(MARKER_EMPTY_CIRCLE)
+    call d2%set_marker_scaling(2.0)
+    call d2%set_line_width(2.0)
+    call d2%define_data(x, yr)
+
+    call d3%set_name("Smoothed (f = 0.2)")
+    call d3%set_line_color(CLR_GREEN)
+    call d3%set_line_width(2.0)
+    call d3%set_line_style(LINE_DASHED)
+    call d3%define_data(x, ys)
+
+    call d4%set_name("Smoothed (f = 0.8)")
+    call d4%set_line_color(CLR_MAGENTA)
+    call d4%set_line_width(2.0)
+    call d4%set_line_style(LINE_DASH_DOTTED)
+    call d4%define_data(x, ys2)
+
+    call d5%set_name("Nonlinear Regression")
+    call d5%set_line_color(orange)
+    call d5%set_line_width(2.0)
+    call d5%set_line_style(LINE_DASH_DOT_DOT)
+    call d5%define_data(x, ynl)
+
+    call plt%push(d1)
+    call plt%push(d2)
+    call plt%push(d3)
+    call plt%push(d4)
+    call plt%push(d5)
+
+    call plt%draw()
 
 contains
     function nrfun(xp, c) result(fn)

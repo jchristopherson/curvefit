@@ -9,7 +9,7 @@ target_link_libraries(curvefit_interp_example curvefit)
 
 # LOWESS Example
 add_executable(curvefit_lowess_example curvefit_lowess_example.f90)
-target_link_libraries(curvefit_lowess_example curvefit)
+target_link_libraries(curvefit_lowess_example curvefit fplot)
 
 # Nonlinear Regression Example
 add_executable(curvefit_nlreg_example curvefit_nlreg_example.f90)
