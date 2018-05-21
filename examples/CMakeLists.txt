@@ -13,7 +13,7 @@ target_link_libraries(curvefit_lowess_example curvefit fplot)
 
 # Nonlinear Regression Example
 add_executable(curvefit_nlreg_example curvefit_nlreg_example.f90)
-target_link_libraries(curvefit_nlreg_example curvefit)
+target_link_libraries(curvefit_nlreg_example curvefit fplot)
 
 # Calibration Example
 add_executable(curvefit_cal_example curvefit_cal_example.f90)
