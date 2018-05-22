@@ -15,7 +15,7 @@ program example
 
     ! Local Variables
     integer(int32) :: i
-    real(real64) :: x(n), y(n), yr(n), ys(n), ys2(n), dx, cnl(5), ynl(n)
+    real(real64) :: x(n), y(n), yr(n), ys(n), ys2(n), cnl(5), ynl(n)
     type(lowess_smoothing) :: fit
     type(nonlinear_regression) :: solver
     procedure(reg_fcn), pointer :: fcn
@@ -23,11 +23,7 @@ program example
     type(plot_data_2d) :: d1, d2, d3, d4, d5
 
     ! Initialization
-    dx = (maxX - minX) / (n - 1.0d0)
-    x(1) = minX
-    do i = 2, n
-        x(i) = x(i-1) + dx
-    end do
+    x = linspace(minX, maxX, n)
     y = 0.5d0 * sin(2.0d1 * x) + cos(5.0d0 * x) * exp(-0.1d0 * x)
     call random_number(yr)
     yr = y + (yr - 0.5d0)

@@ -12,8 +12,7 @@ program example
 
     ! Local Variables
     type(linear_interp) :: interp
-    real(real64) :: dx, x(n), y(n), xi(m), yi(m)
-    integer(int32) :: i
+    real(real64) :: x(n), y(n), xi(m), yi(m)
     type(plot_2d) :: plt
     type(plot_data_2d) :: d1, d2
 
@@ -21,11 +20,7 @@ program example
     x = [-4.0d0, -3.0d0, -2.0d0, -1.0d0, 0.0d0, 1.0d0, 2.0d0, 3.0d0, 4.0d0]
     y = [0.0d0, 0.15d0, 1.12d0, 2.36d0, 2.36d0, 1.46d0, 0.49d0, 0.06d0, &
         0.0d0]
-    xi(1) = minval(x)
-    dx = (maxval(x) - minval(x)) / (m - 1.0d0)
-    do i = 2, m
-        xi(i) = xi(i-1) + dx
-    end do
+    xi = linspace(minval(x), maxval(x), m)
 
     ! Interpolate
     call interp%initialize(x, y)
