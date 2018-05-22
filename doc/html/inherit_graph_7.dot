@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node0 [label="curvefit_calibration\l::seb_results",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structcurvefit__calibration_1_1seb__results.html",tooltip="Defines a container for static error band related information. "];
+  Node1 [label="curvefit_calibration\l::seb_results",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structcurvefit__calibration_1_1seb__results.html",tooltip="Defines a container for static error band related information. "];
 }

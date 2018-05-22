@@ -22,8 +22,10 @@ program example
         0.0d0]
     xi = linspace(minval(x), maxval(x), m)
 
-    ! Interpolate
-    call interp%initialize(x, y)
+    ! Interpolate - enforce a zero slope boundary condition on both ends
+    call interp%initialize_spline(x, y, &
+        SPLINE_KNOWN_FIRST_DERIVATIVE, 0.0d0, &
+        SPLINE_KNOWN_FIRST_DERIVATIVE, 0.0d0)
     yi = interp%interpolate(xi)
 
     ! Plot the results
