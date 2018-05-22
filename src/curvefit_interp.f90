@@ -661,12 +661,12 @@ contains
         mm = this%m_order + 1
         ns = 1
         jl = jlo - 1
-        dif = abs(pt - this%m_x(jl + 1))
+        dif = abs(pt - this%m_x(jl))
 
         ! Find the index NS of the closest table entry, and then initialize
         ! the C and D arrays.
         do i = 1, mm
-            ind = jl + i
+            ind = jl + i - 1
             dift = abs(pt - this%m_x(ind))
             if (dift < dif) then
                 ns = i
@@ -677,13 +677,13 @@ contains
         end do
 
         ! Define the initial approximation to the interpolated point
-        yy = this%m_y(jl + ns)
+        yy = this%m_y(jl + ns - 1)
         ns = ns - 1
 
         ! Build the tables, and define the interpolated point
         do m = 1, mm-1
             do i = 1, mm - m
-                ind = jl + i
+                ind = jl + i - 1
                 ho = this%m_x(ind) - pt
                 hp = this%m_x(ind+m) - pt
                 w = this%m_c(i+1) - this%m_d(i)
