@@ -27,6 +27,10 @@ target_link_libraries(curvefit_linear_interp_example curvefit fplot)
 add_executable(curvefit_poly_interp_example curvefit_poly_interp_example.f90)
 target_link_libraries(curvefit_poly_interp_example curvefit fplot)
 
+# Spline Interpolation Example
+add_executable(curvefit_spline_interp_example curvefit_spline_interp_example.f90)
+target_link_libraries(curvefit_spline_interp_example curvefit fplot)
+
 # ------------------------------------------------------------------------------
 # Ensure NONLIN, LINALG, FERROR, and BLAS libraries are copied to the runtime directory
 get_target_property(ferror_LibLocation ferror LOCATION)
