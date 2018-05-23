@@ -31,6 +31,10 @@ target_link_libraries(curvefit_poly_interp_example curvefit fplot)
 add_executable(curvefit_spline_interp_example curvefit_spline_interp_example.f90)
 target_link_libraries(curvefit_spline_interp_example curvefit fplot)
 
+# Moving Average Example
+add_executable(curvefit_moving_avg_example curvefit_moving_avg_example.f90)
+target_link_libraries(curvefit_moving_avg_example curvefit fplot)
+
 # ------------------------------------------------------------------------------
 if (WIN32)
     # Ensure NONLIN, LINALG, FERROR, and BLAS libraries are copied to the runtime directory
