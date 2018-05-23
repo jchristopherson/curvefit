@@ -21,26 +21,28 @@ add_custom_command(
 add_custom_target(run_curvefit_tests ALL DEPENDS curvefit_tests)
 
 # Ensure NONLIN, LINALG, FERROR, and BLAS libraries are copied to the runtime directory
-get_target_property(ferror_LibLocation ferror LOCATION)
-add_custom_command(TARGET curvefit_test POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${ferror_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
-)
+if (WIN32)
+    get_target_property(ferror_LibLocation ferror LOCATION)
+    add_custom_command(TARGET curvefit_test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${ferror_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
+    )
 
-get_target_property(linalg_LibLocation linalg LOCATION)
-add_custom_command(TARGET curvefit_test POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${linalg_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
-)
+    get_target_property(linalg_LibLocation linalg LOCATION)
+    add_custom_command(TARGET curvefit_test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${linalg_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
+    )
 
-get_target_property(blas_LibLocation blas LOCATION)
-add_custom_command(TARGET curvefit_test POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${blas_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
-)
+    get_target_property(blas_LibLocation blas LOCATION)
+    add_custom_command(TARGET curvefit_test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${blas_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
+    )
 
-get_target_property(nonlin_LibLocation nonlin LOCATION)
-add_custom_command(TARGET curvefit_test POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${nonlin_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
-)
+    get_target_property(nonlin_LibLocation nonlin LOCATION)
+    add_custom_command(TARGET curvefit_test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${nonlin_LibLocation} $<TARGET_FILE_DIR:curvefit_test>
+    )
+endif()
