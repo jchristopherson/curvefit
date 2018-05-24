@@ -1,7 +1,7 @@
 # Link in dependencies necessary to generate plots
 find_package(fplot)
-find_package(ferror)
-find_package(collections)
+find_package(ferror 1.3.0)
+find_package(collections 1.1.0)
 
 # Interpolation Example
 add_executable(curvefit_interp_example curvefit_interp_example.f90)
