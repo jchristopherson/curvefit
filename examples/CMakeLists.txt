@@ -43,6 +43,10 @@ target_link_libraries(curvefit_lls_scalar_example curvefit fplot)
 add_executable(curvefit_lls_matrix_example curvefit_lls_matrix_example.f90)
 target_link_libraries(curvefit_lls_matrix_example curvefit fplot)
 
+# Nonlinear Regression Example #2
+add_executable(curvefit_nonlin_reg_example curvefit_nonlin_reg_example.f90)
+target_link_libraries(curvefit_nonlin_reg_example curvefit fplot)
+
 # ------------------------------------------------------------------------------
 if (WIN32)
     # Ensure NONLIN, LINALG, FERROR, and BLAS libraries are copied to the runtime directory
