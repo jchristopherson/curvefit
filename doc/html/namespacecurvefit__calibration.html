@@ -183,9 +183,10 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section user"><dt>Purpose</dt><dd>To provide routines for computing calibration performance metrics commonly used to assess the fitness of a calibration curve fit.</dd></dl>
 <dl class="section user"><dt>References</dt><dd><ul>
 <li>Wheeler, Anthony J., Ganji, Ahmad R., "Introduction to Engineering
-      Experimentation," Third Edition, Prentice Hall. </li>
+      Experimentation," Third Edition, Prentice Hall.</li>
 </ul>
 </dd></dl>
+<dl class="section user"><dt>Example</dt><dd>The following example illustrates the use of a selection of the routines in this module. <div class="fragment"><div class="line"><span class="keyword">program</span> example</div><div class="line">    <span class="keywordtype">use </span>iso_fortran_env</div><div class="line">    <span class="keywordtype">use </span><a class="code" href="namespacecurvefit__calibration.html">curvefit_calibration</a></div><div class="line">    <span class="keywordtype">use </span><a class="code" href="namespacecurvefit__regression.html">curvefit_regression</a><span class="keywordtype">, only</span> : <a class="code" href="interfacecurvefit__regression_1_1linear__least__squares.html">linear_least_squares</a></div><div class="line">    <span class="keywordtype">implicit none</span></div><div class="line"></div><div class="line">    <span class="comment">! Local Variables</span></div><div class="line">    <span class="keywordtype">real(real64)</span>, <span class="keywordtype">parameter</span> :: fullscale = 5.0d2</div><div class="line">    <span class="keywordtype">real(real64)</span>, <span class="keywordtype">dimension(11)</span> :: applied, output, measured, applied_copy</div><div class="line">    <span class="keywordtype">real(real64)</span> :: hyst, gain, nlin</div><div class="line">    <span class="keywordtype">type</span>(<a class="code" href="structcurvefit__calibration_1_1seb__results.html">seb_results</a>) :: s</div><div class="line"></div><div class="line">    <span class="comment">! Initialization</span></div><div class="line">    applied = [0.0d0, 1.0d2, 2.0d2, 3.0d2, 4.0d2, 5.0d2, 4.0d2, 3.0d2, &amp;</div><div class="line">      2.0d2, 1.0d2, 0.0d0]</div><div class="line">    output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &amp;</div><div class="line">      2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]</div><div class="line">    applied_copy = applied</div><div class="line"></div><div class="line">    <span class="comment">! Determine a suitable calibration gain (the least squares routine modifies</span></div><div class="line">    <span class="comment">! applied; hence, the need for the copy)</span></div><div class="line">    gain = <a class="code" href="interfacecurvefit__regression_1_1linear__least__squares.html">linear_least_squares</a>(output, applied_copy)</div><div class="line"></div><div class="line">    <span class="comment">! Apply the calibration gain</span></div><div class="line">    measured = gain * output</div><div class="line"></div><div class="line">    <span class="comment">! Compute the SEB</span></div><div class="line">    s = <a class="code" href="interfacecurvefit__calibration_1_1seb.html">seb</a>(applied, output, fullscale)</div><div class="line"></div><div class="line">    <span class="comment">! Compute the best fit nonlinearity</span></div><div class="line">    nlin = <a class="code" href="interfacecurvefit__calibration_1_1nonlinearity.html">nonlinearity</a>(applied, measured)</div><div class="line"></div><div class="line">    <span class="comment">! Compute the hysteresis</span></div><div class="line">    hyst = <a class="code" href="interfacecurvefit__calibration_1_1hysteresis.html">hysteresis</a>(applied, measured)</div><div class="line"></div><div class="line">    <span class="comment">! Display the results</span></div><div class="line">    print <span class="stringliteral">&#39;(AF9.5)&#39;</span>, <span class="stringliteral">&quot;Calibration Gain: &quot;</span>, gain</div><div class="line">    print <span class="stringliteral">&#39;(AF6.4)&#39;</span>, <span class="stringliteral">&quot;SEB: &quot;</span>, s%seb</div><div class="line">    print <span class="stringliteral">&#39;(AF7.5)&#39;</span>, <span class="stringliteral">&quot;SEB Output: &quot;</span>, s%output</div><div class="line">    print <span class="stringliteral">&#39;(AF7.4)&#39;</span>, <span class="stringliteral">&quot;Best Fit Nonlinearity: &quot;</span>, nlin</div><div class="line">    print <span class="stringliteral">&#39;(AF6.4)&#39;</span>, <span class="stringliteral">&quot;Hysteresis: &quot;</span>, hyst</div><div class="line"><span class="keyword">end program</span></div></div><!-- fragment --> The above program produces the following output. <div class="fragment"><div class="line">Calibration Gain: 178.55935</div><div class="line">SEB: 0.0518</div><div class="line">SEB Output: 2.80010</div><div class="line">Best Fit Nonlinearity: -0.0582</div><div class="line">Hysteresis: 0.0911</div></div><!-- fragment --> </dd></dl>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
 <a class="anchor" id="a89ea5f78c45c018eb6ea44148e4f7d78"></a>
 <div class="memitem">
@@ -239,7 +240,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The nonlinearity error. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00212">212</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00268">268</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -311,7 +312,7 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The hysteresis error.</dd></dl>
 <dl class="section user"><dt>Remarks</dt><dd>In order to account for slight variations between similar ascending and descending points, the algorithm used performs a linear interpolation between data points. The resulting interpolated value is then used to compute the reported hysteresis error. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00354">354</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00410">410</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -369,7 +370,7 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The hysteresis error.</dd></dl>
 <dl class="section user"><dt>Remarks</dt><dd>In order to account for slight variations between similar ascending and descending points, the algorithm used performs a linear interpolation between data points. The resulting interpolated value is then used to compute the reported hysteresis error. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00445">445</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00501">501</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -426,7 +427,7 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The largest magnitude deviation from the initial test.</dd></dl>
 <dl class="section user"><dt>Remarks</dt><dd>Repeatability is considered as the largest magnitude deviation of subsequent tests from the initial test. Noting that it is very likely that consecutive test points will vary slightly, test 2 through test N are linearly interpolated such that their test points line up with those from test 1. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00609">609</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00665">665</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -489,7 +490,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The return to zero error. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00523">523</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00579">579</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -553,7 +554,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The static error band information. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00127">127</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00183">183</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -658,7 +659,7 @@ Functions/Subroutines</h2></td></tr>
    0.97259998321533203
    -9.9999997473787516E-006</pre> </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l01012">1012</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l01068">1068</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -714,7 +715,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The terminal nonlinearity error. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00268">268</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00324">324</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
@@ -876,7 +877,7 @@ Functions/Subroutines</h2></td></tr>
  -0.154274205       4.29E-06</pre> The crosstalk error matrix is then as follows. <pre class="fragment"> 0                  0.981144827
  8.808803389        0</pre> </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00886">886</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__calibration_8f90_source.html#l00942">942</a> of file <a class="el" href="curvefit__calibration_8f90_source.html">curvefit_calibration.f90</a>.</p>
 
 </div>
 </div>
