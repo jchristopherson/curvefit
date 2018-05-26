@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="curvefit_statistics\l::z_value",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$interfacecurvefit__statistics_1_1z__value.html",tooltip="Computes the z-value (z-score) given a percentage of the area under the standard normal distribution ..."];
+}

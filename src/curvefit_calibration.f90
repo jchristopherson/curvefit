@@ -3,13 +3,70 @@
 !> @brief \b curvefit_calibration
 !!
 !! @par Purpose
-!! To provide routines for computing calibration performance metrics commonly 
+!! To provide routines for computing calibration performance metrics commonly
 !! used to assess the fitness of a calibration curve fit.
 !!
 !! @par References
-!! - Wheeler, Anthony J., Ganji, Ahmad R., "Introduction to Engineering 
+!! - Wheeler, Anthony J., Ganji, Ahmad R., "Introduction to Engineering
 !!      Experimentation," Third Edition, Prentice Hall.
+!!
+!! @par Example
+!! The following example illustrates the use of a selection of the routines in
+!! this module.
+!! @code{.f90}
+!! program example
+!!     use iso_fortran_env
+!!     use curvefit_calibration
+!!     use curvefit_regression, only : linear_least_squares
+!!     implicit none
+!!
+!!     ! Local Variables
+!!     real(real64), parameter :: fullscale = 5.0d2
+!!     real(real64), dimension(11) :: applied, output, measured, applied_copy
+!!     real(real64) :: hyst, gain, nlin
+!!     type(seb_results) :: s
+!!
+!!     ! Initialization
+!!     applied = [0.0d0, 1.0d2, 2.0d2, 3.0d2, 4.0d2, 5.0d2, 4.0d2, 3.0d2, &
+!!       2.0d2, 1.0d2, 0.0d0]
+!!     output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
+!!       2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
+!!     applied_copy = applied
+!!
+!!     ! Determine a suitable calibration gain (the least squares routine modifies
+!!     ! applied; hence, the need for the copy)
+!!     gain = linear_least_squares(output, applied_copy)
+!!
+!!     ! Apply the calibration gain
+!!     measured = gain * output
+!!
+!!     ! Compute the SEB
+!!     s = seb(applied, output, fullscale)
+!!
+!!     ! Compute the best fit nonlinearity
+!!     nlin = nonlinearity(applied, measured)
+!!
+!!     ! Compute the hysteresis
+!!     hyst = hysteresis(applied, measured)
+!!
+!!     ! Display the results
+!!     print '(AF9.5)', "Calibration Gain: ", gain
+!!     print '(AF6.4)', "SEB: ", s%seb
+!!     print '(AF7.5)', "SEB Output: ", s%output
+!!     print '(AF7.4)', "Best Fit Nonlinearity: ", nlin
+!!     print '(AF6.4)', "Hysteresis: ", hyst
+!! end program
+!! @endcode
+!! The above program produces the following output.
+!! @code{.txt}
+!! Calibration Gain: 178.55935
+!! SEB: 0.0518
+!! SEB Output: 2.80010
+!! Best Fit Nonlinearity: -0.0582
+!! Hysteresis: 0.0911
+!! @endcode
 module curvefit_calibration
+    use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core
     use ferror, only : errors
     use curvefit_interp, only : linear_interp
@@ -31,11 +88,11 @@ module curvefit_calibration
     !> @brief Defines a container for static error band related information.
     type, bind(C) :: seb_results
         !> The static error band.
-        real(dp) :: seb
+        real(real64) :: seb
         !> The static error band output, at full scale load.
-        real(dp) :: output
+        real(real64) :: output
         !> The slope of the static error band fit.
-        real(dp) :: slope
+        real(real64) :: slope
     end type
 
 ! ******************************************************************************
@@ -43,9 +100,9 @@ module curvefit_calibration
 ! ------------------------------------------------------------------------------
     interface
         function IDAMAX(n, dx, incx)
-            use curvefit_core, only : dp, i32
-            integer(i32), intent(in) :: n, incx
-            real(dp), intent(in) :: dx(n)
+            use iso_fortran_env
+            integer(int32), intent(in) :: n, incx
+            real(real64), intent(in) :: dx(n)
         end function
     end interface
 
@@ -124,18 +181,18 @@ contains
     !! @return The static error band information.
     function seb_1(applied, output, fullscale, err) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: applied, output
-        real(dp), intent(in) :: fullscale
+        real(real64), intent(in), dimension(:) :: applied, output
+        real(real64), intent(in) :: fullscale
         class(errors), intent(out), optional, target :: err
         type(seb_results) :: rst
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, j, npts
-        real(dp), allocatable, dimension(:) :: ratio
-        real(dp) :: arg, s, a, b, t, eps
+        integer(int32) :: i, j, npts
+        real(real64), allocatable, dimension(:) :: ratio
+        real(real64) :: arg, s, a, b, t, eps
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -209,16 +266,16 @@ contains
     !! @return The nonlinearity error.
     function bf_nonlin(applied, measured, err) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: applied, measured
+        real(real64), intent(in), dimension(:) :: applied, measured
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: rst
+        real(real64) :: rst
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, n
-        real(dp) :: e
+        integer(int32) :: i, n
+        real(real64) :: e
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -265,17 +322,17 @@ contains
     !! @return The terminal nonlinearity error.
     function term_nonlin(applied, measured, err) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: applied, measured
+        real(real64), intent(in), dimension(:) :: applied, measured
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: rst
+        real(real64) :: rst
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: factor = 1.0d-2
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: factor = 1.0d-2
 
         ! Local Variables
-        integer(i32) :: i, n, maxIndex, zeroIndex
-        real(dp) :: zeroCheck, slope, e
+        integer(int32) :: i, n, maxIndex, zeroIndex
+        real(real64) :: zeroCheck, slope, e
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -351,17 +408,17 @@ contains
     !! compute the reported hysteresis error.
     function hysteresis_1(xascend, ascend, xdescend, descend, err) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: xascend, ascend, xdescend, descend
+        real(real64), intent(in), dimension(:) :: xascend, ascend, xdescend, descend
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: rst
+        real(real64) :: rst
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, na, nd
-        real(dp) :: delta
-        real(dp), allocatable, dimension(:) :: y
+        integer(int32) :: i, na, nd
+        real(real64) :: delta
+        real(real64), allocatable, dimension(:) :: y
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         type(linear_interp) :: interp
@@ -442,16 +499,16 @@ contains
     !! compute the reported hysteresis error.
     function hysteresis_2(applied, measured, err) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: applied, measured
+        real(real64), intent(in), dimension(:) :: applied, measured
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: rst
+        real(real64) :: rst
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: n, na, nd, flag
-        real(dp), allocatable, dimension(:) :: xa, ya, xd, yd
+        integer(int32) :: n, na, nd, flag
+        real(real64), allocatable, dimension(:) :: xa, ya, xd, yd
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -520,17 +577,17 @@ contains
     !! @return The return to zero error.
     function rtz_1(applied, measured, tol, err) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: applied, measured
-        real(dp), intent(in), optional :: tol
+        real(real64), intent(in), dimension(:) :: applied, measured
+        real(real64), intent(in), optional :: tol
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: rst
+        real(real64) :: rst
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, i1, i2, n
-        real(dp) :: t, eps
+        integer(int32) :: i, i1, i2, n
+        real(real64) :: t, eps
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -599,27 +656,27 @@ contains
     !! @return The largest magnitude deviation from the initial test.
     !!
     !! @par Remarks
-    !! Repeatability is considered as the largest magnitude deviation of 
-    !! subsequent tests from the initial test.  Noting that it is very likely 
-    !! that consecutive test points will vary slightly, test 2 through test N 
-    !! are linearly interpolated such that their test points line up with those 
+    !! Repeatability is considered as the largest magnitude deviation of
+    !! subsequent tests from the initial test.  Noting that it is very likely
+    !! that consecutive test points will vary slightly, test 2 through test N
+    !! are linearly interpolated such that their test points line up with those
     !! from test 1.
     function repeat_1(applied, measured, err) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:,:) :: applied, measured
+        real(real64), intent(in), dimension(:,:) :: applied, measured
         class(errors), intent(inout), optional, target :: err
-        real(dp) :: rst
+        real(real64) :: rst
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, npts, ntests, ip
+        integer(int32) :: i, npts, ntests, ip
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         type(linear_interp) :: interp
         logical :: ascending
-        real(dp), allocatable, dimension(:) :: y
+        real(real64), allocatable, dimension(:) :: y
 
         ! Initialization
         npts = size(applied, 1)
@@ -660,7 +717,7 @@ contains
             end if
         end do
 
-        ! Cycle over each test, and use the initial test (column 1) as the 
+        ! Cycle over each test, and use the initial test (column 1) as the
         ! reference
         do i = 2, ntests
             ! Determine how far subsequent tests move from the initial test
@@ -690,7 +747,7 @@ contains
     !! @param[in] xerr An NPTS-by-NDOF matrix containing the measurement error
     !!  values (computed such that XERR = X MEASURED - X APPLIED).
     !! @param[in] indices A 2*NDOF element array containing row indices defining
-    !!  the rows where each degree-of-freedom was applied in the data set 
+    !!  the rows where each degree-of-freedom was applied in the data set
     !!  @p xerr.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
@@ -788,14 +845,14 @@ contains
     !! @code{.f90}
     !! program main
     !!   ! Parameters
-    !!   integer(i32), parameter :: npts = 34
-    !!   integer(i32), parameter :: ndof = 2
+    !!   integer(int32), parameter :: npts = 34
+    !!   integer(int32), parameter :: ndof = 2
     !!
     !!   ! Local Variables
-    !!   integer(i32) :: indices(2*ndof)
-    !!   real(dp), dimension(npts, ndof) :: xin, xout, xerr, xmeas
-    !!   real(dp), dimension(ndof, npts) :: xint, xmeast
-    !!   real(dp), dimension(ndof, ndof) :: c, ans, xt
+    !!   integer(int32) :: indices(2*ndof)
+    !!   real(real64), dimension(npts, ndof) :: xin, xout, xerr, xmeas
+    !!   real(real64), dimension(ndof, npts) :: xint, xmeast
+    !!   real(real64), dimension(ndof, ndof) :: c, ans, xt
     !!
     !!   ! Initialization
     !!   xin = reshape([0.0, 3000.0, 6000.0, 7500.0, 9000.0, 12000.0, &
@@ -817,7 +874,7 @@ contains
     !!       0.00058, 3.0e-5, 0.0, 0.27156, 0.54329, 0.81507, 1.08682, 1.35881,&
     !!       0.81553, 1.0e-5, 0.0, -0.27145, -0.54312, -0.81493, -1.0868, &
     !!       -1.35879, -0.81548, 0.0], [npts, ndof])
-    !!    
+    !!
     !!   ! Compute the calibration gains
     !!   xint = transpose(xin)
     !!   xmeast = transpose(xout)
@@ -832,7 +889,7 @@ contains
     !!   xt = crosstalk(xerr, indices)
     !! end program
     !! @endcode
-    !! The least squares fit generates the following matrix of calibration 
+    !! The least squares fit generates the following matrix of calibration
     !! gains.
     !! @verbatim
     !! 7713.710427	    33.5206917
@@ -883,16 +940,16 @@ contains
     !! @endverbatim
     function xtalk_1(xerr, indices, err) result(xt)
         ! Arguments
-        real(dp), intent(in), dimension(:,:) :: xerr
-        integer(i32), intent(in), dimension(:) :: indices
-        real(dp), dimension(size(xerr, 2), size(xerr, 2)) :: xt
+        real(real64), intent(in), dimension(:,:) :: xerr
+        integer(int32), intent(in), dimension(:) :: indices
+        real(real64), dimension(size(xerr, 2), size(xerr, 2)) :: xt
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
+        real(real64), parameter :: zero = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, j, n, npts, ndof, first, last, ind
+        integer(int32) :: i, j, n, npts, ndof, first, last, ind
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
 
@@ -920,7 +977,7 @@ contains
                 CF_ARRAY_INDEX_ERROR)
             return
         end if
-        
+
 
         ! Process
         do i = 1, ndof ! Cycle over each DOF
@@ -1009,19 +1066,19 @@ contains
     subroutine split_ascend_descend_1(x, ascend, descend, nascend, ndescend, &
         err)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x
-        real(dp), intent(out), dimension(:) :: ascend, descend
-        integer(i32), intent(out) :: nascend, ndescend
+        real(real64), intent(in), dimension(:) :: x
+        real(real64), intent(out), dimension(:) :: ascend, descend
+        integer(int32), intent(out) :: nascend, ndescend
         class(errors), intent(inout), optional, target :: err
 
         ! Parameters
-        real(dp), parameter :: zero = 0.0d0
-        real(dp), parameter :: tol = 0.5d-2
+        real(real64), parameter :: zero = 0.0d0
+        real(real64), parameter :: tol = 0.5d-2
 
         ! Local Variables
         logical :: is_ascend, check
-        integer(i32) :: i, i1, i2, n
-        real(dp) :: t
+        integer(int32) :: i, i1, i2, n
+        real(real64) :: t
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         character(len = 256) :: errmsg

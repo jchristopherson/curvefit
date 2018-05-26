@@ -1,6 +1,7 @@
 ! curvefit_test_regression.f90
 
 module curvefit_test_regression
+    use iso_fortran_env
     use curvefit_core
     use curvefit_regression
     implicit none
@@ -11,13 +12,13 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: n = 100
-        real(dp), parameter :: maxX = 1.0d0
-        real(dp), parameter :: minX = 0.0d0
+        integer(int32), parameter :: n = 100
+        real(real64), parameter :: maxX = 1.0d0
+        real(real64), parameter :: minX = 0.0d0
 
         ! Local Variables
-        integer(i32) :: i, id
-        real(dp) :: x(n), y(n), yr(n), ys(n), ys2(n), dx
+        integer(int32) :: i, id
+        real(real64) :: x(n), y(n), yr(n), ys(n), ys2(n), dx
         type(lowess_smoothing) :: fit
 
         ! Initialization

@@ -1,15 +1,15 @@
 ! curvefit_interp_example.f90
 
 program example
-    use curvefit_core
+    use iso_fortran_env
     use curvefit_interp
     implicit none
 
     ! Local Variables
-    integer(i32), parameter :: knotpts = 9
-    integer(i32), parameter :: npts = 1000
-    integer(i32) :: i, id
-    real(dp) :: dx, dstart, dend, x(knotpts), y(knotpts), xi(npts), y1(npts), &
+    integer(int32), parameter :: knotpts = 9
+    integer(int32), parameter :: npts = 1000
+    integer(int32) :: i, id
+    real(real64) :: dx, dstart, dend, x(knotpts), y(knotpts), xi(npts), y1(npts), &
         y2(npts), xmin, xmax
     type(spline_interp) :: interp
 

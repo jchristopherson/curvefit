@@ -4,9 +4,7 @@
 !!
 !! @section intro_sec Introduction
 !! CURVEFIT is a library for fitting functions to sets of data.
-!!
-!! @author Jason Christopherson
-!! @version 1.1.0
+!! @image html lowess_example_1.png
 
 !> @brief \b curvefit_core
 !!
@@ -14,13 +12,9 @@
 !! To provide core types and routines for the CURVEFIT library.
 module curvefit_core
     use, intrinsic :: iso_fortran_env, only : int32, real64
-    use nonlin_types, only : NL_ARRAY_SIZE_ERROR, NL_OUT_OF_MEMORY_ERROR, &
-        NL_INVALID_INPUT_ERROR, NL_INVALID_OPERATION_ERROR, &
-        NL_CONVERGENCE_ERROR, NL_TOLERANCE_TOO_SMALL_ERROR
+    use nonlin_constants
     implicit none
     private
-    public :: dp
-    public :: i32
     public :: CF_ARRAY_SIZE_ERROR
     public :: CF_OUT_OF_MEMORY_ERROR
     public :: CF_NO_DATA_DEFINED_ERROR
@@ -34,38 +28,30 @@ module curvefit_core
     public :: reg_fcn
 
 ! ******************************************************************************
-! NUMERIC TYPE CONSTANTS
-! ------------------------------------------------------------------------------
-    !> @brief Defines a double-precision (64-bit) floating-point type.
-    integer, parameter :: dp = real64
-    !> @brief Defines a 32-bit signed integer type.
-    integer, parameter :: i32 = int32
-
-! ******************************************************************************
 ! ERROR FLAGS
 ! ------------------------------------------------------------------------------
     !> An error flag denoting an improperly sized array.
-    integer, parameter :: CF_ARRAY_SIZE_ERROR = NL_ARRAY_SIZE_ERROR
+    integer(int32), parameter :: CF_ARRAY_SIZE_ERROR = NL_ARRAY_SIZE_ERROR
     !> An error denoting that there is insufficient memory available.
-    integer, parameter :: CF_OUT_OF_MEMORY_ERROR = NL_OUT_OF_MEMORY_ERROR
+    integer(int32), parameter :: CF_OUT_OF_MEMORY_ERROR = NL_OUT_OF_MEMORY_ERROR
     !> An error denoting that no data has been defined.
-    integer, parameter :: CF_NO_DATA_DEFINED_ERROR = 300
+    integer(int32), parameter :: CF_NO_DATA_DEFINED_ERROR = 300
     !> An error flag denoting an invalid input.
-    integer, parameter :: CF_INVALID_INPUT_ERROR = NL_INVALID_INPUT_ERROR
+    integer(int32), parameter :: CF_INVALID_INPUT_ERROR = NL_INVALID_INPUT_ERROR
     !> An error flag denoting a non-monotonic array was given when a monotonic
     !! array was expected.
-    integer, parameter :: CF_NONMONOTONIC_ARRAY_ERROR = 301
+    integer(int32), parameter :: CF_NONMONOTONIC_ARRAY_ERROR = 301
     !> An error resulting from an invalid operation.
-    integer, parameter :: CF_INVALID_OPERATION_ERROR = &
+    integer(int32), parameter :: CF_INVALID_OPERATION_ERROR = &
         NL_INVALID_OPERATION_ERROR
     !> An error resulting from a lack of convergence.
-    integer, parameter :: CF_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR
+    integer(int32), parameter :: CF_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR
     !> An error indicating the user-requested tolerance is too small to be
     !! practical for the problem at hand.
-    integer, parameter :: CF_TOLERANCE_TOO_SMALL_ERROR = &
+    integer(int32), parameter :: CF_TOLERANCE_TOO_SMALL_ERROR = &
         NL_TOLERANCE_TOO_SMALL_ERROR
     !> An error indicating an array index was out of bounds.
-    integer, parameter :: CF_ARRAY_INDEX_ERROR = 302
+    integer(int32), parameter :: CF_ARRAY_INDEX_ERROR = 302
 
 ! ******************************************************************************
 ! INTERFACES
@@ -103,11 +89,11 @@ contains
     !! @return Returns true if @p x is monotonic; else, false.
     pure function is_monotonic_dbl(x) result(rst)
         ! Arguments
-        real(dp), intent(in), dimension(:) :: x
+        real(real64), intent(in), dimension(:) :: x
         logical :: rst
 
         ! Process
-        integer(i32) :: i, n
+        integer(int32) :: i, n
         logical :: ascend
         rst = .true.
         n = size(x)
@@ -137,11 +123,11 @@ contains
     !! @return Returns true if @p x is monotonic; else, false.
     pure function is_monotonic_i32(x) result(rst)
         ! Arguments
-        integer(i32), intent(in), dimension(:) :: x
+        integer(int32), intent(in), dimension(:) :: x
         logical :: rst
 
         ! Process
-        integer(i32) :: i, n
+        integer(int32) :: i, n
         logical :: ascend
         rst = .true.
         n = size(x)

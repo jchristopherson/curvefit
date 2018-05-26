@@ -167,8 +167,8 @@ program example
     output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
         2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
     applied_copy = applied
-    
-    ! Determine a suitable calibration gain (the least squares routine modifies 
+
+    ! Determine a suitable calibration gain (the least squares routine modifies
     ! applied; hence, the need for the copy)
     gain = linear_least_squares(output, applied_copy)
 
@@ -207,7 +207,7 @@ For visualization purposes, here is an error plot from the data in the above exa
 This library can be built using CMake.  For instructions on using CMake see [Running CMake](https://cmake.org/runningcmake/).
 
 ## Documentation
-Documentation can be found [here](doc/refman.pdf)
+Documentation can be found [here](http://htmlpreview.github.io/?https://github.com/jchristopherson/curvefit/blob/master/doc/html/index.html).
 
 ## External Libraries
 This library relies upon 3 other libraries.

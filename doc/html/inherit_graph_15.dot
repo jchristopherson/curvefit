@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="curvefit_regression\l::lowess_smoothing",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structcurvefit__regression_1_1lowess__smoothing.html",tooltip="Defines a type for computing a smoothing of an X-Y data set using a robust locally weighted scatterpl..."];
+}

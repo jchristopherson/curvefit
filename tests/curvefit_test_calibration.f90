@@ -1,6 +1,7 @@
 ! curvefit_test_calibration.f90
 
 module curvefit_test_calibration
+    use iso_fortran_env
     use curvefit_core
     use curvefit_calibration
     use curvefit_regression, only : linear_least_squares
@@ -13,13 +14,13 @@ contains
         logical :: rst
 
         ! Parameters
-        real(dp), parameter :: fullscale = 5.0d2
-        real(dp), parameter :: sebout_ans = 2.80010d0
-        real(dp), parameter :: sebpfs_ans = 0.0104d0
-        real(dp), parameter :: tol = 1.0d-4
+        real(real64), parameter :: fullscale = 5.0d2
+        real(real64), parameter :: sebout_ans = 2.80010d0
+        real(real64), parameter :: sebpfs_ans = 0.0104d0
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        real(dp), dimension(11) :: applied, measured
+        real(real64), dimension(11) :: applied, measured
         type(seb_results) :: s
 
         ! Initialization
@@ -28,7 +29,7 @@ contains
             2.0d2, 1.0d2, 0.0d0]
         measured = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
             2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
-        
+
         ! Test
         s = seb(applied, measured, fullscale)
         if (abs(1.0d2 * s%seb / fullscale - sebpfs_ans) > tol) then
@@ -51,12 +52,12 @@ contains
         logical :: rst
 
         ! Parameters
-        real(dp), parameter :: fullscale = 6.0e3
-        real(dp), parameter :: sebpfs_ans = 0.0055d0
-        real(dp), parameter :: tol = 1.0d-4
+        real(real64), parameter :: fullscale = 6.0e3
+        real(real64), parameter :: sebpfs_ans = 0.0055d0
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        real(dp), dimension(8) :: applied, measured
+        real(real64), dimension(8) :: applied, measured
         type(seb_results) :: s
 
         ! Initialization
@@ -83,13 +84,13 @@ contains
         logical :: rst
 
         ! Parameters
-        real(dp), parameter :: ans = -0.062122611d0
-        real(dp), parameter :: slope = 178.5558182d0
-        real(dp), parameter :: tol = 1.0d-4
+        real(real64), parameter :: ans = -0.062122611d0
+        real(real64), parameter :: slope = 178.5558182d0
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        real(dp), dimension(11) :: applied, output, measured
-        real(dp) :: x
+        real(real64), dimension(11) :: applied, output, measured
+        real(real64) :: x
 
         ! Initialization
         rst = .true.
@@ -97,7 +98,7 @@ contains
             2.0d2, 1.0d2, 0.0d0]
         output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
             2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
-        
+
         ! Apply the calibration
         measured = slope * output
 
@@ -118,13 +119,13 @@ contains
         logical :: rst
 
         ! Parameters
-        real(dp), parameter :: ans = -0.073918276d0
-        real(dp), parameter :: slope = 178.5465596d0
-        real(dp), parameter :: tol = 1.0d-4
+        real(real64), parameter :: ans = -0.073918276d0
+        real(real64), parameter :: slope = 178.5465596d0
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        real(dp), dimension(11) :: applied, output, measured
-        real(dp) :: x
+        real(real64), dimension(11) :: applied, output, measured
+        real(real64) :: x
 
         ! Initialization
         rst = .true.
@@ -132,7 +133,7 @@ contains
             2.0d2, 1.0d2, 0.0d0]
         output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
             2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
-        
+
         ! Apply the calibration
         measured = slope * output
 
@@ -153,13 +154,13 @@ contains
         logical :: rst
 
         ! Parameters
-        real(dp), parameter :: ans = 0.091063467d0
-        real(dp), parameter :: slope = 178.5465596d0
-        real(dp), parameter :: tol = 1.0d-4
+        real(real64), parameter :: ans = 0.091063467d0
+        real(real64), parameter :: slope = 178.5465596d0
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        real(dp), dimension(11) :: applied, output, measured
-        real(dp) :: x
+        real(real64), dimension(11) :: applied, output, measured
+        real(real64) :: x
 
         ! Initialization
         rst = .true.
@@ -167,7 +168,7 @@ contains
             2.0d2, 1.0d2, 0.0d0]
         output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
             2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
-        
+
         ! Apply the calibration
         measured = slope * output
 
@@ -188,13 +189,13 @@ contains
         logical :: rst
 
         ! Parameters
-        real(dp), parameter :: ans = 0.010713349d0
-        real(dp), parameter :: slope = 178.5465596d0
-        real(dp), parameter :: tol = 1.0d-4
+        real(real64), parameter :: ans = 0.010713349d0
+        real(real64), parameter :: slope = 178.5465596d0
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        real(dp), dimension(11) :: applied, output, measured
-        real(dp) :: x
+        real(real64), dimension(11) :: applied, output, measured
+        real(real64) :: x
 
         ! Initialization
         rst = .true.
@@ -202,7 +203,7 @@ contains
             2.0d2, 1.0d2, 0.0d0]
         output = [0.0d0, 0.55983d0, 1.11975d0, 1.67982d0, 2.24005d0, &
             2.80039d0, 2.24023d0, 1.68021d0, 1.12026d0, 0.56021d0, 0.00006d0]
-        
+
         ! Apply the calibration
         measured = slope * output
 
@@ -223,15 +224,15 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: npts = 15
-        integer(i32), parameter :: ntests = 3
-        real(dp), parameter :: slope = 2736.031907d0
-        real(dp), parameter :: ans = 0.30096351d0
-        real(dp), parameter :: tol = 1.0d-4
+        integer(int32), parameter :: npts = 15
+        integer(int32), parameter :: ntests = 3
+        real(real64), parameter :: slope = 2736.031907d0
+        real(real64), parameter :: ans = 0.30096351d0
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        real(dp), dimension(npts, ntests) :: applied, output, measured
-        real(dp) :: x
+        real(real64), dimension(npts, ntests) :: applied, output, measured
+        real(real64) :: x
 
         ! Initialization
         rst = .true.
@@ -270,15 +271,15 @@ contains
         logical :: rst
 
         ! Parameters
-        integer(i32), parameter :: npts = 34
-        integer(i32), parameter :: ndof = 2
-        real(dp), parameter :: tol = 1.0d-4
+        integer(int32), parameter :: npts = 34
+        integer(int32), parameter :: ndof = 2
+        real(real64), parameter :: tol = 1.0d-4
 
         ! Local Variables
-        integer(i32) :: indices(2*ndof)
-        real(dp), dimension(npts, ndof) :: xin, xout, xerr, xmeas
-        real(dp), dimension(ndof, npts) :: xint, xmeast
-        real(dp), dimension(ndof, ndof) :: c, ans, xt
+        integer(int32) :: indices(2*ndof)
+        real(real64), dimension(npts, ndof) :: xin, xout, xerr, xmeas
+        real(real64), dimension(ndof, npts) :: xint, xmeast
+        real(real64), dimension(ndof, ndof) :: c, ans, xt
 
         ! Initialization
         rst = .true.
@@ -301,7 +302,7 @@ contains
             0.00058, 3.0e-5, 0.0, 0.27156, 0.54329, 0.81507, 1.08682, 1.35881, &
             0.81553, 1.0e-5, 0.0, -0.27145, -0.54312, -0.81493, -1.0868, &
             -1.35879, -0.81548, 0.0], [npts, ndof])
-        
+
         ! Compute the calibration gains
         xint = transpose(xin)
         xmeast = transpose(xout)
