@@ -5,6 +5,46 @@
 !! @par Purpose
 !! To provide a set of statistical routines for exploring curve fits of sets
 !! of numeric data.
+!!
+!! @par Example
+!! The following example illustrates the computation of a few statistical
+!! quantities.
+!! @code{.f90}
+!! program example
+!!     use iso_fortran_env
+!!     use curvefit_statistics
+!!     implicit none
+!!
+!!     ! Parameters
+!!     integer(int32), parameter :: n = 100
+!!
+!!     ! Variables
+!!     real(real64) :: x(n), avg, md, std, ci
+!!
+!!     ! Generate a random population
+!!     call random_number(x)
+!!
+!!     ! Compute the mean, median, standard deviation, and 95% confidence interval
+!!     ! of the data set
+!!     avg = mean(x)
+!!     md = median(x)
+!!     std = standard_deviation(x)
+!!     ci = confidence_interval(x, 0.95d0)
+!!
+!!     ! Print the output
+!!     print '(AF8.4)', "Mean: ", avg
+!!     print '(AF8.4)', "Median: ", md
+!!     print '(AF8.4)', "Standard Deviation: ", std
+!!     print '(AF8.4)', "95% Confidence Interval: ", ci
+!! end program
+!! @endcode
+!! The above program produces the following output.
+!! @code{.txt}
+!! Mean:   0.4825
+!! Median:   0.4623
+!! Standard Deviation:   0.2837
+!! 95% Confidence Interval:   0.0556
+!! @endcode
 module curvefit_statistics
     use, intrinsic :: iso_fortran_env, only : int32, real64
     use curvefit_core

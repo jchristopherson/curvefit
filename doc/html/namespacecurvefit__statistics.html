@@ -187,7 +187,8 @@ Functions/Subroutines</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><b><a class="el" href="namespacecurvefit__statistics.html" title="curvefit_statistics ">curvefit_statistics</a></b> </p>
-<dl class="section user"><dt>Purpose</dt><dd>To provide a set of statistical routines for exploring curve fits of sets of numeric data. </dd></dl>
+<dl class="section user"><dt>Purpose</dt><dd>To provide a set of statistical routines for exploring curve fits of sets of numeric data.</dd></dl>
+<dl class="section user"><dt>Example</dt><dd>The following example illustrates the computation of a few statistical quantities. <div class="fragment"><div class="line"><span class="keyword">program</span> example</div><div class="line">    <span class="keywordtype">use </span>iso_fortran_env</div><div class="line">    <span class="keywordtype">use </span><a class="code" href="namespacecurvefit__statistics.html">curvefit_statistics</a></div><div class="line">    <span class="keywordtype">implicit none</span></div><div class="line"></div><div class="line">    <span class="comment">! Parameters</span></div><div class="line">    <span class="keywordtype">integer(int32)</span>, <span class="keywordtype">parameter</span> :: n = 100</div><div class="line"></div><div class="line">    <span class="comment">! Variables</span></div><div class="line">    <span class="keywordtype">real(real64)</span> :: x(n), avg, md, std, ci</div><div class="line"></div><div class="line">    <span class="comment">! Generate a random population</span></div><div class="line">    <span class="keyword">call </span>random_number(x)</div><div class="line"></div><div class="line">    <span class="comment">! Compute the mean, median, standard deviation, and 95% confidence interval</span></div><div class="line">    <span class="comment">! of the data set</span></div><div class="line">    avg = <a class="code" href="interfacecurvefit__statistics_1_1mean.html">mean</a>(x)</div><div class="line">    md = <a class="code" href="interfacecurvefit__statistics_1_1median.html">median</a>(x)</div><div class="line">    std = <a class="code" href="interfacecurvefit__statistics_1_1standard__deviation.html">standard_deviation</a>(x)</div><div class="line">    ci = <a class="code" href="interfacecurvefit__statistics_1_1confidence__interval.html">confidence_interval</a>(x, 0.95d0)</div><div class="line"></div><div class="line">    <span class="comment">! Print the output</span></div><div class="line">    print <span class="stringliteral">&#39;(AF8.4)&#39;</span>, <span class="stringliteral">&quot;Mean: &quot;</span>, avg</div><div class="line">    print <span class="stringliteral">&#39;(AF8.4)&#39;</span>, <span class="stringliteral">&quot;Median: &quot;</span>, md</div><div class="line">    print <span class="stringliteral">&#39;(AF8.4)&#39;</span>, <span class="stringliteral">&quot;Standard Deviation: &quot;</span>, std</div><div class="line">    print <span class="stringliteral">&#39;(AF8.4)&#39;</span>, <span class="stringliteral">&quot;95% Confidence Interval: &quot;</span>, ci</div><div class="line"><span class="keyword">end program</span></div></div><!-- fragment --> The above program produces the following output. <div class="fragment"><div class="line">Mean:   0.4825</div><div class="line">Median:   0.4623</div><div class="line">Standard Deviation:   0.2837</div><div class="line">95% Confidence Interval:   0.0556</div></div><!-- fragment --> </dd></dl>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
 <a id="a9908eaf95660708a544acb3f4881a5a8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9908eaf95660708a544acb3f4881a5a8">&#9670;&nbsp;</a></span>conf_int()</h2>
@@ -251,7 +252,7 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The confidence interval as the deviation from the mean.</dd></dl>
 <dl class="section user"><dt>Remarks</dt><dd>The confidence interval, assuming a standard normal distribution, is as follows: mu +/- z * s / sqrt(n), where mu = the mean, and s = the standard deviation. This routine computes the z * s / sqrt(n) portion leaving the computation of the mean to the user. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00468">468</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00508">508</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -309,7 +310,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The 2-by-2 covariance matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00311">311</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00351">351</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -360,7 +361,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The N-by-N covariance matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00375">375</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00415">415</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -424,7 +425,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01122">1122</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01162">1162</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -479,7 +480,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The result. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01188">1188</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01228">1228</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -543,7 +544,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01062">1062</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01102">1102</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -592,7 +593,7 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The incomplete gamma function.</dd></dl>
 <dl class="section user"><dt>Remarks</dt><dd>This implementation is based upon the Numerical Recipes implementation found in section 6.2 of the text (routine: gcf). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01002">1002</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l01042">1042</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -641,7 +642,7 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The incomplete gamma function.</dd></dl>
 <dl class="section user"><dt>Remarks</dt><dd>This implementation is based upon the Numerical Recipes implementation found in section 6.2 of the text (routine: gser). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00954">954</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00994">994</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -700,7 +701,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section user"><dt>Remarks</dt><dd>This implementation is based upon the Numerical Recipes implementation found in section 6.2 of the text (routine: gammp). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00747">747</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00787">787</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -759,7 +760,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section user"><dt>Remarks</dt><dd>This implementation is based upon the Numerical Recipes implementation found in section 6.2 of the text (routine: gammq). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00886">886</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00926">926</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -818,7 +819,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section user"><dt>Remarks</dt><dd>This implementation is based upon the Numerical Recipes implementation found in section 6.2 of the text (routine: gammq). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00823">823</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00863">863</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -877,7 +878,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section user"><dt>Remarks</dt><dd>This implementation is based upon the Numerical Recipes implementation found in section 6.2 of the text (routine: gammp). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00685">685</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00725">725</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -914,7 +915,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The mean of <code>x</code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00184">184</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00224">224</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -962,7 +963,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The median of <code>x</code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00219">219</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00259">259</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -1013,7 +1014,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The z-score or z-value by solving for z where: alpha = ERF(z / sqrt(2)), where ERF is the error function. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00534">534</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00574">574</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -1050,7 +1051,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The standard deviation of <code>x</code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00433">433</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00473">473</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -1108,7 +1109,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The t-socre or t-value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00606">606</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00646">646</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
@@ -1146,7 +1147,7 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The variance of <code>x</code>.</dd></dl>
 <dl class="section user"><dt>Remarks</dt><dd>To avoid overflow-type issues, Welford's algorithm is employed. A simple illustration of this algorithm can be found <a href="https://www.johndcook.com/blog/standard_deviation/">here</a>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00269">269</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="curvefit__statistics_8f90_source.html#l00309">309</a> of file <a class="el" href="curvefit__statistics_8f90_source.html">curvefit_statistics.f90</a>.</p>
 
 </div>
 </div>
