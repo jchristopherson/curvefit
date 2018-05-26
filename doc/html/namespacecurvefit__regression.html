@@ -285,7 +285,7 @@ Functions/Subroutines</h2></td></tr>
 </div>
  </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01316">1316</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01408">1408</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -367,9 +367,159 @@ Functions/Subroutines</h2></td></tr>
  A = pinv(pinv(A) * A) * pinv(B) = A * pinv(A) * pinv(B)
 
  Noting A * pinv(A) = I
- A = pinv(B)</pre> </dd></dl>
+ A = pinv(B)</pre></dd></dl>
+<dl class="section user"><dt>Example</dt><dd>The following example illustrates how to apply the <a class="el" href="interfacecurvefit__regression_1_1linear__least__squares.html" title="Employs a least squares fit to determine the coefficient A in the linear system: Y = A * X...">linear_least_squares</a> solver to a system of multiple inputs and multiple outputs. The data from this example comes from an axial-torsional load cell calibration.</dd></dl>
+<dl class="section user"><dt></dt><dd>The applied load data. <table class="doxtable">
+<tr>
+<th align="center">Axial Load Data: </th><th align="center">Torsional Load Data:  </th></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">3000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">6000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">7500 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">9000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">12000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">15000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">7500 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-3000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-6000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-7500 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-9000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-12000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-15000 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-7500 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">67.7908728 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">135.5817456 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">203.3726184 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">271.1634912 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">338.954364 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">203.3726184 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">-67.7908728 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">-135.5817456 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">-203.3726184 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">-271.1634912 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">-338.954364 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">-203.3726184 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+</table>
+</dd></dl>
+<dl class="section user"><dt></dt><dd>The corresponding bridge data. <table class="doxtable">
+<tr>
+<th align="center">Bridge 1 Output: </th><th align="center">Bridge 2 Output:  </th></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0.38905 </td><td align="center">0.00122 </td></tr>
+<tr>
+<td align="center">0.77816 </td><td align="center">0.00259 </td></tr>
+<tr>
+<td align="center">0.97269 </td><td align="center">0.0029 </td></tr>
+<tr>
+<td align="center">1.16714 </td><td align="center">0.00314 </td></tr>
+<tr>
+<td align="center">1.556 </td><td align="center">0.00338 </td></tr>
+<tr>
+<td align="center">1.94484 </td><td align="center">0.00356 </td></tr>
+<tr>
+<td align="center">0.9726 </td><td align="center">0.00477 </td></tr>
+<tr>
+<td align="center">-0.00001 </td><td align="center">-0.00001 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-0.388886 </td><td align="center">0.00021 </td></tr>
+<tr>
+<td align="center">-0.77775 </td><td align="center">0.00051 </td></tr>
+<tr>
+<td align="center">-0.97215 </td><td align="center">0.00069 </td></tr>
+<tr>
+<td align="center">-1.16654 </td><td align="center">0.00088 </td></tr>
+<tr>
+<td align="center">-1.55533 </td><td align="center">0.0013 </td></tr>
+<tr>
+<td align="center">-1.9441 </td><td align="center">0.00175 </td></tr>
+<tr>
+<td align="center">-0.97171 </td><td align="center">0.00058 </td></tr>
+<tr>
+<td align="center">0.00004 </td><td align="center">0.00003 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">-0.00044 </td><td align="center">0.27156 </td></tr>
+<tr>
+<td align="center">-0.0013 </td><td align="center">0.54329 </td></tr>
+<tr>
+<td align="center">-0.0024 </td><td align="center">0.81507 </td></tr>
+<tr>
+<td align="center">-0.00382 </td><td align="center">1.08682 </td></tr>
+<tr>
+<td align="center">-0.00528 </td><td align="center">1.35881 </td></tr>
+<tr>
+<td align="center">-0.00257 </td><td align="center">0.81553 </td></tr>
+<tr>
+<td align="center">0.00015 </td><td align="center">0.0001 </td></tr>
+<tr>
+<td align="center">0 </td><td align="center">0 </td></tr>
+<tr>
+<td align="center">0.00144 </td><td align="center">-0.27145 </td></tr>
+<tr>
+<td align="center">0.00306 </td><td align="center">-0.54312 </td></tr>
+<tr>
+<td align="center">0.00446 </td><td align="center">-0.81493 </td></tr>
+<tr>
+<td align="center">0.00567 </td><td align="center">-1.0868 </td></tr>
+<tr>
+<td align="center">0.00688 </td><td align="center">-1.35879 </td></tr>
+<tr>
+<td align="center">0.00451 </td><td align="center">-0.81548 </td></tr>
+<tr>
+<td align="center">-0.00002 </td><td align="center">0 </td></tr>
+</table>
+<div class="fragment"><div class="line"><span class="keyword">program</span> example</div><div class="line">    <span class="keywordtype">use </span>iso_fortran_env</div><div class="line">    <span class="keywordtype">use </span><a class="code" href="namespacecurvefit__regression.html">curvefit_regression</a></div><div class="line">    <span class="keywordtype">use </span>fplot_core</div><div class="line">    <span class="keywordtype">implicit none</span></div><div class="line"></div><div class="line">    <span class="comment">! Local Variables</span></div><div class="line">    <span class="keywordtype">integer(int32)</span>, <span class="keywordtype">parameter</span> :: npts = 34</div><div class="line">    <span class="keywordtype">integer(int32)</span>, <span class="keywordtype">parameter</span> :: nchan = 2</div><div class="line">    <span class="keywordtype">real(real64)</span> :: loads(npts, nchan), bridge(npts, nchan), &amp;</div><div class="line">        gain(nchan, nchan), calib(npts, nchan), errs(npts, nchan), &amp;</div><div class="line">        axialfullscale, torquefullscale</div><div class="line">    <span class="keywordtype">type</span>(plot_2d) :: plt</div><div class="line">    <span class="keywordtype">type</span>(plot_data_2d) :: d1, d2</div><div class="line">    <span class="keywordtype">class</span>(plot_axis), <span class="keywordtype">pointer</span> :: xaxis, yaxis</div><div class="line"></div><div class="line">    <span class="comment">! Populate the applied loads matrix</span></div><div class="line">    loads = reshape([0.0d0, 3000.0d0, 6000.0d0, 7500.0d0, 9000.0d0, 12000.0d0, &amp;</div><div class="line">        15000.0d0, 7500.0d0, 0.0d0, 0.0d0, -3000.0d0, -6000.0d0, -7500.0d0, &amp;</div><div class="line">        -9000.0d0, -12000.0d0, -15000.0d0, -7500.0d0, 0.0d0, 0.0d0, 0.0d0, &amp;</div><div class="line">        0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, &amp;</div><div class="line">        0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, &amp;</div><div class="line">        0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, &amp;</div><div class="line">        0.0d0, 0.0d0, 0.0d0, 67.7908728d0, 135.5817456d0, 203.3726184d0, &amp;</div><div class="line">        271.1634912d0, 338.954364d0, 203.3726184d0, 0.0d0, 0.0d0, &amp;</div><div class="line">        -67.7908728d0, -135.5817456d0, -203.3726184d0, -271.1634912d0, &amp;</div><div class="line">        -338.954364d0, -203.3726184d0, 0.0d0], [npts, nchan])</div><div class="line"></div><div class="line">    <span class="comment">! Populate the bridge output (measured) matrix</span></div><div class="line">    bridge = reshape([0.0d0, 0.38905d0, 0.77816d0, 0.97269d0, 1.16714d0, &amp;</div><div class="line">        1.556d0, 1.94484d0, 0.9726d0, -0.00001d0, 0.0d0, -0.388886d0, &amp;</div><div class="line">        -0.77775d0, -0.97215d0, -1.16654d0, -1.55533d0, -1.9441d0, -0.97171d0, &amp;</div><div class="line">        0.00004d0, 0.0d0, -0.00044d0, -0.0013d0, -0.0024d0, -0.00382d0, &amp;</div><div class="line">        -0.00528d0, -0.00257d0, 0.00015d0, 0.0d0, 0.00144d0, 0.00306d0, &amp;</div><div class="line">        0.00446d0, 0.00567d0, 0.00688d0, 0.00451d0, -0.00002d0, 0.0d0, &amp;</div><div class="line">        0.00122d0, 0.00259d0, 0.0029d0, 0.00314d0, 0.00338d0, 0.00356d0, &amp;</div><div class="line">        0.00477d0, -0.00001d0, 0.0d0, 0.00021d0, 0.00051d0, 0.00069d0, &amp;</div><div class="line">        0.00088d0, 0.0013d0, 0.00175d0, 0.00058d0, 0.00003d0, 0.0d0, &amp;</div><div class="line">        0.27156d0, 0.54329d0, 0.81507d0, 1.08682d0, 1.35881d0, 0.81553d0, &amp;</div><div class="line">        0.0001d0, 0.0d0, -0.27145d0, -0.54312d0, -0.81493d0, -1.0868d0, &amp;</div><div class="line">        -1.35879d0, -0.81548d0, 0.0d0], [npts, nchan])</div><div class="line"></div><div class="line">    <span class="comment">! Compute the coefficient matrix.  The transpose operations are necessary as</span></div><div class="line">    <span class="comment">! the data was input in column-major format in the order illustrated in the</span></div><div class="line">    <span class="comment">! comments.  Had the data been input differently, the transpose operations</span></div><div class="line">    <span class="comment">! could have been avoided.</span></div><div class="line">    gain = <a class="code" href="interfacecurvefit__regression_1_1linear__least__squares.html">linear_least_squares</a>(transpose(bridge), transpose(loads))</div><div class="line"></div><div class="line">    <span class="comment">! Apply the matrix.</span></div><div class="line">    calib = matmul(bridge, transpose(gain))</div><div class="line"></div><div class="line">    <span class="comment">! Compute errors in the fit</span></div><div class="line">    errs = calib - loads</div><div class="line"></div><div class="line">    <span class="comment">! Express the errors in terms of percent of full scale</span></div><div class="line">    axialfullscale = maxval(loads(:,1))</div><div class="line">    torquefullscale = maxval(loads(:,2))</div><div class="line">    errs(:,1) = 1.0d2 * errs(:,1) / axialfullscale</div><div class="line">    errs(:,2) = 1.0d2 * errs(:,2) / torquefullscale</div><div class="line"></div><div class="line">    <span class="comment">! Plot the error data vs. index of the applied load</span></div><div class="line">    <span class="keyword">call </span>plt%initialize()</div><div class="line">    <span class="keyword">call </span>plt%set_font_size(14)</div><div class="line"></div><div class="line">    xaxis =&gt; plt%get_x_axis()</div><div class="line">    yaxis =&gt; plt%get_y_axis()</div><div class="line"></div><div class="line">    <span class="keyword">call </span>xaxis%set_title(<span class="stringliteral">&quot;Index&quot;</span>)</div><div class="line">    <span class="keyword">call </span>yaxis%set_title(<span class="stringliteral">&quot;Error [% FS]&quot;</span>)</div><div class="line"></div><div class="line">    <span class="keyword">call </span>d1%set_name(<span class="stringliteral">&quot;Axial&quot;</span>)</div><div class="line">    <span class="keyword">call </span>d1%set_line_color(clr_blue)</div><div class="line">    <span class="keyword">call </span>d1%set_line_width(2.0)</div><div class="line">    <span class="keyword">call </span>d1%set_draw_markers(.true.)</div><div class="line">    <span class="keyword">call </span>d1%set_marker_style(marker_x)</div><div class="line">    <span class="keyword">call </span>d1%define_data(errs(:,1))</div><div class="line"></div><div class="line">    <span class="keyword">call </span>d2%set_name(<span class="stringliteral">&quot;Torsional&quot;</span>)</div><div class="line">    <span class="keyword">call </span>d2%set_line_color(clr_red)</div><div class="line">    <span class="keyword">call </span>d2%set_line_width(2.0)</div><div class="line">    <span class="keyword">call </span>d2%set_draw_markers(.true.)</div><div class="line">    <span class="keyword">call </span>d2%set_marker_style(marker_empty_circle)</div><div class="line">    <span class="keyword">call </span>d2%define_data(errs(:,2))</div><div class="line"></div><div class="line">    <span class="keyword">call </span>plt%push(d1)</div><div class="line">    <span class="keyword">call </span>plt%push(d2)</div><div class="line">    <span class="keyword">call </span>plt%draw()</div><div class="line"><span class="keyword">end program</span></div></div><!-- fragment --> <div class="image">
+<img src="linear_least_squares_mimo_example.png" alt="linear_least_squares_mimo_example.png"/>
+</div>
+ </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01410">1410</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01677">1677</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -457,7 +607,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section user"><dt>Remarks</dt><dd>This routines is an implementation of the LOWESS routine from the LOWESS library. A link to this library, along with a basic description of the algorithm is available <a href="https://en.wikipedia.org/wiki/Local_regression">here</a>. For a detailed understanding of the algorithm, see the <a href="http://www.aliquote.org/cours/2012_biomed/biblio/Cleveland1979.pdf">paper</a> by William Cleveland. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00534">534</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00626">626</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -559,7 +709,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section user"><dt>Remarks</dt><dd>This routines is an implementation of the LOWEST routine from the LOWESS library. A link to this library, along with a basic description of the algorithm is available <a href="https://en.wikipedia.org/wiki/Local_regression">here</a>. For a detailed understanding of the algorithm, see the <a href="http://www.aliquote.org/cours/2012_biomed/biblio/Cleveland1979.pdf">paper</a> by William Cleveland. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00422">422</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00514">514</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -594,7 +744,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The number of data points. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00785">785</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00877">877</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -639,7 +789,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00837">837</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00929">929</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -685,7 +835,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The x component of the requested data point. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00802">802</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00894">894</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -731,7 +881,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The y component of the requested data point. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00820">820</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00912">912</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -801,7 +951,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00649">649</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00741">741</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -858,7 +1008,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The smoothed data points. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00741">741</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00833">833</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -914,7 +1064,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00336">336</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00428">428</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -966,7 +1116,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00938">938</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01030">1030</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1001,7 +1151,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The number of equations. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00973">973</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01065">1065</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1036,7 +1186,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The tolerance value. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01097">1097</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01189">1189</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1071,7 +1221,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The tolerance value. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01141">1141</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01233">1233</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1106,7 +1256,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The maximum number of function evaluations. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01074">1074</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01166">1166</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1141,7 +1291,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The number of data points. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01188">1188</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01280">1280</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1176,7 +1326,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if the iteration status should be printed; else, false. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01164">1164</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01256">1256</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1211,7 +1361,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The number of variables. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00989">989</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01081">1081</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1246,7 +1396,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The tolerance value. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01119">1119</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01211">1211</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1292,7 +1442,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The x component of the requested data point. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01205">1205</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01297">1297</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1338,7 +1488,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The y component of the requested data point. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01223">1223</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01315">1315</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1416,7 +1566,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00874">874</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00966">966</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1451,7 +1601,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns true if the function has been defined; else, false. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l00960">960</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01052">1052</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1496,7 +1646,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01108">1108</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01200">1200</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1541,7 +1691,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The tolerance value. </dd></dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01152">1152</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01244">1244</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1586,7 +1736,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01086">1086</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01178">1178</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1631,7 +1781,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01176">1176</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01268">1268</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1676,7 +1826,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01130">1130</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01222">1222</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
@@ -1750,7 +1900,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01023">1023</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
+<p>Definition at line <a class="el" href="curvefit__regression_8f90_source.html#l01115">1115</a> of file <a class="el" href="curvefit__regression_8f90_source.html">curvefit_regression.f90</a>.</p>
 
 </div>
 </div>
