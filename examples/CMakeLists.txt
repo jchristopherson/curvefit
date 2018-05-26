@@ -47,6 +47,10 @@ target_link_libraries(curvefit_lls_matrix_example curvefit fplot)
 add_executable(curvefit_nonlin_reg_example curvefit_nonlin_reg_example.f90)
 target_link_libraries(curvefit_nonlin_reg_example curvefit fplot)
 
+# Statistics Example #1
+add_executable(curvefit_stats_example_1 curvefit_stats_example_1.f90)
+target_link_libraries(curvefit_stats_example_1 curvefit)
+
 # ------------------------------------------------------------------------------
 if (WIN32)
     # Ensure NONLIN, LINALG, FERROR, and BLAS libraries are copied to the runtime directory

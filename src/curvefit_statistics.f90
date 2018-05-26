@@ -68,6 +68,39 @@ module curvefit_statistics
 ! ------------------------------------------------------------------------------
     !> @brief Computes the z-value (z-score) given a percentage of the area
     !! under the standard normal distribution curve.
+    !!
+    !! @par Example
+    !! The following example illustrates the computation of the Z value
+    !! (standard nomral distribution) and T value (Student's t distribution).
+    !! @code{.f90}
+    !! program example
+    !!     use iso_fortran_env
+    !!     use curvefit_statistics
+    !!
+    !!     ! Compute the T Value for a 95% confidence interval and 20 samples
+    !!     tval20 = t_value(0.95d0, 20)
+    !!     print '(AF8.4)', "95% Confidence Interval T Value (20 samples): ", tval20
+    !!
+    !!     ! Compute the T value for a 95% confidence interval and 30 samples
+    !!     tval30 = t_value(0.95d0, 30)
+    !!     print '(AF8.4)', "95% Confidence Interval T Value (30 samples): ", tval30
+    !!
+    !!     ! Compute the T value for a 95% confidence interval and 40 samples
+    !!     tval40 = t_value(0.95d0, 40)
+    !!     print '(AF8.4)', "95% Confidence Interval T Value (40 samples): ", tval40
+    !!
+    !!     ! Compute the Z Value for a 95% confidence interval
+    !!     zval = z_value(0.95d0)
+    !!     print '(AF8.4)', "95% Confidence Interval Z Value: ", zval
+    !! end program
+    !! @endcode
+    !! The above program produces the following output.
+    !! @code{.txt}
+    !! 95% Confidence Interval T Value (20 samples):   2.0860
+    !! 95% Confidence Interval T Value (30 samples):   2.0423
+    !! 95% Confidence Interval T Value (40 samples):   2.0211
+    !! 95% Confidence Interval Z Value:   1.9600
+    !! @endcode
     interface z_value
         module procedure :: std_norm_dist_z_score
     end interface
@@ -75,6 +108,39 @@ module curvefit_statistics
 ! ------------------------------------------------------------------------------
     !> @brief Computes the t-value (t-score) given a percentage of the area
     !! under the standard normal distribution curve.
+    !!
+    !! @par Example
+    !! The following example illustrates the computation of the Z value
+    !! (standard nomral distribution) and T value (Student's t distribution).
+    !! @code{.f90}
+    !! program example
+    !!     use iso_fortran_env
+    !!     use curvefit_statistics
+    !!
+    !!     ! Compute the T Value for a 95% confidence interval and 20 samples
+    !!     tval20 = t_value(0.95d0, 20)
+    !!     print '(AF8.4)', "95% Confidence Interval T Value (20 samples): ", tval20
+    !!
+    !!     ! Compute the T value for a 95% confidence interval and 30 samples
+    !!     tval30 = t_value(0.95d0, 30)
+    !!     print '(AF8.4)', "95% Confidence Interval T Value (30 samples): ", tval30
+    !!
+    !!     ! Compute the T value for a 95% confidence interval and 40 samples
+    !!     tval40 = t_value(0.95d0, 40)
+    !!     print '(AF8.4)', "95% Confidence Interval T Value (40 samples): ", tval40
+    !!
+    !!     ! Compute the Z Value for a 95% confidence interval
+    !!     zval = z_value(0.95d0)
+    !!     print '(AF8.4)', "95% Confidence Interval Z Value: ", zval
+    !! end program
+    !! @endcode
+    !! The above program produces the following output.
+    !! @code{.txt}
+    !! 95% Confidence Interval T Value (20 samples):   2.0860
+    !! 95% Confidence Interval T Value (30 samples):   2.0423
+    !! 95% Confidence Interval T Value (40 samples):   2.0211
+    !! 95% Confidence Interval Z Value:   1.9600
+    !! @endcode
     interface t_value
         module procedure :: t_dist_score
     end interface
@@ -526,6 +592,7 @@ contains
     !!
     !! @param[in] alpha The percentage of the area under the curve.  This value
     !!  must be between 0 and 1 such that: 0 < alpha < 1.
+    !! @param[in] n The number of samples to consider.
     !! @param[out] err An optional errors-based object that if provided can be
     !!  used to retrieve information relating to any errors encountered during
     !!  execution.  If not provided, a default implementation of the errors
@@ -586,7 +653,7 @@ contains
         function tfun(x) result(f)
             real(real64), intent(in) :: x
             real(real64) :: f, v, xx
-            v = n - 1
+            v = n - 1.0d0
             xx = v / (v + x**2)
             f = alpha - (1 - incomplete_beta(p5 * v, p5, xx))
         end function
